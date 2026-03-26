@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 680" width="680" height="680">
+<rect width="680" height="680" fill="#0d1117"/>
+<!-- 터미널 윈도우 -->
+<rect x="30" y="30" width="620" height="620" rx="12" fill="#1e1e1e" stroke="#333" stroke-width="1.5"/>
+<!-- 타이틀바 -->
+<rect x="30" y="30" width="620" height="36" rx="12" fill="#2d2d2d"/>
+<rect x="30" y="52" width="620" height="14" rx="0" fill="#2d2d2d"/>
+<circle cx="58" cy="48" r="8" fill="#ff5f57"/>
+<circle cx="82" cy="48" r="8" fill="#febc2e"/>
+<circle cx="106" cy="48" r="8" fill="#28c840"/>
+<text x="340" y="52" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#888">Python 3.11  —  train_model.py</text>
+<!-- 코드 본문 -->
+<text x="55" y="95" font-family="'Courier New',monospace" font-size="12" fill="#6a9955"># CNN Image Classifier — TensorFlow</text>
+<text x="55" y="120" font-family="'Courier New',monospace" font-size="12" fill="#c586c0">import</text>
+<text x="110" y="120" font-family="'Courier New',monospace" font-size="12" fill="#9cdcfe"> tensorflow </text>
+<text x="218" y="120" font-family="'Courier New',monospace" font-size="12" fill="#c586c0">as</text>
+<text x="238" y="120" font-family="'Courier New',monospace" font-size="12" fill="#9cdcfe"> tf</text>
+<text x="55" y="143" font-family="'Courier New',monospace" font-size="12" fill="#c586c0">import</text>
+<text x="110" y="143" font-family="'Courier New',monospace" font-size="12" fill="#9cdcfe"> numpy </text>
+<text x="185" y="143" font-family="'Courier New',monospace" font-size="12" fill="#c586c0">as</text>
+<text x="205" y="143" font-family="'Courier New',monospace" font-size="12" fill="#9cdcfe"> np</text>
+<text x="55" y="178" font-family="'Courier New',monospace" font-size="12" fill="#dcdcaa">model</text>
+<text x="115" y="178" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4"> = tf.keras.</text>
+<text x="235" y="178" font-family="'Courier New',monospace" font-size="12" fill="#4ec9b0">Sequential</text>
+<text x="327" y="178" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">([</text>
+<text x="75" y="201" font-family="'Courier New',monospace" font-size="12" fill="#9cdcfe">  tf.keras.layers.</text>
+<text x="225" y="201" font-family="'Courier New',monospace" font-size="12" fill="#4ec9b0">Conv2D</text>
+<text x="285" y="201" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">(32,(3,3),</text>
+<text x="385" y="201" font-family="'Courier New',monospace" font-size="12" fill="#ce9178">activation=</text>
+<text x="475" y="201" font-family="'Courier New',monospace" font-size="12" fill="#ce9178">'relu'</text>
+<text x="519" y="201" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">),</text>
+<text x="75" y="224" font-family="'Courier New',monospace" font-size="12" fill="#9cdcfe">  tf.keras.layers.</text>
+<text x="225" y="224" font-family="'Courier New',monospace" font-size="12" fill="#4ec9b0">MaxPooling2D</text>
+<text x="349" y="224" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">((2,2)),</text>
+<text x="75" y="247" font-family="'Courier New',monospace" font-size="12" fill="#9cdcfe">  tf.keras.layers.</text>
+<text x="225" y="247" font-family="'Courier New',monospace" font-size="12" fill="#4ec9b0">Flatten</text>
+<text x="287" y="247" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">(),</text>
+<text x="75" y="270" font-family="'Courier New',monospace" font-size="12" fill="#9cdcfe">  tf.keras.layers.</text>
+<text x="225" y="270" font-family="'Courier New',monospace" font-size="12" fill="#4ec9b0">Dense</text>
+<text x="275" y="270" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">(128,</text>
+<text x="320" y="270" font-family="'Courier New',monospace" font-size="12" fill="#ce9178">activation=</text>
+<text x="410" y="270" font-family="'Courier New',monospace" font-size="12" fill="#ce9178">'relu'</text>
+<text x="454" y="270" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">),</text>
+<text x="75" y="293" font-family="'Courier New',monospace" font-size="12" fill="#9cdcfe">  tf.keras.layers.</text>
+<text x="225" y="293" font-family="'Courier New',monospace" font-size="12" fill="#4ec9b0">Dense</text>
+<text x="275" y="293" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">(10,</text>
+<text x="312" y="293" font-family="'Courier New',monospace" font-size="12" fill="#ce9178">activation=</text>
+<text x="402" y="293" font-family="'Courier New',monospace" font-size="12" fill="#ce9178">'softmax'</text>
+<text x="470" y="293" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">)</text>
+<text x="55" y="316" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">])</text>
+<text x="55" y="351" font-family="'Courier New',monospace" font-size="12" fill="#dcdcaa">model</text>
+<text x="115" y="351" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">.</text>
+<text x="122" y="351" font-family="'Courier New',monospace" font-size="12" fill="#dcdcaa">compile</text>
+<text x="186" y="351" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">(optimizer=</text>
+<text x="286" y="351" font-family="'Courier New',monospace" font-size="12" fill="#ce9178">'adam'</text>
+<text x="330" y="351" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">, loss=</text>
+<text x="382" y="351" font-family="'Courier New',monospace" font-size="12" fill="#ce9178">'sparse_categorical_crossentropy'</text>
+<text x="55" y="374" font-family="'Courier New',monospace" font-size="12" fill="#dcdcaa">history</text>
+<text x="121" y="374" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4"> = </text>
+<text x="145" y="374" font-family="'Courier New',monospace" font-size="12" fill="#dcdcaa">model</text>
+<text x="205" y="374" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">.</text>
+<text x="212" y="374" font-family="'Courier New',monospace" font-size="12" fill="#dcdcaa">fit</text>
+<text x="235" y="374" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">(x_train, y_train, epochs=</text>
+<text x="440" y="374" font-family="'Courier New',monospace" font-size="12" fill="#b5cea8">10</text>
+<text x="456" y="374" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4">)</text>
+<!-- 구분선 -->
+<line x1="45" y1="400" x2="635" y2="400" stroke="#333" stroke-width="1.5"/>
+<!-- 실행 출력 -->
+<text x="55" y="425" font-family="'Courier New',monospace" font-size="12" fill="#608b4e">Epoch 1/10  1875/1875</text>
+<rect x="278" y="413" width="180" height="14" rx="3" fill="#1e3a1e"/>
+<rect x="278" y="413" width="60" height="14" rx="3" fill="#28a745"/>
+<text x="470" y="425" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4"> loss:0.421 acc:0.872</text>
+<text x="55" y="450" font-family="'Courier New',monospace" font-size="12" fill="#608b4e">Epoch 5/10  1875/1875</text>
+<rect x="278" y="438" width="180" height="14" rx="3" fill="#1e3a1e"/>
+<rect x="278" y="438" width="130" height="14" rx="3" fill="#28a745"/>
+<text x="470" y="450" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4"> loss:0.143 acc:0.951</text>
+<text x="55" y="475" font-family="'Courier New',monospace" font-size="12" fill="#608b4e">Epoch 10/10 1875/1875</text>
+<rect x="278" y="463" width="180" height="14" rx="3" fill="#1e3a1e"/>
+<rect x="278" y="463" width="175" height="14" rx="3" fill="#28a745"/>
+<text x="470" y="475" font-family="'Courier New',monospace" font-size="12" fill="#d4d4d4"> loss:0.048 acc:0.983</text>
+<text x="55" y="510" font-family="'Courier New',monospace" font-size="12" fill="#4caf50">Training complete!</text>
+<text x="55" y="533" font-family="'Courier New',monospace" font-size="12" fill="#569cd6">Model saved to ./model/cnn_classifier.h5</text>
+<rect x="55" y="540" width="3" height="16" fill="#28a745"/>
+<!-- 타이틀 -->
+<text x="340" y="620" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#546e8a">Training a CNN Model — TensorFlow / Python</text>
+</svg>

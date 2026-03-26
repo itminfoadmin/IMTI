@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 680" width="680" height="680">
+<rect width="680" height="680" fill="#111827"/>
+<!-- 헤더 -->
+<rect x="0" y="0" width="680" height="56" fill="#1f2937"/>
+<text x="36" y="34" font-family="sans-serif" font-size="18" fill="#f9fafb" font-weight="bold">AI Model Dashboard</text>
+<rect x="570" y="18" width="90" height="24" rx="12" fill="#065f46"/>
+<circle cx="585" cy="30" r="5" fill="#10b981"/>
+<text x="620" y="34" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6ee7b7">LIVE</text>
+<!-- 지표 카드 4개 -->
+<rect x="20" y="72" width="145" height="80" rx="10" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+<text x="92" y="96" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9ca3af">Accuracy</text>
+<text x="92" y="132" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#10b981" font-weight="bold">97.3%</text>
+
+<rect x="178" y="72" width="145" height="80" rx="10" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+<text x="250" y="96" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9ca3af">Val Loss</text>
+<text x="250" y="132" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#f59e0b" font-weight="bold">0.048</text>
+
+<rect x="336" y="72" width="145" height="80" rx="10" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+<text x="408" y="96" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9ca3af">Epochs</text>
+<text x="408" y="132" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#60a5fa" font-weight="bold">150</text>
+
+<rect x="494" y="72" width="166" height="80" rx="10" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+<text x="577" y="96" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9ca3af">Parameters</text>
+<text x="577" y="132" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#a78bfa" font-weight="bold">14.3M</text>
+
+<!-- 학습 곡선 그래프 -->
+<rect x="20" y="168" width="400" height="260" rx="10" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+<text x="220" y="195" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#d1d5db" font-weight="bold">Training &amp; Validation Loss</text>
+<!-- 축 -->
+<line x1="60" y1="390" x2="400" y2="390" stroke="#374151" stroke-width="1.5"/>
+<line x1="60" y1="215" x2="60" y2="390" stroke="#374151" stroke-width="1.5"/>
+<!-- 그리드 -->
+<line x1="60" y1="330" x2="400" y2="330" stroke="#374151" stroke-width="0.5" stroke-dasharray="4 4"/>
+<line x1="60" y1="275" x2="400" y2="275" stroke="#374151" stroke-width="0.5" stroke-dasharray="4 4"/>
+<line x1="60" y1="220" x2="400" y2="220" stroke="#374151" stroke-width="0.5" stroke-dasharray="4 4"/>
+<!-- Y축 레이블 -->
+<text x="54" y="394" text-anchor="end" font-family="sans-serif" font-size="9" fill="#6b7280">0.0</text>
+<text x="54" y="334" text-anchor="end" font-family="sans-serif" font-size="9" fill="#6b7280">0.5</text>
+<text x="54" y="279" text-anchor="end" font-family="sans-serif" font-size="9" fill="#6b7280">1.0</text>
+<text x="54" y="224" text-anchor="end" font-family="sans-serif" font-size="9" fill="#6b7280">1.5</text>
+<!-- X축 레이블 -->
+<text x="70" y="403" font-family="sans-serif" font-size="9" fill="#6b7280">0</text>
+<text x="147" y="403" font-family="sans-serif" font-size="9" fill="#6b7280">50</text>
+<text x="224" y="403" font-family="sans-serif" font-size="9" fill="#6b7280">100</text>
+<text x="301" y="403" font-family="sans-serif" font-size="9" fill="#6b7280">150</text>
+<!-- Train loss 곡선 (황색) -->
+<path d="M65 225 Q90 230 115 252 Q145 278 175 308 Q205 335 235 355 Q265 370 295 380 Q325 386 355 389 L390 390" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+<!-- Val loss 곡선 (초록) -->
+<path d="M65 232 Q90 240 115 265 Q145 293 175 319 Q205 342 235 360 Q265 373 295 382 Q325 387 355 390 L390 391" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 3"/>
+<!-- 범례 -->
+<line x1="75" y1="415" x2="100" y2="415" stroke="#f59e0b" stroke-width="2.5"/>
+<text x="106" y="419" font-family="sans-serif" font-size="11" fill="#9ca3af">Train loss</text>
+<line x1="185" y1="415" x2="210" y2="415" stroke="#10b981" stroke-width="2" stroke-dasharray="5 3"/>
+<text x="216" y="419" font-family="sans-serif" font-size="11" fill="#9ca3af">Val loss</text>
+
+<!-- 혼동행렬 -->
+<rect x="434" y="168" width="226" height="260" rx="10" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+<text x="547" y="195" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#d1d5db" font-weight="bold">Confusion Matrix</text>
+<!-- 레이블 -->
+<text x="527" y="220" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">Pred +</text>
+<text x="607" y="220" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">Pred −</text>
+<text x="458" y="265" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">Act +</text>
+<text x="458" y="345" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">Act −</text>
+<!-- TP -->
+<rect x="474" y="228" width="90" height="75" rx="6" fill="#064e3b"/>
+<text x="519" y="262" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#10b981" font-weight="bold">487</text>
+<text x="519" y="280" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6ee7b7">TP</text>
+<!-- FP -->
+<rect x="570" y="228" width="80" height="75" rx="6" fill="#7f1d1d"/>
+<text x="610" y="262" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#fca5a5" font-weight="bold">13</text>
+<text x="610" y="280" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#fca5a5">FP</text>
+<!-- FN -->
+<rect x="474" y="309" width="90" height="75" rx="6" fill="#7f1d1d"/>
+<text x="519" y="343" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#fca5a5" font-weight="bold">9</text>
+<text x="519" y="361" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#fca5a5">FN</text>
+<!-- TN -->
+<rect x="570" y="309" width="80" height="75" rx="6" fill="#064e3b"/>
+<text x="610" y="343" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#10b981" font-weight="bold">491</text>
+<text x="610" y="361" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6ee7b7">TN</text>
+
+<!-- Precision / Recall / F1 -->
+<rect x="20" y="444" width="610" height="90" rx="10" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+<text x="335" y="468" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#9ca3af" font-weight="bold">Classification Metrics</text>
+<rect x="40" y="478" width="160" height="40" rx="8" fill="#111827"/>
+<text x="120" y="496" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9ca3af">Precision</text>
+<text x="120" y="512" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#60a5fa" font-weight="bold">97.4%</text>
+<rect x="225" y="478" width="160" height="40" rx="8" fill="#111827"/>
+<text x="305" y="496" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9ca3af">Recall</text>
+<text x="305" y="512" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#10b981" font-weight="bold">98.2%</text>
+<rect x="410" y="478" width="200" height="40" rx="8" fill="#111827"/>
+<text x="510" y="496" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9ca3af">F1 Score</text>
+<text x="510" y="512" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#a78bfa" font-weight="bold">97.8%</text>
+
+<!-- 모델 정보 바 -->
+<rect x="20" y="550" width="610" height="50" rx="10" fill="#111827" stroke="#374151" stroke-width="1"/>
+<text x="50" y="570" font-family="sans-serif" font-size="11" fill="#6b7280">Model:</text>
+<text x="100" y="570" font-family="sans-serif" font-size="11" fill="#e5e7eb">ResNet-50</text>
+<text x="210" y="570" font-family="sans-serif" font-size="11" fill="#6b7280">Dataset:</text>
+<text x="270" y="570" font-family="sans-serif" font-size="11" fill="#e5e7eb">CIFAR-10</text>
+<text x="380" y="570" font-family="sans-serif" font-size="11" fill="#6b7280">Optimizer:</text>
+<text x="450" y="570" font-family="sans-serif" font-size="11" fill="#e5e7eb">Adam lr=0.001</text>
+<text x="50" y="590" font-family="sans-serif" font-size="11" fill="#6b7280">Batch size:</text>
+<text x="120" y="590" font-family="sans-serif" font-size="11" fill="#e5e7eb">64</text>
+<text x="210" y="590" font-family="sans-serif" font-size="11" fill="#6b7280">Framework:</text>
+<text x="285" y="590" font-family="sans-serif" font-size="11" fill="#e5e7eb">TensorFlow 2.12</text>
+<text x="450" y="590" font-family="sans-serif" font-size="11" fill="#6b7280">Hardware:</text>
+<text x="520" y="590" font-family="sans-serif" font-size="11" fill="#e5e7eb">NVIDIA A100</text>
+
+<!-- 타이틀 -->
+<text x="340" y="648" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#4b5563">AI Model Training Dashboard — Metrics &amp; Evaluation</text>
+</svg>
