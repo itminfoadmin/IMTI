@@ -1,8 +1,200 @@
-<body>
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <title>Inventory of Models of Teaching for Informatics</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Noto+Sans+KR:wght@500;700;900&display=swap');
+        
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #ffffff; margin: 0; overflow-x: hidden; }
+        
+        /* 로고 마우스 호버 시 자연스럽게 커지는 효과 */
+        .logo-grow {
+            transition: transform 0.3s ease-in-out; /* 0.3초 동안 부드럽게 */
+            cursor: pointer;
+        }
+        .logo-grow:hover {
+            transform: scale(1.05); /* 5% 확대 */
+        }
+
+        /* 노트북 컨테이너 설정 */
+        .laptop-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1100px; 
+            margin: auto;
+        }
+
+        /* 노트북 화면 영역 좌표 (빨간 박스 영역 최적화) */
+        .screen-area {
+            position: absolute;
+            top: 9.8%;     
+            left: 14.3%;   
+            width: 71.5%;  
+            height: 68.5%; 
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .main-text { 
+            font-size: clamp(1rem, 1.8vw, 1.9rem); 
+            line-height: 1.35; 
+            font-weight: 800; 
+            color: #343a40; 
+            word-break: keep-all;
+            font-family: 'Noto Sans KR', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        .stat-card { background-color: #ced4da; padding: 10px; border-radius: 3px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; border: 1px solid #adb5bd; }
+        .dot.active { background: #6c757d; border-color: #6c757d; }
+    </style>
 </head>
-  <center>
-<iframe width="1250" height="650" src="https://lookerstudio.google.com/embed/reporting/d2269326-bde0-4e7a-bd93-c00ba4ac2c14/page/MeBtF" frameborder="0" style="border:0" allowfullscreen="" sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
-</center>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- 중앙 집중형 메인 컨테이너 -->
+    <div class="flex flex-col lg:flex-row w-full max-w-[1600px] items-center justify-center gap-0">
+        
+        <!-- LEFT: Identity & Login -->
+        <div class="w-full lg:w-[40%] flex flex-col items-end pr-4 text-right self-stretch justify-center relative">
+            
+            <!-- 로고 섹션: 위치 유지 + 자연스러운 확대 효과 추가 -->
+            <div class="transform -translate-y-16 mb-4">
+                <img src="img/logo_index.png" alt="IMTI Brand Identity" class="logo-grow w-full max-w-[460px] h-auto ml-auto">
+            </div>
+
+            <!-- 로그인 섹션: 노트북 방향 밀착 유지 -->
+            <div class="w-full max-w-[340px] transform translate-x-12 mt-4">
+                <div class="flex items-end gap-5 mb-8 justify-end">
+                    <span class="text-[32px] font-bold text-[#495057] tracking-tighter">login ↴</span>
+                    <span class="text-gray-300 text-xl mb-1 font-light italic">or</span>
+                    <button onclick="openModal('modal-join')" class="text-[32px] font-extrabold text-[#495057] underline underline-offset-[10px] decoration-gray-300 hover:text-blue-600 transition-all">[Join]</button>
+                </div>
+                
+                <div class="space-y-6 w-full flex flex-col items-end">
+                    <div class="flex items-baseline w-full border-b-2 border-dotted border-gray-300 pb-1">
+                        <label class="text-lg font-bold text-[#495057] uppercase tracking-tighter mr-4 whitespace-nowrap">e-mail</label>
+                        <input type="text" class="flex-1 bg-transparent outline-none px-2 text-lg text-right font-medium">
+                    </div>
+                    <div class="flex items-baseline w-full border-b-2 border-dotted border-gray-300 pb-1">
+                        <label class="text-lg font-bold text-[#495057] uppercase tracking-tighter mr-4 whitespace-nowrap">P/W</label>
+                        <input type="password" class="flex-1 bg-transparent outline-none px-2 text-lg text-right font-medium">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Laptop Mockup -->
+        <div class="w-full lg:w-[60%] flex justify-start items-center">
+            <div class="laptop-wrapper">
+                <img src="img/laptop.png" alt="Laptop" class="w-full h-auto pointer-events-none">
+                
+                <div class="screen-area shadow-inner">
+                    <!-- Dashboard Header -->
+                    <div class="bg-[#f8f9fa] border-b border-[#dee2e6] px-4 py-2.5 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="arrow-left" class="w-4 h-4 text-gray-400"></i>
+                            <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest">New arrivals</span>
+                        </div>
+                        <i data-lucide="shuffle" class="w-4 h-4 text-gray-300"></i>
+                    </div>
+
+                    <!-- Dashboard Body -->
+                    <div class="flex-1 p-3 flex gap-3 bg-white overflow-hidden">
+                        <div class="w-[62%] bg-[#ced4da] p-6 rounded-sm relative flex flex-col justify-center">
+                            <p class="main-text">
+                                지금까지 연구 및 적용된 정보 교과의 다양한 수업 모형을 탐색하고 여러분의 수업에 활용하여 여러분만의 레퍼토리를 구성하고 새로운 모형을 구상해 보세요!
+                            </p>
+                            <div class="absolute bottom-4 left-6 flex gap-1.5">
+                                <div class="dot active"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+
+                        <div class="w-[38%] flex flex-col gap-3">
+                            <div class="h-[28%] grid grid-cols-2 gap-2.5">
+                                <div class="stat-card">
+                                    <span class="text-[10px] font-bold text-gray-600 leading-tight">Visitor Num,<br>"<span id="visitor-count" class="text-blue-700 text-[13px] font-black">--</span>"</span>
+                                    <i data-lucide="heart" class="w-3 h-3 self-end text-white fill-current"></i>
+                                </div>
+                                <div class="stat-card">
+                                    <span class="text-[10px] font-bold text-gray-600 leading-tight"><span id="update-date" class="block mb-0.5 text-black text-[12px] font-black italic">----/--/--</span>Last Updated</span>
+                                    <i data-lucide="heart" class="w-3 h-3 self-end text-white fill-current"></i>
+                                </div>
+                            </div>
+                            <div class="h-[36%] bg-[#ced4da] rounded-sm p-3 flex flex-col justify-between">
+                                <p class="text-[9.5px] leading-[1.4] text-gray-600 font-bold">This website was developed with the assistance of Google AI Studio and Claude, and its content is provided based on Google Docs/ Sheets/ Looker.</p>
+                                <i data-lucide="heart" class="w-3 h-3 self-end text-white fill-current"></i>
+                            </div>
+                            <div class="h-[36%] grid grid-cols-2 gap-2.5 text-white">
+                                <button onclick="openModal('modal-why')" class="bg-[#adb5bd] rounded-sm p-2 text-[9.5px] font-black text-left flex flex-col justify-between hover:bg-gray-600 transition-all">
+                                    <span>Why was this website (Inventory) created?</span>
+                                    <i data-lucide="heart" class="w-3 h-3 self-end fill-current"></i>
+                                </button>
+                                <div class="bg-[#ced4da] rounded-sm p-2 text-[9.5px] font-black flex flex-col justify-between text-[#495057]">
+                                    <span>Made in<br>IOWA<br><span id="footer-date" class="text-[9px] font-bold opacity-80">2026/03/25</span></span>
+                                    <i data-lucide="heart" class="w-3 h-3 self-end fill-current text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-join" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100] backdrop-blur-md">
+        <div class="bg-white p-10 rounded-2xl shadow-2xl max-w-md w-full mx-4 text-center">
+            <h2 class="text-2xl font-black mb-6 italic text-gray-800">JOIN MEMBERSHIP</h2>
+            <div class="space-y-4 mb-8 text-left">
+                <input type="text" placeholder="Name" class="w-full border-b-2 p-3 outline-none focus:border-blue-500 transition-all">
+                <input type="email" placeholder="Email" class="w-full border-b-2 p-3 outline-none focus:border-blue-500 transition-all">
+            </div>
+            <button onclick="closeModal('modal-join')" class="w-full bg-gray-900 text-white py-3.5 rounded-xl font-bold hover:bg-blue-600 transition-all">SUBMIT</button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const COUNTER_URL = "https://script.google.com/macros/s/AKfycbxP0wKhcBTIw2da_MUjirS1dHPSPIO2PHf6mN5VpigJ26OAioT_UI0y8mAEPt86CS9_/exec";
+        const SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPFMK8hmmhAtMWhvX-lkqHltlxoBLg0PN_DfiLUh9J0fkr9xa9IM2HWLSztdu7zJcl4B7Z8T4oD2qP/pub?output=csv";
+
+        async function runCounter() {
+            try {
+                const res = await fetch(COUNTER_URL);
+                const count = await res.text();
+                document.getElementById('visitor-count').innerText = count.trim();
+            } catch (e) { document.getElementById('visitor-count').innerText = "??"; }
+        }
+
+        async function fetchSheet() {
+            try {
+                const res = await fetch(SHEET_CSV + "?t=" + new Date().getTime());
+                const text = await res.text();
+                const rows = text.split(/\r?\n/).map(row => row.split(','));
+                if (rows.length > 1) {
+                    const dateVal = rows[1][1] ? rows[1][1].trim() : "2026/03/25";
+                    document.getElementById('update-date').innerText = dateVal;
+                    document.getElementById('footer-date').innerText = dateVal;
+                }
+            } catch (e) { console.error("Data Sync Error"); }
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        window.onload = () => { runCounter(); fetchSheet(); };
+    </script>
 </body>
+</html>
