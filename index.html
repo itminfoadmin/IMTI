@@ -125,18 +125,18 @@
             gap: 0;
             margin-bottom: 14px;
         }
-        /* 레이블을 오른쪽 정렬 → ":" 위치 통일 */
         .join-lbl {
             font-family: 'Noto Sans KR', sans-serif;
             font-size: 0.9rem;
             font-weight: 700;
             color: #343a40;
-            width: 80px;
-            min-width: 80px;
+            width: 90px;
+            min-width: 90px;
             text-align: right;
             padding-right: 10px;
             padding-top: 9px;
             flex-shrink: 0;
+            white-space: nowrap;
             box-sizing: border-box;
         }
         .join-input-wrap { flex: 1; position: relative; }
@@ -235,7 +235,8 @@
                         <input type="password" id="login-pw" autocomplete="current-password"
                             style="width:100%; background:transparent; border:none; outline:none; font-size:0.95rem; font-family:'DM Mono',monospace; color:#343a40; text-align:center;"
                             onmouseover="document.getElementById('tooltip-pw').style.opacity='1'; document.getElementById('tooltip-pw').style.visibility='visible';"
-                            onmouseleave="document.getElementById('tooltip-pw').style.opacity='0'; document.getElementById('tooltip-pw').style.visibility='hidden';">
+                            onmouseleave="document.getElementById('tooltip-pw').style.opacity='0'; document.getElementById('tooltip-pw').style.visibility='hidden';"
+                            onkeydown="if(event.key==='Enter') handleLogin()">
                         <div id="tooltip-pw" style="position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); background:#fff; color:#343a40; font-family:'DM Mono',monospace; font-size:0.72rem; padding:5px 12px; border-radius:6px; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.15); opacity:0; visibility:hidden; transition:opacity 0.2s ease; pointer-events:none; z-index:50;">
                             비밀번호를 입력하세요
                             <div style="position:absolute; top:100%; left:50%; transform:translateX(-50%); border:5px solid transparent; border-top-color:#fff;"></div>
@@ -263,8 +264,8 @@
 
                 <p style="margin-top:16px; font-family:'DM Mono',monospace; font-size:0.72rem; color:#adb5bd; line-height:1.6; text-align:center;">
                     For any inquiries, feel free to contact us at<br>
-                    <a href="/cdn-cgi/l/email-protection#0e7a63676068616f6a6367604e69636f6762206d6163" style="color:#6c757d; font-weight:700; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#1a56db'" onmouseout="this.style.color='#6c757d'">
-                        <span class="__cf_email__" data-cfemail="7b0f1612151d141a1f1612153b1c161a121755181416">[email&#160;protected]</span>
+                    <a href="/cdn-cgi/l/email-protection#751c18011c35100d14180519105b161a18" style="color:#6c757d; font-weight:700; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#1a56db'" onmouseout="this.style.color='#6c757d'">
+                        <span class="__cf_email__" data-cfemail="4d242039240d28352c203d2128632e2220">[email&#160;protected]</span>
                     </a>
                 </p>
             </div>
@@ -363,18 +364,13 @@
             <p style="margin:0; color:#6c757d; font-family:'DM Mono',monospace; font-size:0.78rem; line-height:1.7;">The 『Inventory of Models of Teaching for Informatics』 is a website designed to share instructional models for informatics education that have been researched and applied to date. To access and utilize this website properly, user registration is required; to register, you must provide the information requested below(e-mail address). The information you provide will be used solely for the purpose of accessing and using this website and will not be utilized for any other purposes.</p>
         </div>
 
-        <!-- ━━━━ 입력 필드: 레이블 오른쪽 정렬 → ":" 위치 통일 ━━━━ -->
         <div style="margin-bottom:8px;">
-
             <!-- ID -->
             <div class="join-row">
                 <span class="join-lbl">ID :</span>
                 <div class="join-input-wrap" style="position:relative;">
                     <input type="text" id="join-id" placeholder="사용하실 ID를 입력해주세요."
-                        class="join-inp" oninput="checkJoinForm()"
-                        onmouseover="document.getElementById('tip-join-id').style.opacity='1'; document.getElementById('tip-join-id').style.visibility='visible';"
-                        onmouseleave="document.getElementById('tip-join-id').style.opacity='0'; document.getElementById('tip-join-id').style.visibility='hidden';">
-                    <div id="tip-join-id" class="join-tip">사용하실 ID를 입력해주세요.</div>
+                        class="join-inp" oninput="checkJoinForm()">
                 </div>
             </div>
 
@@ -383,22 +379,16 @@
                 <span class="join-lbl">e-mail :</span>
                 <div class="join-input-wrap" style="position:relative;">
                     <input type="email" id="join-email" placeholder="이메일 주소를 입력해주세요."
-                        class="join-inp" oninput="checkJoinForm()"
-                        onmouseover="document.getElementById('tip-join-email').style.opacity='1'; document.getElementById('tip-join-email').style.visibility='visible';"
-                        onmouseleave="document.getElementById('tip-join-email').style.opacity='0'; document.getElementById('tip-join-email').style.visibility='hidden';">
-                    <div id="tip-join-email" class="join-tip">비밀번호 분실시 새 비밀번호가 전달될 e-mail 주소를 입력하세요.</div>
+                        class="join-inp" oninput="checkJoinForm()">
                 </div>
             </div>
 
             <!-- password -->
             <div class="join-row" style="align-items:flex-start;">
-                <span class="join-lbl" style="padding-top:9px;">password :</span>
+                <span class="join-lbl">password :</span>
                 <div class="join-input-wrap" style="position:relative;">
                     <input type="password" id="join-pw" placeholder="사용하실 패스워드를 입력해주세요."
-                        class="join-inp" oninput="checkJoinForm()"
-                        onmouseover="document.getElementById('tip-join-pw').style.opacity='1'; document.getElementById('tip-join-pw').style.visibility='visible';"
-                        onmouseleave="document.getElementById('tip-join-pw').style.opacity='0'; document.getElementById('tip-join-pw').style.visibility='hidden';">
-                    <div id="tip-join-pw" class="join-tip">정상적인 비밀번호를 입력해주세요.</div>
+                        class="join-inp" oninput="checkJoinForm()">
                     <div style="margin-top:5px; font-family:'Noto Sans KR',sans-serif; font-size:0.75rem; color:#e03131;">
                         비밀번호는 영문, 숫자, 특수문자(! @#$% 등)를 포함하여 13자리 이상으로 설정해 주세요.
                     </div>
@@ -406,7 +396,6 @@
             </div>
         </div>
 
-        <!-- 확인 버튼 -->
         <div style="margin-top:22px; text-align:center;">
             <button id="join-confirm-btn" onclick="handleJoinConfirm()" disabled
                 style="background:#e9ecef; color:#adb5bd; border:none; border-radius:8px;
@@ -494,6 +483,31 @@
     </div>
 </div>
 
+<!-- MODAL : Join Success -->
+<div id="modal-join-success" class="modal-overlay" onclick="outsideClose(event,'modal-join-success')">
+    <div class="modal-box" onclick="event.stopPropagation()"
+         style="max-width:500px; padding:40px 40px 36px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.95rem; color:#222; margin:0 0 20px 0; font-weight:400; line-height:2; word-break:keep-all;">
+            <strong>회원 가입에 성공하셨습니다.</strong><br>
+            IMTI가 여러분의 수업 준비에 도움이 되었으면 좋겠습니다!<br>
+            [확인] 버튼을 클릭하시면 로그인되어 인벤토리 사용이 가능합니다.
+        </p>
+        <p style="font-family:'DM Mono',monospace; font-size:0.82rem; color:#444; margin:0 0 32px 0; line-height:1.9;">
+            <strong>You have successfully signed up.</strong><br>
+            We hope IMTI proves helpful in preparing for your classes!<br>
+            Click the [Confirm] button to log in and access your inventory.
+        </p>
+        <button onclick="handleJoinSuccess()"
+            style="background:#f8f8f8; color:#222; border:1.5px solid #bbb; border-radius:6px;
+                   padding:10px 44px; font-family:'Noto Sans KR',sans-serif; font-size:0.92rem;
+                   font-weight:700; cursor:pointer; transition:all 0.2s; letter-spacing:0.03em;"
+            onmouseover="this.style.background='#343a40';this.style.color='#fff';this.style.borderColor='#343a40'"
+            onmouseout="this.style.background='#f8f8f8';this.style.color='#222';this.style.borderColor='#bbb'">
+            확인 (Confirm)
+        </button>
+    </div>
+</div>
+
 <!-- MODAL ② : Admin Login -->
 <div id="modal-admin" class="modal-overlay" onclick="outsideClose(event,'modal-admin')">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -506,7 +520,32 @@
     </div>
 </div>
 
-<!-- MODAL ③ : Why this -->
+<!-- MODAL ③ : Login Failed -->
+<div id="modal-login-fail" class="modal-overlay" onclick="outsideClose(event,'modal-login-fail')">
+    <div class="modal-box" onclick="event.stopPropagation()"
+         style="max-width:500px; padding:36px 36px 32px; text-align:left; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.92rem; color:#222; margin:0 0 18px 0; font-weight:400; line-height:2; word-break:keep-all;">
+            사용자 인증을 하지 못하였습니다.<br>
+            회원인 경우에는 e-mail 주소와 패스워드를 정확히 재입력해주시고,<br>
+            회원가입을 하지 않은 경우에는 회원가입 후에 이용해주세요.
+        </p>
+        <p style="font-family:'DM Mono',monospace; font-size:0.82rem; color:#444; margin:0 0 32px 0; line-height:1.85;">
+            User authentication failed. If you are a registered member, please re-enter your email address and password accurately. If you have not yet registered, please sign up before proceeding.
+        </p>
+        <div style="text-align:center;">
+            <button onclick="closeModal('modal-login-fail')"
+                style="background:#f8f8f8; color:#222; border:1.5px solid #bbb; border-radius:6px;
+                       padding:10px 44px; font-family:'Noto Sans KR',sans-serif; font-size:0.92rem;
+                       font-weight:700; cursor:pointer; transition:all 0.2s; letter-spacing:0.03em;"
+                onmouseover="this.style.background='#343a40';this.style.color='#fff';this.style.borderColor='#343a40'"
+                onmouseout="this.style.background='#f8f8f8';this.style.color='#222';this.style.borderColor='#bbb'">
+                확인 (Confirm)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ④ : Why this -->
 <div id="modal-why" class="modal-overlay" onclick="outsideClose(event,'modal-why')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:520px; padding:36px 40px;">
         <div style="font-size:0.92rem; line-height:1.9; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all;">
@@ -524,8 +563,7 @@
 </div>
 
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     /* ── 슬라이드쇼 ── */
     const slides = [
         'img/Home_card-01.svg','img/Home_card-02.svg','img/Home_card-03.svg',
@@ -602,18 +640,123 @@
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             ['modal-join','modal-admin','modal-why',
+             'modal-login-fail','modal-join-success',
              'modal-join-errID','modal-join-errmail',
              'modal-join-errPasscheck','modal-join-confirm','modal-join-cancel'
             ].forEach(closeModal);
         }
+
+        if (e.key === 'Enter') {
+            // 현재 열려있는 모달 확인 후 해당 확인 버튼 실행
+            if (document.getElementById('modal-join-confirm').classList.contains('open')) {
+                handleJoinFinal();
+            } else if (document.getElementById('modal-join-success').classList.contains('open')) {
+                handleJoinSuccess();
+            } else if (document.getElementById('modal-login-fail').classList.contains('open')) {
+                closeModal('modal-login-fail');
+            } else if (document.getElementById('modal-join-errID').classList.contains('open')) {
+                closeModal('modal-join-errID');
+            } else if (document.getElementById('modal-join-errmail').classList.contains('open')) {
+                closeModal('modal-join-errmail');
+            } else if (document.getElementById('modal-join-errPasscheck').classList.contains('open')) {
+                closeModal('modal-join-errPasscheck');
+            } else if (document.getElementById('modal-join-cancel').classList.contains('open')) {
+                closeModal('modal-join-cancel');
+                closeModal('modal-join-confirm');
+                closeModal('modal-join');
+            } else if (document.getElementById('modal-admin').classList.contains('open')) {
+                handleAdminLogin();
+            } else if (document.getElementById('modal-why').classList.contains('open')) {
+                closeModal('modal-why');
+            } else if (document.getElementById('modal-join').classList.contains('open')) {
+                // 회원가입 폼: 확인 버튼 활성화 상태일 때만 실행
+                const btn = document.getElementById('join-confirm-btn');
+                if (btn && !btn.disabled) handleJoinConfirm();
+            }
+        }
     });
 
-    /* ── 로그인 ── */
-    function handleLogin() {
-        const email = document.getElementById('login-email').value.trim();
-        const pw    = document.getElementById('login-pw').value.trim();
-        if (!email || !pw) { alert('이메일과 비밀번호를 입력해 주세요.'); return; }
-        alert('로그인 시도: ' + email);
+    /* ── 로그인 (구글 시트 검증) ── */
+    // 컬럼: [0]=timestamp  [1]=id  [2]=email  [3]=password
+    const USERS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS6wlxLJwvq3_2bUgqM6dyerVdygxHmvKDNQA9hfLbY4VltOCJHod3XZFCYkvIcZL3EJNQ5BzQkib02/pub?gid=0&single=true&output=csv";
+
+    function showProgress(msg) {
+        const el = document.getElementById('login-progress');
+        const msgEl = document.getElementById('login-progress-msg');
+        if (el)    { el.style.display = 'flex'; }
+        if (msgEl) { msgEl.textContent = msg; }
+    }
+    function hideProgress() {
+        const el = document.getElementById('login-progress');
+        if (el) el.style.display = 'none';
+    }
+    function setProgressMsg(msg) {
+        const msgEl = document.getElementById('login-progress-msg');
+        if (msgEl) msgEl.textContent = msg;
+    }
+
+    async function handleLogin() {
+        const emailEl = document.getElementById('login-email');
+        const pwEl    = document.getElementById('login-pw');
+        const email   = emailEl ? emailEl.value.trim() : '';
+        const pw      = pwEl    ? pwEl.value.trim()    : '';
+
+        // ① 빈 칸이면 즉시 팝업
+        if (!email || !pw) {
+            openModal('modal-login-fail');
+            return;
+        }
+
+        // ② Progress 표시
+        showProgress('Authenticating...');
+
+        // ③ 비밀번호 SHA-256 해시
+        const hashedPw = await sha256(pw);
+
+        // ④ Apps Script에 로그인 검증 요청
+        let responseText = '';
+        try {
+            setProgressMsg('Verifying credentials...');
+            const params = new URLSearchParams({
+                action:   'login',
+                email:    email,
+                password: hashedPw
+            });
+            const url = JOIN_SCRIPT_URL + '?' + params.toString();
+            const res = await fetch(url);
+            responseText = (await res.text()).trim();
+            console.log('Login response:', responseText);
+        } catch (e) {
+            console.error('Login fetch error:', e);
+            hideProgress();
+            openModal('modal-login-fail');
+            return;
+        }
+
+        // ⑤ 응답 처리: "OK:id" (성공) 또는 "FAIL"
+        if (responseText.startsWith('OK')) {
+            const userId = responseText.includes(':')
+                ? responseText.split(':')[1].trim()
+                : email;
+            sessionStorage.setItem('imti_user_id',    userId);
+            sessionStorage.setItem('imti_user_email', email);
+
+            // ⑥ 로그인 기록 전송 후 페이지 이동
+            setProgressMsg('Loading...');
+            try {
+                const logParams = new URLSearchParams({
+                    type:  'login',
+                    id:    userId,
+                    email: email
+                });
+                await fetch(LOG_SHEET_URL + '?' + logParams.toString(), { mode: 'no-cors' });
+            } catch(e) { console.warn('login log error:', e); }
+
+            window.location.href = 'Research_Trends.html';
+        } else {
+            hideProgress();
+            openModal('modal-login-fail');
+        }
     }
 
     /* ── 회원가입 확인 ── */
@@ -622,37 +765,81 @@
         const email = document.getElementById('join-email').value.trim();
         const pw    = document.getElementById('join-pw').value;
 
-        // ID 중복 (실제 서버 연동 시 교체)
         const existingIDs = [];
         if (existingIDs.includes(id)) { openModal('modal-join-errID'); return; }
 
-        // e-mail 중복
         const existingEmails = [];
         if (existingEmails.includes(email)) { openModal('modal-join-errmail'); return; }
 
-        // 패스워드 조건
         if (!isPasswordValid(pw)) { openModal('modal-join-errPasscheck'); return; }
 
-        // 통과 → 확인 팝업 표시
         document.getElementById('confirm-id').textContent    = id;
         document.getElementById('confirm-email').textContent = email;
         window._joinData = { id, email, pw };
         openModal('modal-join-confirm');
     }
 
-    const JOIN_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5mWZdXVFyv4urOalM8DBZxTvVFJreCg1JSyes38HkrfMPwSePLlluGqlOPZ63dpGXGg/exec";
+    const JOIN_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzybJ72nGTleexJvjQRhjudFeQ2n8ejgP5l8ObijAQfD8_TxlcaQqbDRQpEzbTudYI6HQ/exec";
+
+    const LOG_SHEET_URL = "https://script.google.com/macros/s/AKfycbxiU7wMt71Y2NrlpDMvXKYojUSaKlkcy61OfJmoCsJGp7bSjYIngNsrh62S-4t-LM4fXg/exec";
+
+    // 로그인/로그아웃 기록 함수
+    function recordLog(id, email, type) {
+        const params = new URLSearchParams({ type: type, id: id, email: email });
+        const url = LOG_SHEET_URL + '?' + params.toString();
+        // fetch no-cors: 응답은 못 읽지만 전송은 됨
+        fetch(url, { method: 'GET', mode: 'no-cors' })
+            .catch(e => console.warn('recordLog error:', e));
+    }
+
+    // SHA-256 해시 함수 (Web Crypto API)
+    async function sha256(str) {
+        const buf  = await crypto.subtle.digest('SHA-256',
+                        new TextEncoder().encode(str));
+        return Array.from(new Uint8Array(buf))
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join('');
+    }
 
     async function handleJoinFinal() {
-        const { id, email, pw } = window._joinData;
-        try {
-            await fetch(JOIN_SCRIPT_URL, {
-                method: 'POST', mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, email, password: pw })
-            });
-        } catch (e) { console.error('Join save error:', e); }
+        const { id, email, pw } = window._joinData || {};
+        if (!id || !email || !pw) {
+            console.error('joinData missing');
+            return;
+        }
+
+        // 비밀번호만 SHA-256 해시 (이메일은 평문 저장)
+        const hashedPw = await sha256(pw);
+
+        // ── 구글 시트 전송: hidden form + iframe (CORS 완전 우회) ──
+        const form = document.createElement('form');
+        form.method = 'GET';
+        form.action = JOIN_SCRIPT_URL;
+        form.target = 'hidden-iframe';
+
+        const fields = { id: id, email: email, password: hashedPw };
+        Object.entries(fields).forEach(([key, val]) => {
+            const input = document.createElement('input');
+            input.type  = 'hidden';
+            input.name  = key;
+            input.value = val;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        // 모달 닫고 성공 팝업 표시
         closeModal('modal-join-confirm');
         closeModal('modal-join');
+        openModal('modal-join-success');
+    }
+
+    function handleJoinSuccess() {
+        // 가입한 이메일/비밀번호로 자동 로그인 후 이동
+        closeModal('modal-join-success');
+        window.location.href = 'Research_Trends.html';
     }
 
     function handleAdminLogin() {
@@ -694,5 +881,33 @@
         } catch { console.error('Sheet fetch error'); }
     }
 </script>
+<!-- 구글 시트 전송용 hidden iframe -->
+<iframe id="hidden-iframe" name="hidden-iframe" style="display:none;"></iframe>
+
+<!-- 로그인 Progress 오버레이 -->
+<div id="login-progress" style="
+    display:none; position:fixed; inset:0;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(6px);
+    z-index:999;
+    align-items:center; justify-content:center;
+    flex-direction:column; gap:20px;">
+    <div style="position:relative; width:56px; height:56px;">
+        <svg viewBox="0 0 56 56" style="width:56px;height:56px;animation:spin 1s linear infinite;">
+            <circle cx="28" cy="28" r="22" fill="none" stroke="#e9ecef" stroke-width="4"/>
+            <circle cx="28" cy="28" r="22" fill="none" stroke="#343a40" stroke-width="4"
+                stroke-dasharray="35 100" stroke-linecap="round"/>
+        </svg>
+    </div>
+    <div id="login-progress-msg" style="
+        font-family:'DM Mono',monospace; font-size:0.82rem;
+        font-weight:700; letter-spacing:0.12em; text-transform:uppercase;
+        color:#343a40;">Authenticating...</div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
 </body>
 </html>

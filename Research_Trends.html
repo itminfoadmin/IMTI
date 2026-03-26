@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - Research Trends</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gray-lightest: #f8f9fa;
+            --gray-light:    #ced4da;
+            --gray-mid:      #adb5bd;
+            --gray-dark:     #6c757d;
+            --gray-text:     #343a40;
+            --gray-label:    #495057;
+            --accent:        #1a56db;
+            --sidebar-w:     220px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Mono', 'Noto Sans KR', monospace;
+            background: #f4f5f7;
+            color: var(--gray-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ══════════════════════════════
+           TOP NAV
+        ══════════════════════════════ */
+        .topnav {
+            height: 52px;
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+        .topnav-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            font-weight: 900;
+            font-style: italic;
+            color: var(--gray-text);
+            letter-spacing: -0.02em;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+        .topnav-logo span {
+            font-family: 'DM Mono', monospace;
+            font-style: normal;
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--gray-mid);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .topnav-divider {
+            width: 1px; height: 20px;
+            background: #e9ecef;
+            flex-shrink: 0;
+        }
+        .topnav-title {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--gray-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            flex: 1;
+        }
+        .topnav-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .topnav-btn {
+            display: flex; align-items: center; gap: 6px;
+            background: none; border: 1.5px solid #e9ecef;
+            border-radius: 6px; padding: 5px 12px;
+            font-family: 'DM Mono', monospace; font-size: 0.72rem;
+            font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--gray-dark); cursor: pointer;
+            transition: all 0.2s;
+        }
+        .topnav-btn:hover {
+            background: var(--gray-text); color: #fff; border-color: var(--gray-text);
+        }
+        .topnav-btn svg { flex-shrink: 0; }
+
+        /* ══════════════════════════════
+           LAYOUT
+        ══════════════════════════════ */
+        .layout {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* ══════════════════════════════
+           SIDEBAR
+        ══════════════════════════════ */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: #fff;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .sidebar-section {
+            margin-bottom: 8px;
+        }
+        .sidebar-section-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gray-mid);
+            padding: 6px 20px 4px;
+        }
+        .sidebar-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 20px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--gray-label);
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+            text-decoration: none;
+        }
+        .sidebar-item:hover {
+            background: var(--gray-lightest);
+            color: var(--gray-text);
+        }
+        .sidebar-item.active {
+            background: #eef2ff;
+            color: var(--accent);
+            border-left-color: var(--accent);
+            font-weight: 700;
+        }
+        .sidebar-item svg { flex-shrink: 0; opacity: 0.7; }
+        .sidebar-item.active svg { opacity: 1; }
+
+        /* ══════════════════════════════
+           MAIN CONTENT
+        ══════════════════════════════ */
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 36px;
+            min-width: 0;
+        }
+
+        /* 페이지 헤더 */
+        .page-header {
+            margin-bottom: 28px;
+        }
+        .page-header-eyebrow {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gray-mid);
+            margin-bottom: 6px;
+        }
+        .page-header-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            font-style: italic;
+            color: var(--gray-text);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        .page-header-sub {
+            margin-top: 8px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.85rem;
+            color: var(--gray-dark);
+            line-height: 1.6;
+        }
+
+        /* 탭 바 */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 28px;
+        }
+        .tab-btn {
+            background: none; border: none;
+            padding: 10px 18px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem; font-weight: 700;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--gray-mid); cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { color: var(--gray-text); }
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* 카드 그리드 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+            margin-bottom: 32px;
+        }
+
+        .trend-card {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.2s;
+            cursor: pointer;
+        }
+        .trend-card:hover {
+            box-shadow: 0 8px 32px rgba(0,0,0,0.09);
+            transform: translateY(-2px);
+        }
+        .trend-card-top {
+            height: 6px;
+        }
+        .trend-card-body {
+            padding: 18px 20px 20px;
+        }
+        .trend-card-meta {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 10px;
+        }
+        .trend-tag {
+            display: inline-block;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            padding: 2px 8px; border-radius: 20px;
+            background: #f1f3f5; color: var(--gray-dark);
+        }
+        .trend-year {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem; color: var(--gray-mid);
+        }
+        .trend-card-title {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.95rem; font-weight: 700;
+            color: var(--gray-text);
+            line-height: 1.5; margin-bottom: 8px;
+        }
+        .trend-card-desc {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.8rem; color: var(--gray-dark);
+            line-height: 1.7;
+        }
+        .trend-card-footer {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            border-top: 1px solid #f1f3f5;
+            background: var(--gray-lightest);
+        }
+        .trend-card-author {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem; color: var(--gray-mid);
+        }
+        .trend-card-arrow {
+            width: 24px; height: 24px;
+            border-radius: 50%; background: #e9ecef;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .trend-card:hover .trend-card-arrow { background: var(--accent); }
+        .trend-card:hover .trend-card-arrow svg { stroke: #fff; }
+
+        /* 통계 배너 */
+        .stat-banner {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .stat-item {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 18px 20px;
+        }
+        .stat-item-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            color: var(--gray-mid); margin-bottom: 6px;
+        }
+        .stat-item-value {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.6rem; font-weight: 700;
+            color: var(--gray-text); line-height: 1;
+        }
+        .stat-item-sub {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.72rem; color: var(--gray-dark);
+            margin-top: 4px;
+        }
+
+        /* 섹션 헤더 */
+        .section-header {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem; font-weight: 700;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            color: var(--gray-text);
+        }
+        .section-more {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem; font-weight: 700;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--gray-mid); background: none; border: none;
+            cursor: pointer; transition: color 0.2s;
+        }
+        .section-more:hover { color: var(--accent); }
+
+        /* 목록형 아이템 */
+        .list-item {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 14px 18px;
+            display: flex; align-items: flex-start; gap: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: box-shadow 0.15s, border-color 0.15s;
+        }
+        .list-item:hover {
+            border-color: #c5cff8;
+            box-shadow: 0 2px 12px rgba(26,86,219,0.07);
+        }
+        .list-item-num {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem; font-weight: 700;
+            color: var(--gray-mid);
+            min-width: 22px;
+            padding-top: 2px;
+        }
+        .list-item-body { flex: 1; }
+        .list-item-title {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.88rem; font-weight: 700;
+            color: var(--gray-text); margin-bottom: 3px;
+            line-height: 1.45;
+        }
+        .list-item-meta {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem; color: var(--gray-mid);
+        }
+        .list-item-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            padding: 2px 8px; border-radius: 20px;
+            flex-shrink: 0; align-self: flex-start; margin-top: 2px;
+        }
+        .badge-new { background: #d3f9d8; color: #2f9e44; }
+        .badge-hot { background: #ffe8cc; color: #e8590c; }
+        .badge-rec { background: #e7f5ff; color: #1971c2; }
+
+        /* 탭 콘텐츠 */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* 모달 공통 */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 200; backdrop-filter: blur(6px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: #fff; border-radius: 14px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.16);
+            padding: 36px 40px; max-width: 520px;
+            width: calc(100% - 32px); position: relative;
+            animation: modalIn 0.22s cubic-bezier(.34,1.56,.64,1);
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.93) translateY(10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-close {
+            position: absolute; top: 14px; right: 16px;
+            background: none; border: none; cursor: pointer;
+            font-size: 1.3rem; color: var(--gray-mid); transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--gray-text); }
+    </style>
+</head>
+<body>
+
+<!-- ══ TOP NAV ══ -->
+<nav class="topnav">
+    <a href="index.html" class="topnav-logo">
+        IMTI
+        <span>Informatics</span>
+    </a>
+    <div class="topnav-divider"></div>
+    <div class="topnav-title">Research Trends</div>
+    <div class="topnav-right">
+        <button class="topnav-btn" onclick="openModal('modal-search')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Search
+        </button>
+        <button class="topnav-btn" onclick="handleLogout()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Log out
+        </button>
+    </div>
+</nav>
+
+<!-- ══ LAYOUT ══ -->
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">Menu</div>
+            <a class="sidebar-item active" href="Research_Trends.html">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Research Trends
+            </a>
+            <a class="sidebar-item" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Teaching Models
+            </a>
+            <a class="sidebar-item" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                Case Studies
+            </a>
+            <a class="sidebar-item" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Community
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">Categories</div>
+            <a class="sidebar-item" href="#" onclick="filterCategory('AI'); return false;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                AI / Machine Learning
+            </a>
+            <a class="sidebar-item" href="#" onclick="filterCategory('CT'); return false;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                Computational Thinking
+            </a>
+            <a class="sidebar-item" href="#" onclick="filterCategory('SW'); return false;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                SW Education
+            </a>
+            <a class="sidebar-item" href="#" onclick="filterCategory('Data'); return false;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                Data Science
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">My</div>
+            <a class="sidebar-item" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                Bookmarks
+            </a>
+            <a class="sidebar-item" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                My Profile
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- 페이지 헤더 -->
+        <div class="page-header">
+            <div class="page-header-eyebrow">IMTI · Research Trends</div>
+            <div class="page-header-title">Research Trends</div>
+            <div class="page-header-sub">정보 교과 수업 모형 관련 최신 연구 동향을 확인하세요.<br>
+                <span style="font-family:'DM Mono',monospace; font-size:0.78rem; color:#adb5bd;">Browse the latest research trends in informatics teaching models.</span>
+            </div>
+        </div>
+
+        <!-- 통계 배너 -->
+        <div class="stat-banner">
+            <div class="stat-item">
+                <div class="stat-item-label">Total Papers</div>
+                <div class="stat-item-value">248</div>
+                <div class="stat-item-sub">등록된 연구 논문</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">This Year</div>
+                <div class="stat-item-value">37</div>
+                <div class="stat-item-sub">2026년 신규 등록</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">Categories</div>
+                <div class="stat-item-value">12</div>
+                <div class="stat-item-sub">연구 분야</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">Contributors</div>
+                <div class="stat-item-value">64</div>
+                <div class="stat-item-sub">참여 연구자</div>
+            </div>
+        </div>
+
+        <!-- 탭 바 -->
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('latest', this)">Latest</button>
+            <button class="tab-btn" onclick="switchTab('featured', this)">Featured</button>
+            <button class="tab-btn" onclick="switchTab('model', this)">By Model</button>
+            <button class="tab-btn" onclick="switchTab('all', this)">All Papers</button>
+        </div>
+
+        <!-- ── TAB: LATEST ── -->
+        <div id="tab-latest" class="tab-content active">
+            <div class="section-header">
+                <div class="section-title">최신 연구 (Recent Research)</div>
+                <button class="section-more">View all →</button>
+            </div>
+            <div class="card-grid" id="card-grid">
+                <!-- JS로 렌더링 -->
+            </div>
+        </div>
+
+        <!-- ── TAB: FEATURED ── -->
+        <div id="tab-featured" class="tab-content">
+            <div class="section-header">
+                <div class="section-title">주목할 연구 (Featured Research)</div>
+                <button class="section-more">View all →</button>
+            </div>
+            <div class="list-item" onclick="openModal('modal-detail')">
+                <div class="list-item-num">01</div>
+                <div class="list-item-body">
+                    <div class="list-item-title">문제 기반 학습(PBL)을 활용한 알고리즘 수업 모형 연구</div>
+                    <div class="list-item-meta">Kim, J. · 2025 · 컴퓨터교육학회논문지</div>
+                </div>
+                <span class="list-item-badge badge-hot">HOT</span>
+            </div>
+            <div class="list-item">
+                <div class="list-item-num">02</div>
+                <div class="list-item-body">
+                    <div class="list-item-title">초등학교 SW 교육을 위한 언플러그드 활동 설계 원리</div>
+                    <div class="list-item-meta">Lee, S. · 2025 · 정보교육학회논문지</div>
+                </div>
+                <span class="list-item-badge badge-rec">REC</span>
+            </div>
+            <div class="list-item">
+                <div class="list-item-num">03</div>
+                <div class="list-item-body">
+                    <div class="list-item-title">AI 리터러시 함양을 위한 수업 모형 개발 및 적용</div>
+                    <div class="list-item-meta">Park, H. · 2026 · 한국정보교육학회</div>
+                </div>
+                <span class="list-item-badge badge-new">NEW</span>
+            </div>
+            <div class="list-item">
+                <div class="list-item-num">04</div>
+                <div class="list-item-body">
+                    <div class="list-item-title">컴퓨팅 사고력 기반 STEAM 융합 수업 모형 탐색</div>
+                    <div class="list-item-meta">Choi, M. · 2025 · 교육공학연구</div>
+                </div>
+                <span class="list-item-badge badge-rec">REC</span>
+            </div>
+            <div class="list-item">
+                <div class="list-item-num">05</div>
+                <div class="list-item-body">
+                    <div class="list-item-title">데이터 과학 교육을 위한 탐구 학습 모형 적용 사례</div>
+                    <div class="list-item-meta">Yoon, K. · 2026 · 정보처리학회논문지</div>
+                </div>
+                <span class="list-item-badge badge-new">NEW</span>
+            </div>
+        </div>
+
+        <!-- ── TAB: BY MODEL ── -->
+        <div id="tab-model" class="tab-content">
+            <div class="section-header">
+                <div class="section-title">수업 모형별 분류 (By Teaching Model)</div>
+            </div>
+            <div class="card-grid">
+                <div class="trend-card" onclick="openModal('modal-detail')">
+                    <div class="trend-card-top" style="background:#4dabf7;"></div>
+                    <div class="trend-card-body">
+                        <div class="trend-card-meta">
+                            <span class="trend-tag">PBL</span>
+                            <span class="trend-year">32 papers</span>
+                        </div>
+                        <div class="trend-card-title">문제 기반 학습 모형</div>
+                        <div class="trend-card-desc">실제적 문제 상황을 통해 컴퓨팅 사고력을 함양하는 수업 모형 관련 연구.</div>
+                    </div>
+                    <div class="trend-card-footer">
+                        <span class="trend-card-author">Problem-Based Learning</span>
+                        <div class="trend-card-arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="trend-card">
+                    <div class="trend-card-top" style="background:#69db7c;"></div>
+                    <div class="trend-card-body">
+                        <div class="trend-card-meta">
+                            <span class="trend-tag">Unplugged</span>
+                            <span class="trend-year">28 papers</span>
+                        </div>
+                        <div class="trend-card-title">언플러그드 활동 모형</div>
+                        <div class="trend-card-desc">컴퓨터 없이 컴퓨팅 개념을 학습하는 활동 중심 수업 모형 연구.</div>
+                    </div>
+                    <div class="trend-card-footer">
+                        <span class="trend-card-author">Unplugged Activity</span>
+                        <div class="trend-card-arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="trend-card">
+                    <div class="trend-card-top" style="background:#ffa94d;"></div>
+                    <div class="trend-card-body">
+                        <div class="trend-card-meta">
+                            <span class="trend-tag">Project</span>
+                            <span class="trend-year">41 papers</span>
+                        </div>
+                        <div class="trend-card-title">프로젝트 학습 모형</div>
+                        <div class="trend-card-desc">실제 산출물 제작을 통한 창의적 SW 교육 수업 모형 관련 연구.</div>
+                    </div>
+                    <div class="trend-card-footer">
+                        <span class="trend-card-author">Project-Based Learning</span>
+                        <div class="trend-card-arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="trend-card">
+                    <div class="trend-card-top" style="background:#da77f2;"></div>
+                    <div class="trend-card-body">
+                        <div class="trend-card-meta">
+                            <span class="trend-tag">Flipped</span>
+                            <span class="trend-year">19 papers</span>
+                        </div>
+                        <div class="trend-card-title">거꾸로 수업 모형</div>
+                        <div class="trend-card-desc">선행 학습과 교실 활동을 결합한 정보 교과 플립러닝 수업 연구.</div>
+                    </div>
+                    <div class="trend-card-footer">
+                        <span class="trend-card-author">Flipped Learning</span>
+                        <div class="trend-card-arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="trend-card">
+                    <div class="trend-card-top" style="background:#f06595;"></div>
+                    <div class="trend-card-body">
+                        <div class="trend-card-meta">
+                            <span class="trend-tag">Inquiry</span>
+                            <span class="trend-year">24 papers</span>
+                        </div>
+                        <div class="trend-card-title">탐구 학습 모형</div>
+                        <div class="trend-card-desc">데이터 탐색과 문제 해결 과정 중심의 정보 탐구 수업 모형 연구.</div>
+                    </div>
+                    <div class="trend-card-footer">
+                        <span class="trend-card-author">Inquiry-Based Learning</span>
+                        <div class="trend-card-arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="trend-card">
+                    <div class="trend-card-top" style="background:#63e6be;"></div>
+                    <div class="trend-card-body">
+                        <div class="trend-card-meta">
+                            <span class="trend-tag">Direct</span>
+                            <span class="trend-year">38 papers</span>
+                        </div>
+                        <div class="trend-card-title">직접 교수 모형</div>
+                        <div class="trend-card-desc">명시적 설명과 시범을 통한 체계적 정보 기능 수업 모형 연구.</div>
+                    </div>
+                    <div class="trend-card-footer">
+                        <span class="trend-card-author">Direct Instruction</span>
+                        <div class="trend-card-arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB: ALL ── -->
+        <div id="tab-all" class="tab-content">
+            <div class="section-header">
+                <div class="section-title">전체 논문 목록 (All Papers)</div>
+                <button class="section-more">Export →</button>
+            </div>
+            <div id="all-list"><!-- JS로 렌더링 --></div>
+        </div>
+
+    </main>
+</div>
+
+<!-- 논문 상세 모달 -->
+<div id="modal-detail" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-detail')">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal('modal-detail')">&times;</button>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+            <span class="list-item-badge badge-new" style="font-size:0.65rem;">NEW</span>
+            <span style="font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--gray-mid);">2026 · 한국정보교육학회</span>
+        </div>
+        <div style="font-family:'Noto Sans KR',sans-serif; font-size:1.05rem; font-weight:900; color:var(--gray-text); margin-bottom:14px; line-height:1.5;">
+            AI 리터러시 함양을 위한 수업 모형 개발 및 적용
+        </div>
+        <div style="font-family:'DM Mono',monospace; font-size:0.78rem; color:var(--gray-mid); margin-bottom:16px;">
+            Park, H. · 정보교육학회논문지 Vol.30 No.2
+        </div>
+        <div style="font-family:'Noto Sans KR',sans-serif; font-size:0.85rem; color:var(--gray-label); line-height:1.8; margin-bottom:24px;">
+            본 연구는 중학교 정보 교과에서 AI 리터러시 함양을 위한 수업 모형을 개발하고 적용한 결과를 보고한다. 개발된 수업 모형은 AI 이해, AI 활용, AI 윤리의 세 가지 요소를 통합하여 학생들의 AI 리터러시 역량을 체계적으로 함양할 수 있도록 설계되었다.
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px;">
+            <span class="trend-tag">AI Education</span>
+            <span class="trend-tag">AI Literacy</span>
+            <span class="trend-tag">Middle School</span>
+            <span class="trend-tag">Teaching Model</span>
+        </div>
+        <button onclick="closeModal('modal-detail')"
+            style="width:100%; background:var(--gray-text); color:#fff; border:none; border-radius:8px;
+                   padding:12px; font-family:'DM Mono',monospace; font-size:0.8rem; font-weight:700;
+                   letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background 0.2s;"
+            onmouseover="this.style.background='#1a56db'"
+            onmouseout="this.style.background='var(--gray-text)'">
+            닫기 (Close)
+        </button>
+    </div>
+</div>
+
+<!-- 검색 모달 -->
+<div id="modal-search" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-search')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:480px;">
+        <button class="modal-close" onclick="closeModal('modal-search')">&times;</button>
+        <div style="font-family:'DM Mono',monospace; font-size:0.7rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray-mid); margin-bottom:14px;">Search Papers</div>
+        <input type="text" id="search-input" placeholder="키워드를 입력하세요 / Enter keyword..."
+            style="width:100%; border:2px solid #e9ecef; border-radius:8px; padding:12px 16px;
+                   font-family:'Noto Sans KR',sans-serif; font-size:0.9rem; color:var(--gray-text);
+                   outline:none; transition:border-color 0.2s; margin-bottom:14px;"
+            onfocus="this.style.borderColor='#1a56db'"
+            onblur="this.style.borderColor='#e9ecef'"
+            onkeydown="if(event.key==='Enter')doSearch()">
+        <button onclick="doSearch()"
+            style="width:100%; background:var(--gray-text); color:#fff; border:none; border-radius:8px;
+                   padding:12px; font-family:'DM Mono',monospace; font-size:0.8rem; font-weight:700;
+                   letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background 0.2s;"
+            onmouseover="this.style.background='#1a56db'"
+            onmouseout="this.style.background='var(--gray-text)'">
+            Search
+        </button>
+    </div>
+</div>
+
+<script>
+    /* ── 연구 데이터 (샘플) ── */
+    const papers = [
+        { id:1,  title:'AI 리터러시 함양을 위한 수업 모형 개발 및 적용', author:'Park, H.', year:2026, category:'AI',   tag:'AI Education',  badge:'new', desc:'중학교 정보 교과에서 AI 리터러시 역량을 체계적으로 함양하는 수업 모형 개발 연구.' },
+        { id:2,  title:'데이터 과학 교육을 위한 탐구 학습 모형 적용 사례', author:'Yoon, K.', year:2026, category:'Data', tag:'Data Science',   badge:'new', desc:'고등학교 정보 교과에서 데이터 탐색과 분석 중심의 탐구 학습 모형 적용 사례 연구.' },
+        { id:3,  title:'컴퓨팅 사고력 기반 STEAM 융합 수업 모형 탐색', author:'Choi, M.', year:2025, category:'CT',  tag:'CT · STEAM',     badge:'',    desc:'컴퓨팅 사고력과 STEAM을 융합한 수업 모형의 구성 요소 및 설계 원리 탐색.' },
+        { id:4,  title:'문제 기반 학습(PBL)을 활용한 알고리즘 수업 모형', author:'Kim, J.',  year:2025, category:'SW',  tag:'PBL',            badge:'hot', desc:'PBL을 적용한 알고리즘 수업 모형이 문제 해결 능력에 미치는 영향 분석.' },
+        { id:5,  title:'초등학교 SW 교육을 위한 언플러그드 활동 설계 원리', author:'Lee, S.', year:2025, category:'SW',  tag:'Unplugged',      badge:'rec', desc:'초등학교 SW 교육에서 언플러그드 활동의 설계 원리 및 적용 효과 연구.' },
+        { id:6,  title:'블록 기반 프로그래밍 환경에서의 협력 학습 모형', author:'Jung, Y.', year:2024, category:'SW',  tag:'Collaborative',  badge:'',    desc:'Scratch 환경에서 협력 학습 모형을 적용한 프로그래밍 교육 효과 분석.' },
+    ];
+
+    const colorMap = { AI:'#4dabf7', Data:'#63e6be', CT:'#ffa94d', SW:'#da77f2' };
+
+    function renderCards(data) {
+        const grid = document.getElementById('card-grid');
+        if (!grid) return;
+        grid.innerHTML = data.map(p => `
+            <div class="trend-card" onclick="openModal('modal-detail')">
+                <div class="trend-card-top" style="background:${colorMap[p.category]||'#ced4da'};"></div>
+                <div class="trend-card-body">
+                    <div class="trend-card-meta">
+                        <span class="trend-tag">${p.tag}</span>
+                        <span class="trend-year">${p.year}</span>
+                        ${p.badge === 'new' ? '<span class="list-item-badge badge-new">NEW</span>' : ''}
+                        ${p.badge === 'hot' ? '<span class="list-item-badge badge-hot">HOT</span>' : ''}
+                        ${p.badge === 'rec' ? '<span class="list-item-badge badge-rec">REC</span>' : ''}
+                    </div>
+                    <div class="trend-card-title">${p.title}</div>
+                    <div class="trend-card-desc">${p.desc}</div>
+                </div>
+                <div class="trend-card-footer">
+                    <span class="trend-card-author">${p.author}</span>
+                    <div class="trend-card-arrow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </div>
+            </div>`).join('');
+    }
+
+    function renderAllList(data) {
+        const list = document.getElementById('all-list');
+        if (!list) return;
+        list.innerHTML = data.map((p, i) => `
+            <div class="list-item" onclick="openModal('modal-detail')">
+                <div class="list-item-num">${String(i+1).padStart(2,'0')}</div>
+                <div class="list-item-body">
+                    <div class="list-item-title">${p.title}</div>
+                    <div class="list-item-meta">${p.author} · ${p.year} · ${p.tag}</div>
+                </div>
+                ${p.badge === 'new' ? '<span class="list-item-badge badge-new">NEW</span>' : ''}
+                ${p.badge === 'hot' ? '<span class="list-item-badge badge-hot">HOT</span>' : ''}
+                ${p.badge === 'rec' ? '<span class="list-item-badge badge-rec">REC</span>' : ''}
+            </div>`).join('');
+    }
+
+    function filterCategory(cat) {
+        const filtered = papers.filter(p => p.category === cat);
+        renderCards(filtered);
+        // Latest 탭으로 이동
+        switchTab('latest', document.querySelector('.tab-btn'));
+    }
+
+    /* ── 탭 전환 ── */
+    function switchTab(id, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + id).classList.add('active');
+        if (btn) btn.classList.add('active');
+        if (id === 'all') renderAllList(papers);
+    }
+
+    /* ── 검색 ── */
+    function doSearch() {
+        const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
+        closeModal('modal-search');
+        if (!q) { renderCards(papers); return; }
+        const filtered = papers.filter(p =>
+            p.title.toLowerCase().includes(q) ||
+            p.author.toLowerCase().includes(q) ||
+            p.tag.toLowerCase().includes(q) ||
+            p.desc.toLowerCase().includes(q)
+        );
+        renderCards(filtered.length ? filtered : papers);
+        switchTab('latest', document.querySelector('.tab-btn'));
+    }
+
+    /* ── 모달 ── */
+    function openModal(id)  { const el = document.getElementById(id); if (el) el.classList.add('open'); }
+    function closeModal(id) { const el = document.getElementById(id); if (el) el.classList.remove('open'); }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') ['modal-detail','modal-search'].forEach(closeModal);
+    });
+
+    /* ── 로그아웃 ── */
+    const LOG_SHEET_URL = "https://script.google.com/macros/s/AKfycbxiU7wMt71Y2NrlpDMvXKYojUSaKlkcy61OfJmoCsJGp7bSjYIngNsrh62S-4t-LM4fXg/exec";
+
+    function recordLog(id, email, type) {
+        const params = new URLSearchParams({ type: type, id: id, email: email });
+        const url = LOG_SHEET_URL + '?' + params.toString();
+        fetch(url, { method: 'GET', mode: 'no-cors' })
+            .catch(e => console.warn('recordLog error:', e));
+    }
+
+    async function handleLogout() {
+        const userId = sessionStorage.getItem('imti_user_id')    || 'unknown';
+        const email  = sessionStorage.getItem('imti_user_email') || '';
+
+        // 로그아웃 기록 전송 후 이동
+        try {
+            const logParams = new URLSearchParams({
+                type:  'logout',
+                id:    userId,
+                email: email
+            });
+            await fetch(LOG_SHEET_URL + '?' + logParams.toString(), { mode: 'no-cors' });
+        } catch(e) { console.warn('logout log error:', e); }
+
+        sessionStorage.removeItem('imti_user_id');
+        sessionStorage.removeItem('imti_user_email');
+        window.location.href = 'index.html';
+    }
+
+    /* ── 초기화 ── */
+    window.addEventListener('load', () => {
+        renderCards(papers);
+    });
+</script>
+<iframe id="hidden-iframe" name="hidden-iframe" style="display:none;"></iframe>
+
+</body>
+</html>
