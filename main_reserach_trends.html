@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1400, initial-scale=1.0, minimum-scale=0.3, maximum-scale=3.0">
+    <title>IMTI - Research Trends</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* [개선] 기본 폰트 사이즈 스케일링 */
+        html {
+            font-size: calc(14px + (18 - 14) * ((100vw - 1000px) / (1920 - 1000)));
+        }
+        @media (max-width: 1000px) { html { font-size: 13px; } }
+
+        body {
+            font-family: 'Noto Sans KR', 'DM Mono', sans-serif;
+            background: #fff;
+            color: #343a40;
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto auto 0px 1fr; 
+            grid-template-columns: 1fr;
+            transition: grid-template-rows 0.2s ease;
+        }
+        /* 서브탭이 활성화될 때 레이아웃 변경 */
+        body.has-subtab { grid-template-rows: auto auto 2.8rem 1fr; }
+
+        /* ── TOP NAV ── */
+        .topnav {
+            background: #fff;
+            padding: 4vh 5% 1vh 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .logo-area { padding-left: 10%; flex-shrink: 0; }
+        .logo-img { height: 4rem; width: auto; transition: transform 0.3s; cursor: pointer; }
+        .logo-img:hover { transform: scale(1.03); }
+
+        .nav-right-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; padding-right: 10%; }
+        .nav-right-top { display: flex; gap: 15px; align-items: center; }
+        .nav-email { font-family: 'DM Mono'; font-size: 0.85rem; color: #e03131; font-style: italic; font-weight: 700; }
+        .nav-btn { background: none; border: none; cursor: pointer; font-size: 0.8rem; color: #495057; font-family: 'Noto Sans KR'; }
+        .nav-btn:hover { color: #1a56db; text-decoration: underline; }
+
+        .nav-right-bottom { display: flex; gap: 20px; }
+        .nav-menu-item { font-family: 'DM Mono'; font-size: 0.85rem; color: #868e96; text-decoration: none; transition: 0.2s; }
+        .nav-menu-item:hover, .nav-menu-item.active { color: #212529; font-weight: 700; border-bottom: 2px solid #212529; }
+
+        /* ── TAB BAR ── */
+        .tab-bar { display: flex; padding: 0 15%; gap: 4px; margin-top: 3vh; }
+        .tab-btn {
+            flex: 1; padding: 10px 5px; font-size: 0.8rem; border: 1px solid #eee; border-bottom: none;
+            border-radius: 6px 6px 0 0; cursor: pointer; transition: 0.2s; background: #f8f9fa;
+            font-family: 'Noto Sans KR'; font-weight: 500; text-align: center;
+        }
+        .tab-btn.active[data-idx="0"] { background: #d47878; color: #fff; }
+        .tab-btn.active[data-idx="1"] { background: #d49860; color: #fff; }
+        .tab-btn.active[data-idx="2"] { background: #c0b840; color: #fff; }
+        .tab-btn.active[data-idx="3"] { background: #40b878; color: #fff; }
+        .tab-btn.active[data-idx="4"] { background: #4078b8; color: #fff; }
+        .tab-btn.active[data-idx="5"] { background: #7840b8; color: #fff; }
+        .tab-btn.active[data-idx="6"] { background: #b84078; color: #fff; }
+
+        /* ── SUB TAB BAR ── */
+        .subtab-bar { 
+            display: flex; margin: 0 15%; background: #f1f3f5; overflow: hidden; 
+            height: 0; transition: 0.2s; border-radius: 0 0 8px 8px; 
+            border: 1px solid #eee; border-top: none;
+        }
+        body.has-subtab .subtab-bar { height: 2.8rem; }
+        .subtab-btn { flex: 1; border: none; background: none; cursor: pointer; font-size: 0.78rem; transition: 0.2s; font-family: 'Noto Sans KR'; }
+        .subtab-btn.active { background: #fff; font-weight: 700; color: #1a56db; box-shadow: inset 0 -3px 0 #1a56db; }
+        
+        /* [수정] 양방향 화살표 스타일 진하게 변경 */
+        .subtab-divider {
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 15px; 
+            color: #495057; /* 더 진한 색상으로 변경 */
+            font-weight: 700; /* 굵기 추가 */
+            font-size: 1.1rem; 
+            background: #f1f3f5; user-select: none;
+        }
+
+        /* ── IFRAME AREA ── */
+        .iframe-wrap { padding: 20px 15%; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .iframe-inner { width: 100%; flex: 1; background: #fff; border: 1px solid #eee; position: relative; }
+        
+        iframe { width: 100%; height: 100%; border: none; display: block; opacity: 0; transition: opacity 0.5s ease; }
+        iframe.loaded { opacity: 1; }
+
+        .iframe-loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            display: none; flex-direction: column; align-items: center; gap: 10px; z-index: 5;
+        }
+        .iframe-loading.show { display: flex; }
+        .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ── MODALS ── */
+        .modal-bg {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-bg.open { display: flex; }
+        .modal-box { background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-row button { flex: 1; padding: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700; }
+        .btn-confirm { background: #212529; color: #fff; }
+        .btn-cancel { background: #e9ecef; color: #495057; }
+    </style>
+</head>
+<body id="main-body">
+
+<nav class="topnav">
+    <div class="logo-area">
+        <img src="img/logo-main_con.png" alt="IMTI" class="logo-img">
+    </div>
+    <div class="nav-right-wrap">
+        <div class="nav-right-top">
+            <span class="nav-email" id="user-email-display">Guest User</span>
+            <button class="nav-btn" onclick="alert('비밀번호 변경 페이지로 이동합니다.')">비밀번호 변경</button>
+            <button class="nav-btn withdraw" onclick="openModal('modal-withdraw')">회원탈퇴</button>
+            <button class="nav-btn" onclick="openModal('modal-logout')">Log-out</button>
+        </div>
+        <div class="nav-right-bottom">
+            <a class="nav-menu-item" href="main_what_about.html">What's IMTI?</a>
+            <a class="nav-menu-item" href="main_mit_seraching.html">MTI-Searching</a>
+            <a class="nav-menu-item active" href="#">Research-Trends</a>
+            <a class="nav-menu-item" href="mailto:tminfoadmin@gmail.com">Contact Us</a>
+        </div>
+    </div>
+</nav>
+
+<div class="tab-bar" id="tab-bar">
+    <button class="tab-btn active" data-idx="0" onclick="switchTab(0)">연도별 연구 추이</button>
+    <button class="tab-btn" data-idx="1" onclick="switchTab(1)">영역(D)-접근(A)</button>
+    <button class="tab-btn" data-idx="2" onclick="switchTab(2)">영역(D)-역량(C)</button>
+    <button class="tab-btn" data-idx="3" onclick="switchTab(3)">영역(D)-대상(P)</button>
+    <button class="tab-btn" data-idx="4" onclick="switchTab(4)">접근(A)-역량(C)</button>
+    <button class="tab-btn" data-idx="5" onclick="switchTab(5)">접근(A)-대상(P)</button>
+    <button class="tab-btn" data-idx="6" onclick="switchTab(6)">역량(C)-대상(P)</button>
+</div>
+
+<!-- 서브탭 영역 -->
+<div class="subtab-bar" id="subtab-bar">
+    <button class="subtab-btn active" id="subtab-0" onclick="switchSubtab(0)"></button>
+    <span class="subtab-divider">⇔</span>
+    <button class="subtab-btn" id="subtab-1" onclick="switchSubtab(1)"></button>
+</div>
+
+<div class="iframe-wrap">
+    <div class="iframe-inner" id="iframe-container">
+        <div class="iframe-loading show" id="loading-spinner">
+            <div class="spinner"></div>
+            <p style="font-size: 0.8rem; color: #868e96;">데이터를 불러오는 중입니다...</p>
+        </div>
+    </div>
+</div>
+
+<!-- 로그아웃 모달 -->
+<div id="modal-logout" class="modal-bg">
+    <div class="modal-box">
+        <h3 style="font-family: 'DM Mono'">Log-out</h3>
+        <p style="margin: 15px 0; font-size: 0.9rem;">정말 로그아웃 하시겠습니까?</p>
+        <div class="btn-row">
+            <button class="btn-confirm" onclick="doLogout()">확인</button>
+            <button class="btn-cancel" onclick="closeModal('modal-logout')">취소</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TABS = [
+        { 
+            hasSub: false, 
+            src: "https://lookerstudio.google.com/embed/reporting/c0facffe-b79d-450a-95fc-70b3b13c6446/page/page_12345" 
+        },
+        { 
+            hasSub: true, 
+            sub: [
+                { label: "영역(Domain) X 접근(Approach)", src: "https://lookerstudio.google.com/embed/reporting/d2269326-bde0-4e7a-bd93-c00ba4ac2c14/page/MeBtF" },
+                { label: "접근(Approach) X 영역(Domain)", src: "https://lookerstudio.google.com/embed/reporting/105ee6d8-a218-4f6d-91b3-6e6c8b28b8e7/page/MeBtF" }
+            ] 
+        },
+        { 
+            hasSub: true, 
+            sub: [
+                { label: "영역(Domain) X 역량(Competency)", src: "https://lookerstudio.google.com/embed/reporting/0a91e73f-f886-47a0-a855-2a7fed57f6b0/page/MeBtF" },
+                { label: "역량(Competency) X 영역(Domain)", src: "https://lookerstudio.google.com/embed/reporting/4314c93a-99c7-4a4f-895b-468e40c34ab6/page/MeBtF" }
+            ] 
+        },
+        { 
+            hasSub: true, 
+            sub: [
+                { label: "영역(Domain) X 대상(Participants)", src: "https://lookerstudio.google.com/embed/reporting/f4398d71-d837-4f00-916a-303f88c2439a/page/MeBtF" },
+                { label: "대상(Participants) X 영역(Domain)", src: "https://lookerstudio.google.com/embed/reporting/4fb3f289-8072-447c-98b4-18f73886313b/page/MeBtF" }
+            ] 
+        },
+        { 
+            hasSub: true, 
+            sub: [
+                { label: "접근(Approach) X 역량(Competency)", src: "https://lookerstudio.google.com/embed/reporting/28ab2bde-7329-44ac-84d5-783233464148/page/MeBtF" },
+                { label: "역량(Competency) X 접근(Approach)", src: "https://lookerstudio.google.com/embed/reporting/542aeee6-5a1c-46bf-9452-ccd0588f7c0c/page/MeBtF" }
+            ] 
+        },
+        { 
+            hasSub: true, 
+            sub: [
+                { label: "접근(Approach) X 대상(Participants)", src: "https://lookerstudio.google.com/embed/reporting/a856275a-25c1-4a90-a80e-958dbf80035b/page/MeBtF" },
+                { label: "대상(Participants) X 접근(Approach)", src: "https://lookerstudio.google.com/embed/reporting/e786df82-8725-4cfd-b807-0e8776116d18/page/MeBtF" }
+            ] 
+        },
+        { 
+            hasSub: true, 
+            sub: [
+                { label: "역량(Competency) X 대상(Participants)", src: "https://lookerstudio.google.com/embed/reporting/270fef34-c2d3-4757-aa53-74f307c98a52/page/MeBtF" },
+                { label: "대상(Participants) X 역량(Competency)", src: "https://lookerstudio.google.com/embed/reporting/44728534-d4a2-4733-baf4-d594d7713138/page/MeBtF" }
+            ] 
+        }
+    ];
+
+    let currentTabIdx = 0;
+    let currentSubIdx = 0;
+
+    function switchTab(idx) {
+        currentTabIdx = idx;
+        currentSubIdx = 0;
+
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.querySelector(`.tab-btn[data-idx="${idx}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        const tabData = TABS[idx];
+        const body = document.getElementById('main-body');
+
+        if (tabData.hasSub) {
+            body.classList.add('has-subtab');
+            document.getElementById('subtab-0').textContent = tabData.sub[0].label;
+            document.getElementById('subtab-1').textContent = tabData.sub[1].label;
+            switchSubtab(0);
+        } else {
+            body.classList.remove('has-subtab');
+            loadIframe(tabData.src);
+        }
+    }
+
+    function switchSubtab(sIdx) {
+        currentSubIdx = sIdx;
+        document.querySelectorAll('.subtab-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', i === sIdx);
+        });
+        loadIframe(TABS[currentTabIdx].sub[sIdx].src);
+    }
+
+    function loadIframe(src) {
+        const container = document.getElementById('iframe-container');
+        const spinner = document.getElementById('loading-spinner');
+        
+        const oldIframe = container.querySelector('iframe');
+        if (oldIframe) oldIframe.remove();
+        
+        spinner.classList.add('show');
+
+        const newIframe = document.createElement('iframe');
+        newIframe.src = src;
+        newIframe.allowFullscreen = true;
+        newIframe.sandbox = "allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox";
+        
+        newIframe.onload = () => {
+            spinner.classList.remove('show');
+            newIframe.classList.add('loaded');
+        };
+
+        container.appendChild(newIframe);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function doLogout() {
+        sessionStorage.clear();
+        location.href = 'index.html';
+    }
+
+    window.onload = () => {
+        const email = sessionStorage.getItem('imti_user_email') || 'Unknown User';
+        document.getElementById('user-email-display').textContent = email;
+        switchTab(0); 
+    };
+</script>
+
+</body>
+</html>

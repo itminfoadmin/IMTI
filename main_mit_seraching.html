@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.3, maximum-scale=3.0">
+    <title>IMTI - Research Trends</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* [개선] 기본 폰트 사이즈 스케일링 */
+        html {
+            font-size: calc(14px + (18 - 14) * ((100vw - 1000px) / (1920 - 1000)));
+        }
+        @media (max-width: 1000px) { html { font-size: 13px; } }
+
+        body {
+            font-family: 'Noto Sans KR', 'DM Mono', sans-serif;
+            background: #fff;
+            color: #343a40;
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto auto 0px 1fr;
+            grid-template-columns: 1fr;
+            transition: grid-template-rows 0.2s ease;
+        }
+        body.has-subtab { grid-template-rows: auto auto 2.6rem 1fr; }
+
+        /* ── TOP NAV ── */
+        .topnav {
+            background: #fff;
+            padding: 4vh 5% 1vh 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .logo-area { padding-left: 10%; flex-shrink: 0; }
+        .logo-img { height: 4rem; width: auto; transition: transform 0.3s; cursor: pointer; }
+        .logo-img:hover { transform: scale(1.03); }
+
+        .nav-right-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; padding-right: 10%; }
+        .nav-right-top { display: flex; gap: 15px; align-items: center; }
+        .nav-email { font-family: 'DM Mono'; font-size: 0.85rem; color: #e03131; font-style: italic; font-weight: 700; }
+        .nav-btn { background: none; border: none; cursor: pointer; font-size: 0.8rem; color: #495057; }
+        .nav-btn:hover { color: #1a56db; text-decoration: underline; }
+        .nav-btn.withdraw:hover { color: #e03131; }
+
+        .nav-right-bottom { display: flex; gap: 20px; }
+        .nav-menu-item { font-family: 'DM Mono'; font-size: 0.85rem; color: #868e96; text-decoration: none; transition: 0.2s; }
+        .nav-menu-item:hover, .nav-menu-item.active { color: #212529; font-weight: 700; border-bottom: 2px solid #212529; }
+
+        /* ── MODALS ── */
+        .modal-bg {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-bg.open { display: flex; }
+        .modal-box { background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-row button { flex: 1; padding: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700; }
+        .btn-confirm { background: #212529; color: #fff; }
+        .btn-cancel { background: #e9ecef; color: #495057; }
+    </style>
+</head>
+<body id="main-body">
+
+<nav class="topnav">
+    <div class="logo-area">
+        <img src="img/logo-main_con.png" alt="IMTI" class="logo-img">
+    </div>
+    <div class="nav-right-wrap">
+        <div class="nav-right-top">
+            <span class="nav-email" id="user-email-display">Loading...</span>
+            <button class="nav-btn" onclick="alert('비밀번호 변경 페이지로 이동합니다.')">비밀번호 변경</button>
+            <button class="nav-btn withdraw" onclick="openModal('modal-withdraw')">회원탈퇴</button>
+            <button class="nav-btn" onclick="openModal('modal-logout')">Log-out</button>
+        </div>
+        <div class="nav-right-bottom">
+            <a class="nav-menu-item" href="main_what_about.html">What's IMTI?</a>
+            <a class="nav-menu-item active" href="#">MTI-Searching</a>
+            <a class="nav-menu-item" href="main_reserach_trends.html">Research-Trends</a>
+            <a class="nav-menu-item" href="mailto:tminfoadmin@gmail.com">Contact Us</a>
+        </div>
+    </div>
+</nav>
+
+<center>
+<br><br><br>
+MTI-Searching page
+</center>
+
+<!-- 로그아웃 모달 -->
+<div id="modal-logout" class="modal-bg">
+    <div class="modal-box">
+        <h3 style="font-family: 'DM Mono'">Log-out</h3>
+        <p style="margin: 15px 0; font-size: 0.9rem;">정말 로그아웃 하시겠습니까?</p>
+        <div class="btn-row">
+            <button class="btn-confirm" onclick="doLogout()">확인</button>
+            <button class="btn-cancel" onclick="closeModal('modal-logout')">취소</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function doLogout() {
+        sessionStorage.clear();
+        location.href = 'index.html';
+    }
+
+    window.onload = () => {
+        const email = sessionStorage.getItem('imti_user_email') || 'Unknown User';
+        document.getElementById('user-email-display').textContent = email;
+        switchTab(0); 
+    };
+</script>
+</body>
+</html>

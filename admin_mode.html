@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - Admin Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --gray-text: #343a40; --gray-mid: #adb5bd; --gray-dark: #6c757d; --accent: #1a56db; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Mono', 'Noto Sans KR', monospace; background: #fff; min-height: 100vh; display: flex; flex-direction: column; }
+        .topnav { height: 56px; background: #fff; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; padding: 0 28px; position: sticky; top: 0; z-index: 100; }
+        .topnav-logo-area { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .topnav-logo-img { height: 32px; }
+        .topnav-logo-text { font-family: 'Playfair Display', serif; font-size: 0.95rem; color: var(--gray-text); }
+        .topnav-menu { display: flex; flex: 1; }
+        .topnav-menu-item { font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 700; color: var(--gray-dark); text-decoration: none; padding: 0 14px; height: 56px; display: flex; align-items: center; }
+        .main { flex: 1; margin: 24px; border: 1px dashed #ccc; padding: 36px; }
+        .main-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+        .admin-menu-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; cursor: pointer; text-decoration: none; color: var(--gray-text); }
+        .admin-menu-card:hover { background: #343a40; color: #fff; }
+    </style>
+</head>
+<body>
+<nav class="topnav">
+    <a href="admin_door.html" class="topnav-logo-area">
+        <img src="img/logo_index.png" alt="IMTI" class="topnav-logo-img">
+        <div class="topnav-logo-text"><em>I</em>nventory of <strong><em>M</em></strong>odels of <strong><em>T</em></strong>eaching for <strong><em>I</em></strong>nformatics</div>
+    </a>
+    <div class="topnav-menu">
+        <a class="topnav-menu-item" href="#">What's IMTI?</a>
+        <a class="topnav-menu-item" href="#">MTI-Searching</a>
+        <a class="topnav-menu-item" href="main_reserach_trends.html">Research-Trends</a>
+    </div>
+</nav>
+<div class="main">
+    <div class="main-grid">
+        <div class="admin-menu-card"><div>MEMBER MANAGEMENT</div></div>
+        <div class="admin-menu-card"><div>CONTENT MANAGEMENT</div></div>
+        <div class="admin-menu-card" onclick="location.href='main_reserach_trends.html'"><div>RESEARCH TRENDS</div></div>
+    </div>
+</div>
+</body>
+</html>
