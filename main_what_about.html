@@ -52,7 +52,11 @@
         .nav-btn:hover { color: #1a56db; text-decoration: underline; }
 
         .nav-right-bottom { display: flex; gap: 20px; }
-        .nav-menu-item { font-family: 'DM Mono'; font-size: 0.85rem; color: #868e96; text-decoration: none; transition: 0.2s; }
+        .nav-menu-item {
+            font-family: 'DM Mono'; font-size: 0.85rem; color: #868e96;
+            text-decoration: none; transition: 0.2s;
+            background: none; border: none; padding: 0; cursor: pointer;
+        }
         .nav-menu-item:hover, .nav-menu-item.active { color: #212529; font-weight: 700; border-bottom: 2px solid #212529; }
 
         /* ── TAB BAR ── */
@@ -126,7 +130,7 @@
         .pw-hint { font-size: 0.72rem; color: #868e96; text-align: left; margin-top: -6px; margin-bottom: 6px; line-height: 1.5; }
         #pw-error { font-size: 0.78rem; color: #e03131; min-height: 1.2em; margin-top: 4px; text-align: left; }
 
-        /* ── ALERT MODALS (sub-popups) ── */
+        /* ── ALERT MODALS ── */
         #modal-pw-errinput,
         #modal-pw-errinput-id,
         #modal-pw-errinput-email,
@@ -147,6 +151,65 @@
             width: 20px; height: 100%;
             background: #fff; z-index: 2; pointer-events: none;
         }
+
+        /* ── CONTACT-US MODAL ── */
+        #modal-contact { z-index: 1000; }
+        #modal-contact .modal-box {
+            max-width: 520px; text-align: left; padding: 36px 36px 28px;
+        }
+        #modal-contact .modal-title {
+            font-family: 'DM Mono', monospace; font-size: 1.05rem; font-weight: 700;
+            color: #212529; margin-bottom: 6px; letter-spacing: 0.04em;
+        }
+        #modal-contact .modal-desc {
+            font-size: 0.78rem; color: #868e96; line-height: 1.7; margin-bottom: 22px;
+        }
+        .contact-field { margin-bottom: 14px; }
+        .contact-field label {
+            display: block; font-family: 'DM Mono', monospace; font-size: 0.72rem;
+            font-weight: 700; color: #495057; text-transform: uppercase;
+            letter-spacing: 0.08em; margin-bottom: 5px;
+        }
+        .contact-field input,
+        .contact-field textarea {
+            width: 100%; border: 1px solid #dee2e6; border-radius: 6px;
+            padding: 9px 12px; font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.82rem; color: #343a40; outline: none;
+            transition: border-color 0.2s; resize: none;
+        }
+        .contact-field input:focus,
+        .contact-field textarea:focus { border-color: #343a40; }
+        .contact-to-row {
+            display: flex; align-items: center; gap: 10px;
+            background: #f8f9fa; border-radius: 6px; padding: 9px 12px;
+            margin-bottom: 14px; border: 1px solid #e9ecef;
+        }
+        .contact-to-label {
+            font-family: 'DM Mono', monospace; font-size: 0.72rem;
+            font-weight: 700; color: #adb5bd; text-transform: uppercase;
+            letter-spacing: 0.08em; white-space: nowrap;
+        }
+        .contact-to-email {
+            font-family: 'DM Mono', monospace; font-size: 0.82rem;
+            color: #343a40; font-weight: 500;
+        }
+        #contact-send-btn {
+            width: 100%; background: #343a40; color: #fff; border: none;
+            border-radius: 8px; padding: 12px; font-family: 'DM Mono', monospace;
+            font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; cursor: pointer; transition: background 0.2s;
+            margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px;
+            min-height: 44px;
+        }
+        #contact-send-btn:hover:not(:disabled) { background: #1a56db; }
+        #contact-send-btn:disabled { background: #adb5bd; cursor: not-allowed; }
+        .contact-notice {
+            font-size: 0.7rem; color: #adb5bd; line-height: 1.6;
+            margin-top: 12px; text-align: center;
+        }
+
+        /* ── CONTACT SUCCESS MODAL ── */
+        #modal-contact-success { z-index: 1100; }
     </style>
 </head>
 <body id="main-body">
@@ -166,7 +229,7 @@
             <a class="nav-menu-item active" href="#">What's IMTI?</a>
             <a class="nav-menu-item" href="main_research_trends.html">Research-Trends</a>
             <a class="nav-menu-item" href="main_mit_seraching.html">MTI-Searching</a>
-            <a class="nav-menu-item" href="/cdn-cgi/l/email-protection#b0c4ddd9ded6dfd1d4ddd9def0d7ddd1d9dc9ed3dfdd">Contact Us</a>
+            <button class="nav-menu-item" onclick="openModal('modal-contact')">Contact-Us</button>
         </div>
     </div>
 </nav>
@@ -185,6 +248,94 @@
         </div>
     </div>
 </div>
+
+
+<!-- ================================================================
+     MODAL : Contact-Us
+================================================================ -->
+<div id="modal-contact" class="modal-bg" onclick="outsideCloseContact(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 style="vertical-align:-2px; margin-right:6px;">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Contact-Us
+        </div>
+        <p class="modal-desc">
+            IMTI 운영팀에 문의 사항을 남겨주세요.<br>
+            <span style="font-size:0.72rem;">Please leave your inquiry for the IMTI team.</span>
+        </p>
+
+        <div class="contact-to-row">
+            <span class="contact-to-label">To</span>
+            <span class="contact-to-email">tminfoadmin@gmail.com</span>
+        </div>
+
+        <div class="contact-field">
+            <label>Your e-mail</label>
+            <input type="email" id="contact-from" placeholder="회신받으실 이메일 주소를 입력해주세요."
+                   oninput="validateContactForm()">
+        </div>
+
+        <div class="contact-field">
+            <label>Subject</label>
+            <input type="text" id="contact-subject" placeholder="문의 제목을 입력해주세요."
+                   value="IMTI Inquiry" oninput="validateContactForm()">
+        </div>
+
+        <div class="contact-field">
+            <label>Message</label>
+            <textarea id="contact-body" rows="5"
+                      placeholder="문의 내용을 입력해주세요.&#10;Please write your message here."
+                      oninput="validateContactForm()"></textarea>
+        </div>
+
+        <button id="contact-send-btn" onclick="sendContactMail()" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Send E-mail
+        </button>
+
+        <p class="contact-notice">
+            문의 내용은 IMTI 운영팀으로 직접 전송됩니다.<br>
+            Your message will be sent directly to the IMTI team.
+        </p>
+
+        <div style="margin-top:16px; text-align:right;">
+            <button onclick="closeModal('modal-contact')"
+                style="background:none; border:none; cursor:pointer; font-family:'DM Mono',monospace;
+                       font-size:0.75rem; color:#adb5bd; letter-spacing:0.06em; transition:color 0.2s;"
+                onmouseover="this.style.color='#343a40'" onmouseout="this.style.color='#adb5bd'">
+                CLOSE ✕
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     MODAL : Contact-Us 전송 성공
+================================================================ -->
+<div id="modal-contact-success" class="modal-bg">
+    <div class="alert-modal-box">
+        <p>문의 메일이 정상적으로 발송되었습니다.<br>
+           빠른 시일 내에 답변 드리겠습니다.
+            <span class="en">Your inquiry has been sent successfully.<br>
+            We will get back to you as soon as possible.</span>
+        </p>
+        <div class="btn-row" style="justify-content:center;">
+            <button class="btn-confirm" style="max-width:160px;"
+                    onclick="closeModal('modal-contact-success')">확인 (Confirm)</button>
+        </div>
+    </div>
+</div>
+
 
 <!-- 로그아웃 모달 -->
 <div id="modal-logout" class="modal-bg">
@@ -239,7 +390,7 @@
     </div>
 </div>
 
-<!-- ── 비밀번호 변경 메인 모달 (PDF 명세 버전) ── -->
+<!-- 비밀번호 변경 모달 -->
 <div id="modal-pw" class="modal-bg">
     <div class="modal-box">
         <h3>비밀번호 변경</h3>
@@ -293,8 +444,7 @@
 <!-- 에러: e-mail 불일치 -->
 <div id="modal-pw-errinput-email" class="modal-bg">
     <div class="alert-modal-box">
-        <p>
-            입력된 e-mail이 정보와 일치하지 않습니다.<br>다시 확인해주세요.
+        <p>입력된 e-mail이 정보와 일치하지 않습니다.<br>다시 확인해주세요.
             <span class="en">The e-mail you entered does not match the account. Please check and try again.</span>
         </p>
         <div class="btn-row" style="justify-content:center;">
@@ -318,8 +468,7 @@
 <!-- 에러: 새 패스워드 형식 오류 -->
 <div id="modal-pw-errpasscheck" class="modal-bg">
     <div class="alert-modal-box">
-        <p>
-            비밀번호는 영문, 숫자, 특수문자(!@#$% 등)를<br>포함하여 13자리 이상으로 설정해 주세요.
+        <p>비밀번호는 영문, 숫자, 특수문자(!@#$% 등)를<br>포함하여 13자리 이상으로 설정해 주세요.
             <span class="en">Password must be at least 13 characters and include letters, numbers, and special characters (!@#$%, etc.).</span>
         </p>
         <div class="btn-row" style="justify-content:center;">
@@ -331,8 +480,7 @@
 <!-- 에러: 새 패스워드 불일치 -->
 <div id="modal-pw-errinpassput" class="modal-bg">
     <div class="alert-modal-box">
-        <p>
-            입력된 두 개의 새로운 패스워드가 일치하지 않습니다.<br>다시 입력해주세요.
+        <p>입력된 두 개의 새로운 패스워드가 일치하지 않습니다.<br>다시 입력해주세요.
             <span class="en">The two new passwords you entered do not match.<br>Please enter them again.</span>
         </p>
         <div class="btn-row" style="justify-content:center;">
@@ -344,8 +492,7 @@
 <!-- 성공: 패스워드 변경 완료 -->
 <div id="modal-pw-success" class="modal-bg">
     <div class="alert-modal-box">
-        <p>
-            패스워드가 정상적으로 변경되었습니다.<br>이후 로그인시에는 변경된 패스워드를 사용해주세요.
+        <p>패스워드가 정상적으로 변경되었습니다.<br>이후 로그인시에는 변경된 패스워드를 사용해주세요.
             <span class="en">Your password has been successfully changed.<br>Please use your new password for future logins.</span>
         </p>
         <div class="btn-row" style="justify-content:center;">
@@ -372,10 +519,14 @@
     </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<script>
     /* ── URL 상수 ── */
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEUtPrpQ6LnL_wil3lhrY6Hb3J6iW8B7GTVmD9zuBFCZJuN-4wpWDiizkPys39YwQFwQ/exec';
-    const LOG_SHEET_URL   = 'https://script.google.com/macros/s/AKfycbybk8_Md0RQ5oocj_Pn7iB_kkjYtFn_bxCSl58WeY5rYKEeWPKuFounQUbkJ2ld0JmiQg/exec';
+    const APPS_SCRIPT_URL    = 'https://script.google.com/macros/s/AKfycbyEUtPrpQ6LnL_wil3lhrY6Hb3J6iW8B7GTVmD9zuBFCZJuN-4wpWDiizkPys39YwQFwQ/exec';
+    const LOG_SHEET_URL      = 'https://script.google.com/macros/s/AKfycbybk8_Md0RQ5oocj_Pn7iB_kkjYtFn_bxCSl58WeY5rYKEeWPKuFounQUbkJ2ld0JmiQg/exec';
+    const CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-RKp6wSdxaRk3ITH5sZw_JZZbXYUSWI8DLIjdcXizONESjEMeHEuRcq0ak4lzpxbAOA/exec';
+    const ADMIN_EMAIL        = 'tminfoadmin@gmail.com';
 
     /* ── TABS ── */
     const TABS = [
@@ -434,9 +585,65 @@
             document.getElementById('withdraw-email').textContent = sessionStorage.getItem('imti_user_email') || '';
             document.getElementById('withdraw-id').textContent   = sessionStorage.getItem('imti_user_id')    || '';
         }
+        if (id === 'modal-contact') {
+            const userEmail = sessionStorage.getItem('imti_user_email') || '';
+            const fromInput = document.getElementById('contact-from');
+            if (fromInput && !fromInput.value) fromInput.value = userEmail;
+            validateContactForm();
+        }
         document.getElementById(id).classList.add('open');
     }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function outsideCloseContact(e) {
+        if (e.target === document.getElementById('modal-contact')) closeModal('modal-contact');
+    }
+
+    /* ================================================================
+       CONTACT-US — fetch + no-cors 방식 (TrustedScriptURL 우회)
+    ================================================================ */
+    function validateContactForm() {
+        const from    = (document.getElementById('contact-from')    || {}).value?.trim() || '';
+        const subject = (document.getElementById('contact-subject') || {}).value?.trim() || '';
+        const body    = (document.getElementById('contact-body')    || {}).value?.trim() || '';
+        const btn     = document.getElementById('contact-send-btn');
+        if (btn) btn.disabled = !(from && subject && body);
+    }
+
+    async function sendContactMail() {
+        const from    = document.getElementById('contact-from').value.trim();
+        const subject = document.getElementById('contact-subject').value.trim();
+        const body    = document.getElementById('contact-body').value.trim();
+        const btn     = document.getElementById('contact-send-btn');
+
+        btn.disabled = true;
+        btn.innerHTML = '<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div>';
+
+        const url = CONTACT_SCRIPT_URL
+            + '?action=sendContact'
+            + '&from='    + encodeURIComponent(from)
+            + '&subject=' + encodeURIComponent(subject)
+            + '&body='    + encodeURIComponent(body);
+
+        try {
+            await fetch(url, { redirect: 'follow', mode: 'no-cors' });
+            /* no-cors 모드에서는 응답 내용을 읽을 수 없으므로 전송 성공으로 간주 */
+            document.getElementById('contact-from').value    = '';
+            document.getElementById('contact-subject').value = 'IMTI Inquiry';
+            document.getElementById('contact-body').value    = '';
+            closeModal('modal-contact');
+            openModal('modal-contact-success');
+        } catch (err) {
+            alert('메일 전송에 실패했습니다.\n잠시 후 다시 시도해주세요.\n\nFailed to send the message. Please try again later.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg> Send E-mail`;
+        }
+    }
 
     /* ── 유틸 ── */
     async function sha256(str) {
@@ -447,18 +654,25 @@
     function jsonpCall(url, callback) {
         const cbName = 'jsonp_cb_' + Date.now();
         const script = document.createElement('script');
-        const timer  = setTimeout(() => { delete window[cbName]; document.body.removeChild(script); callback(null); }, 8000);
-        window[cbName] = function(result) { clearTimeout(timer); delete window[cbName]; document.body.removeChild(script); callback(result); };
+        const timer  = setTimeout(() => {
+            delete window[cbName];
+            if (document.body.contains(script)) document.body.removeChild(script);
+            callback(null);
+        }, 8000);
+        window[cbName] = function(result) {
+            clearTimeout(timer);
+            delete window[cbName];
+            if (document.body.contains(script)) document.body.removeChild(script);
+            callback(result);
+        };
         script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
         document.body.appendChild(script);
     }
 
-    /* ── sendLog: fetch no-cors GET — Apps Script doGet()과 호환 ── */
     function sendLog(type, id, email) {
         const url = LOG_SHEET_URL + '?' + new URLSearchParams({ type, id, email });
-        try {
-            fetch(url, { method: 'GET', mode: 'no-cors', keepalive: true }).catch(() => {});
-        } catch(e) {}
+        try { fetch(url, { method: 'GET', mode: 'no-cors', keepalive: true }).catch(() => {}); }
+        catch(e) {}
     }
 
     /* ── 로그아웃 ── */
@@ -517,14 +731,8 @@
         document.getElementById('pw-submit-btn').disabled = true;
     }
 
-    function showPwProgress() {
-        const el = document.getElementById('pw-progress');
-        if (el) el.style.display = 'flex';
-    }
-    function hidePwProgress() {
-        const el = document.getElementById('pw-progress');
-        if (el) el.style.display = 'none';
-    }
+    function showPwProgress() { const el = document.getElementById('pw-progress'); if (el) el.style.display = 'flex'; }
+    function hidePwProgress()  { const el = document.getElementById('pw-progress'); if (el) el.style.display = 'none'; }
 
     async function doChangePassword() {
         const id      = document.getElementById('pw-id').value.trim();
@@ -537,25 +745,18 @@
         const hashedCurrent = await sha256(current);
         const hashedNew     = await sha256(newPw);
 
-        // ① ID 존재 확인
         jsonpCall(`${APPS_SCRIPT_URL}?action=checkField&field=id&id=${encodeURIComponent(id)}`, function(r1) {
             if (r1 !== 'OK') { hidePwProgress(); openModal('modal-pw-errinput-id'); return; }
 
-            // ② ID + e-mail 일치 확인
             jsonpCall(`${APPS_SCRIPT_URL}?action=checkField&field=email&id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`, function(r2) {
                 if (r2 !== 'OK') { hidePwProgress(); openModal('modal-pw-errinput-email'); return; }
 
-                // ③ ID + e-mail + 현재PW 일치 확인
                 jsonpCall(`${APPS_SCRIPT_URL}?action=checkField&field=password&id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}&currentPassword=${encodeURIComponent(hashedCurrent)}`, function(r3) {
                     if (r3 !== 'OK') { hidePwProgress(); openModal('modal-pw-errinput-pw'); return; }
 
-                    // ④ 새 패스워드 형식 검사
                     if (!isValidPassword(newPw)) { hidePwProgress(); openModal('modal-pw-errpasscheck'); return; }
+                    if (newPw !== confirm)        { hidePwProgress(); openModal('modal-pw-errinpassput'); return; }
 
-                    // ⑤ 새 패스워드 일치 검사
-                    if (newPw !== confirm) { hidePwProgress(); openModal('modal-pw-errinpassput'); return; }
-
-                    // ⑥ 패스워드 변경 실행
                     jsonpCall(`${APPS_SCRIPT_URL}?action=changePassword&id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}&currentPassword=${encodeURIComponent(hashedCurrent)}&newPassword=${encodeURIComponent(hashedNew)}`, function(r4) {
                         hidePwProgress();
                         if (r4 === 'OK') { closeModal('modal-pw'); clearPwForm(); openModal('modal-pw-success'); }
