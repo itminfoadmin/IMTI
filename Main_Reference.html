@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관련 연구물 목록</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            width: 100%; height: 100%;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar { display: none !important; width: 0 !important; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #fff;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .notice {
+            margin-left: 10%;
+            padding: 20px 10% 10px;
+            font-size: 0.78rem;
+            color: #343a40;
+            line-height: 1.6;
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .content-wrap {
+            flex: 1;
+            margin-left: 10%;
+            padding: 10px 10% 20px;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .content-wrap::-webkit-scrollbar { display: none; }
+
+        /* 로딩 */
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 30px 0;
+            color: #adb5bd;
+            font-size: 0.78rem;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.1em;
+        }
+        .loading-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #d49860;
+            animation: dot-pulse 1.2s ease-in-out infinite;
+        }
+        @keyframes dot-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.3; transform: scale(0.6); }
+        }
+
+        /* 에러 */
+        .error {
+            display: none;
+            padding: 20px 0;
+            color: #e03131;
+            font-size: 0.82rem;
+        }
+
+        /* 건수 - notice 자리에 오른쪽 정렬로 표시 */
+        .count-bar {
+            display: none;
+            font-size: 0.78rem;
+            color: #343a40;
+            font-family: 'Noto Sans KR', sans-serif;
+            margin-bottom: 8px;
+            text-align: right;
+        }
+
+        /* 리스트 - APA 들여쓰기 (hanging indent) */
+        ol {
+            display: none;
+            list-style: none;
+            padding-left: 0;
+        }
+        ol li {
+            padding: 5px 0 5px 3.5em;   /* APA hanging indent */
+            text-indent: -3.5em;
+            font-size: 0.78rem;
+            line-height: 1.75;
+            color: #343a40;
+            word-break: keep-all;
+        }
+        .end-of-list {
+            display: none;
+            margin-top: 16px;
+            font-size: 0.78rem;
+            color: #343a40;
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <p class="notice" id="notice-count"></p>
+
+    <div class="content-wrap">
+        <div class="loading" id="loading">
+            <div class="loading-dot"></div>
+            <span>Loading...</span>
+        </div>
+        <div class="error" id="error">데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해 주세요.</div>
+        <ol id="ref-list"></ol>
+        <div class="end-of-list" id="end-of-list">— End of List —</div>
+    </div>
+
+    <script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ24XF_HTBizSRiTXbh4r-3xDEePscvTTnJwoRR1v1sFjDU94s2nUxanMZV-moXFhZUXApxGlJVchSD/pub?gid=0&single=true&output=csv';
+
+    /* CSV 파싱 (큰따옴표 포함 필드 대응) */
+    function parseCSV(text) {
+        const rows = [];
+        const lines = text.split('\n');
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            const cols = [];
+            let cur = '', inQ = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') {
+                    if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+                    else inQ = !inQ;
+                } else if (ch === ',' && !inQ) {
+                    cols.push(cur); cur = '';
+                } else {
+                    cur += ch;
+                }
+            }
+            cols.push(cur);
+            rows.push(cols);
+        }
+        return rows;
+    }
+
+    async function loadData() {
+        try {
+            const res = await fetch(CSV_URL);
+            if (!res.ok) throw new Error('fetch failed');
+            const text = await res.text();
+            const rows = parseCSV(text);
+
+            /* 헤더 제외, I열(index 8) 추출 */
+            const items = rows
+                .slice(1)
+                .map(r => (r[8] || '').trim())
+                .filter(v => v.length > 0);
+
+            /* 오름차순 정렬 */
+            items.sort((a, b) => a.localeCompare(b, 'ko'));
+
+            /* 렌더링 */
+            const list = document.getElementById('ref-list');
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                list.appendChild(li);
+            });
+
+            document.getElementById('notice-count').textContent = `전체 연구물 건수 :  ${items.length}건`;
+            document.getElementById('loading').style.display = 'none';
+            list.style.display = 'block';
+            document.getElementById('end-of-list').style.display = 'block';
+
+        } catch (e) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        }
+    }
+
+    loadData();
+    </script>
+
+</body>
+</html>
