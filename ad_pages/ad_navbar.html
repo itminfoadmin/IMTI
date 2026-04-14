@@ -1,0 +1,63 @@
+<!-- IMTI Admin Common navi-bar -->
+<style>
+    #admin-topnav { align-items: stretch; border-bottom: 1px solid transparent; }
+    #admin-topnav .topnav-logo-area { align-self: center; }
+    #admin-topnav .topnav-menu { flex: 1; min-width: 20px; }
+    #admin-topnav .topnav-btn.current {
+        color: var(--gray-text);
+        font-weight: 700;
+        position: relative;
+    }
+    #admin-topnav .topnav-btn.current::before {
+        content: '# # #';
+        position: absolute;
+        top: -4px;
+        left: 50%;
+        transform: translateX(-50%) rotate(180deg);
+        font-size: 0.65rem;
+        color: var(--gray-text);
+        line-height: 1;
+    }
+</style>
+
+<!-- ── Top Nav ── -->
+<br>
+<nav class="topnav" id="admin-topnav">
+    <div class="topnav-logo-area">
+        <img src="../img/logo-main_con_admode.png" alt="IMTI" class="topnav-logo-img">
+    </div>
+    <div class="topnav-menu"></div>
+    <div class="topnav-right" style="align-self: stretch; padding-bottom: 0px; flex-direction: column; align-items: flex-end; justify-content: flex-end; gap: 0;">
+
+        <!-- 메뉴 버튼들 + 로그아웃 -->
+        <div style="display:flex; align-items:center; padding: 1px 0 6px 0;">
+            <div class="topnav-divider-v"></div>
+            <button class="topnav-btn" onclick="location.href='ad_intro.html'">DASH-BOARD</button>
+            <div class="topnav-divider-v"></div>
+            <button class="topnav-btn" onclick="location.href='ad_member_mng.html'">MNG.-MEMBER</button>
+            <div class="topnav-divider-v"></div>
+            <button class="topnav-btn" onclick="location.href='ad_mti_mng.html'">MNG.-MTI</button>
+            <div class="topnav-divider-v"></div>
+            <button class="topnav-btn" onclick="location.href='ad_mti_com_mng.html'">MNG.-EXPCOMMENT</button>
+            <div class="topnav-divider-v"></div>
+            <button class="topnav-btn" onclick="location.href='ad_pass_mng.html'">MNG.-ADMIN_P/W</button>
+            <div class="topnav-divider-v"></div>
+            <button class="topnav-btn" onclick="location.href='ad_add_ad.html'">MNG.-ADMINISTRATORS</button>
+            <div class="topnav-divider-v"></div>
+            <button class="topnav-btn" onclick="openLogoutPopup()">LOG-OUT</button>
+            <div class="topnav-divider-v"></div>
+        </div>
+    </div>
+</nav>
+
+<!-- ── Popup: Logout (공통) ── -->
+<div class="popup-overlay" id="logout-popup">
+    <div class="popup-box">
+        <p class="popup-message">Would you like to log out as an administrator?</p>
+        <div class="popup-btn-row">
+            <button class="popup-cancel-btn" onclick="closeLogoutPopup()">Cancel</button>
+            <button class="popup-confirm-btn" id="logout-confirm-btn" onclick="handleAdminLogout()">Confirm</button>
+        </div>
+    </div>
+</div>
+
