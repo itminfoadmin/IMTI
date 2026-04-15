@@ -35,19 +35,19 @@
             align-items: flex-end;
             flex-shrink: 0;
         }
-        .logo-area { padding-left: 10%; flex-shrink: 0; }
+        .logo-area { padding-left: 5%; flex-shrink: 0; }
         .logo-img { height: 4rem; width: auto; transition: transform 0.3s; cursor: pointer; }
         .logo-img:hover { transform: scale(1.03); }
-        .nav-right-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; padding-right: 10%; }
+        .nav-right-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; padding-right: 5%; }
         .nav-right-top { display: flex; gap: 15px; align-items: center; }
-        .nav-email { font-family: 'DM Mono'; font-size: 0.85rem; color: #e03131; font-weight: 500; }
-        .nav-btn { background: none; border: none; cursor: pointer; font-size: 0.8rem; color: #495057; font-family: 'Noto Sans KR'; }
+        .nav-email { font-family: 'DM Mono'; font-size: 0.8rem; color: #868e96; font-weight: 100; }
+        .nav-btn { background: none; border: none; cursor: pointer; font-size: 0.8rem; color: #868e96; font-family: 'DM Mono'; }
         .nav-btn:hover { color: #1a56db; text-decoration: underline; }
         .nav-right-bottom { display: flex; gap: 20px; }
         .nav-menu-item {
-            font-family: 'DM Mono';
+            font-family: 'Noto Sans KR';
             font-size: 0.85rem;
-            color: #868e96;
+            color: #495057;
             text-decoration: none;
             transition: 0.2s;
             background: none;
@@ -72,7 +72,7 @@
             min-height: 40px;
             overflow: visible;
             position: relative;
-            z-index: 10;
+            z-index: 100;
             width: 100%;
             box-sizing: border-box;
         }
@@ -84,7 +84,7 @@
             font-weight: 500;
             color: #343a40;
             background: #f5f4f1;
-            padding: 0 14px 0 14px;
+            padding: 0 10px 0 10px;
             display: flex;
             align-items: center;
             justify-content: flex-start;
@@ -92,7 +92,7 @@
             cursor: pointer;
             transition: background 0.15s, color 0.15s;
             user-select: none;
-            gap: 7px;
+            gap: 1px;
             letter-spacing: 0.02em;
             min-width: 0;
         }
@@ -126,9 +126,9 @@
             background: #f5f4f1;
             border: 1px solid #ced4da;
             border-radius: 4px;
-            padding: 6px 25px;
+            padding: 6px 10px;
             font-family: 'Noto Sans KR', sans-serif;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 500;
             color: #495057;
             cursor: pointer;
@@ -298,7 +298,7 @@
         .board-meta { font-size: 0.82rem; color: #868e96; margin-top: 2px; line-height: 1.55; }
         .board-footer {
             padding: 14px 28px;
-            border-top: 1px solid #fff;      /* ← 하단 가로줄 흰색 */
+            border-top: 1px solid #fff;
             display: flex;
             justify-content: flex-end;
             flex-shrink: 0;
@@ -379,7 +379,6 @@
 
 <!-- ── Main Content ── -->
 <div class="main-content">
-    <!-- ── Search Bar 수정 ── -->
 <div class="search-bar" id="search-bar">
     <!-- 1. 영역(D) -->
     <div class="filter-item" id="filter-domain">
@@ -430,7 +429,6 @@
                     <div class="spinner"></div>
                     <p style="font-size:0.8rem;color:#868e96;">데이터를 불러오는 중입니다...</p>
                 </div>
-                <!-- 문서 전환 시 로딩 오버레이 -->
                 <div id="doc-loading-overlay">
                     <div class="doc-loading-label" id="doc-loading-label">Loading document...</div>
                     <div class="doc-progress-track">
@@ -718,7 +716,7 @@ to search for a teaching model.</span></p>
         if (ls) {
             if (!any)           ls.textContent = '수업 모형(MTI)의 검색을 위한 조건을 선택하세요.';
             else if (!models.length) ls.textContent = '선택한 조건의 수업 모형(MTI)이 검색되지 않았습니다.';
-            else                ls.textContent = '✔ 수업 모형(MTI) [' + models.length + '] 건이 검색되었습니다. 🖱️ Click!';
+            else                ls.textContent = '✔ [' + models.length + '] 건의 MTI가 검색되었습니다. 🖱️ Click!';
         }
 
         if (!any) { dd.innerHTML = '<div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;">먼저 조건을 선택해주세요.</div>'; return; }
