@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
-        /* ── CSS 변수 ── */
+        
         :root {
             --gray-light  : #ced4da;
             --gray-mid    : #adb5bd;
@@ -29,7 +29,7 @@
             min-height      : 100vh;
         }
 
-        /* ── 슬라이드 도트 ── */
+        
         .slide-dot {
             width       : 10px;
             height      : 10px;
@@ -44,7 +44,7 @@
             border-color: #6c757d;
         }
 
-        /* ── 사이드 카드 레이아웃 ── */
+        
         .side-cards  { width: 38%; display: flex; flex-direction: column; gap: 8px; }
         .stat-row    { height: 28%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .stat-card   {
@@ -86,7 +86,7 @@
         .action-card.light       { background: #cacaca; color: #495057; cursor: default; }
         .action-card.light:hover { background: #cacaca; }
 
-        /* ── 모달 공통 ── */
+        
         .modal-overlay {
             position       : fixed;
             inset          : 0;
@@ -114,7 +114,7 @@
             to   { opacity: 1; transform: scale(1)    translateY(0);    }
         }
 
-        /* ── 회원가입 폼 ── */
+        
         .join-row {
             display        : flex;
             align-items    : flex-start;
@@ -151,7 +151,7 @@
         }
         .join-inp:focus { border-color: #1a56db; }
 
-        /* ── 노트북 스크린 ── */
+        
         .screen-area {
             position      : absolute;
             top           : 9.8%;
@@ -205,7 +205,7 @@
             overflow       : hidden;
         }
 
-        /* ── Warm-up 인디케이터 ── */
+        
         #warmup-indicator {
             position      : fixed;
             bottom        : 12px;
@@ -220,7 +220,7 @@
         }
         #warmup-indicator.ready { color: #2b8a3e; }
 
-        /* ── Contact-Us 모달 ── */
+        
         #modal-contact           { z-index: 300; }
         #modal-contact .modal-box {
             max-width    : 520px;
@@ -314,31 +314,24 @@
             text-align : center;
         }
 
-        /* ── Contact 성공 모달 ── */
+        
         #modal-contact-success { z-index: 400; }
 
-        /* ── 애니메이션 ── */
+        
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════
-     Warm-up 상태 표시기
-══════════════════════════════════════════════════ -->
 <div id="warmup-indicator">● warming up...</div>
 
-
-<!-- ══════════════════════════════════════════════════
-     메인 레이아웃
-══════════════════════════════════════════════════ -->
 <div style="position:relative; z-index:1; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px 48px; padding-top:10vh;">
     <div style="display:flex; flex-direction:row; width:100%; max-width:1500px; align-items:center; justify-content:center; gap:56px; flex-wrap:wrap;">
 
-        <!-- ── LEFT : 로고 + 로그인 ── -->
+        
         <div style="flex:0 0 auto; width:min(300px,100%); display:flex; flex-direction:column; align-self:flex-start; margin-top:calc(-60px + 10vh); margin-left:160px;">
 
-            <!-- 로고 -->
+            
             <div style="margin-bottom:53px;">
                 <img src="img/logo_index.png" alt="IMTI"
                      title="IMTI" 
@@ -348,9 +341,9 @@
                      onclick="location.reload()">
             </div>
 
-            <!-- 로그인 폼 -->
+            
             <div>
-                <!-- E-MAIL -->
+                
                 <div style="margin-bottom:14px; position:relative;">
                     <label style="display:block; font-family:'DM Mono',monospace; font-size:0.82rem; font-weight:700; color:#495057; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">E-MAIL</label>
                     <div style="border-bottom:2px dotted #d0d0d0; padding-bottom:5px; position:relative;">
@@ -366,7 +359,7 @@
                     </div>
                 </div>
 
-                <!-- P/W -->
+                
                 <div style="margin-bottom:16px; position:relative;">
                     <label style="display:block; font-family:'DM Mono',monospace; font-size:0.82rem; font-weight:700; color:#495057; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">P/W</label>
                     <div style="border-bottom:2px dotted #d0d0d0; padding-bottom:5px; position:relative;">
@@ -383,15 +376,16 @@
                     </div>
                 </div>
 
-                <!-- LOG-IN 버튼 -->
+                
                 <button onclick="handleLogin()"
+                        onmouseenter="_tryPrefetchLogin()"
                         style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#f1f3f5; border:1.5px solid #dee2e6; border-radius:10px; padding:11px 0; cursor:pointer; margin-bottom:8px; font-family:'DM Mono',monospace; font-size:0.8rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#343a40; transition:background 0.2s, color 0.2s, border-color 0.2s;"
                         onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
                         onmouseout="this.style.background='#f1f3f5';  this.style.color='#343a40'; this.style.borderColor='#dee2e6'">
                     LOG-IN
                 </button>
 
-                <!-- JOIN-US 버튼 -->
+                
                 <button onclick="openModal('modal-join')"
                         style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#f1f3f5; border:1.5px solid #dee2e6; border-radius:10px; padding:11px 0; cursor:pointer; font-family:'DM Mono',monospace; font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#343a40; transition:background 0.2s, color 0.2s, border-color 0.2s;"
                         onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
@@ -399,7 +393,7 @@
                     JOIN-US
                 </button>
 
-                <!-- Contact-Us 링크 -->
+                
                 <p style="margin-top:16px; font-family:'DM Mono',monospace; font-size:0.72rem; color:#adb5bd; line-height:1.6; text-align:center;">
                     For any inquiries,<br>
                     feel free to contact us at<br>
@@ -409,15 +403,14 @@
                             onmouseout="this.style.color='#6c757d'">[Contact-Us]</button>
                 </p>
             </div>
-        </div><!-- /LEFT -->
+        </div>
 
-
-        <!-- ── RIGHT : 노트북 목업 ── -->
+        
         <div style="flex:1 1 500px; display:flex; justify-content:center; align-items:center; min-width:300px;">
             <div style="position:relative; width:100%; max-width:924px;">
                 <img src="img/laptop.png" alt="Laptop" style="width:100%; height:auto; pointer-events:none; display:block;">
 
-                <!-- 스크린 내부 -->
+                
                 <div class="screen-area">
                     <div class="db-header">
                         <div class="db-header-left">
@@ -437,7 +430,7 @@
                     </div>
 
                     <div class="db-body">
-                        <!-- 메인 슬라이드 카드 -->
+                        
                         <div class="main-card" style="padding:0; overflow:hidden; position:relative;">
                             <img id="slide-img" src="img/Home_card-01.svg" alt="AI Illustration"
                                  style="width:100%; height:100%; object-fit:cover; display:block; transition:opacity 0.4s, filter 0.4s; filter:grayscale(100%);"
@@ -452,10 +445,10 @@
                             </div>
                         </div>
 
-                        <!-- 사이드 카드 -->
+                        
                         <div class="side-cards">
                             <div class="stat-row">
-                                <!-- CS 교육 이미지 카드 -->
+                                
                                 <div class="stat-card" style="padding:0; overflow:hidden; position:relative; background:#cacaca;">
                                     <img src="img/Home_card_Com_edu.png" alt="Computer Education"
                                          style="width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(100%); transition:filter 0.4s;"
@@ -475,7 +468,7 @@
                                     </svg>
                                 </div>
 
-                                <!-- 방문자 수 카드 -->
+                                
                                 <div class="stat-card" id="visitor-card" style="display:flex; align-items:center; justify-content:center; cursor:default; position:relative;"
                                      onmouseover="document.getElementById('visitor-count').style.color='#42a5f5'; document.getElementById('tooltip-visitor').style.opacity='1'; document.getElementById('tooltip-visitor').style.visibility='visible';"
                                      onmouseleave="document.getElementById('visitor-count').style.color='#9e9e9e'; document.getElementById('tooltip-visitor').style.opacity='0'; document.getElementById('tooltip-visitor').style.visibility='hidden';">
@@ -487,7 +480,7 @@
                                 </div>
                             </div>
 
-                            <!-- 툴 이미지 카드 -->
+                            
                             <div class="info-card" style="padding:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
                                 <img src="img/Home_card_tools.png" alt="Info"
                                      style="width:90%; height:90%; object-fit:contain; display:block; transition:transform 0.3s;"
@@ -495,7 +488,7 @@
                                      onmouseleave="this.style.transform='scale(1)'">
                             </div>
 
-                            <!-- 액션 카드 2개 -->
+                            
                             <div class="action-row">
                                 <button class="action-card" onclick="openModal('modal-why')" style="padding:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
                                     <img src="img/Home_card_reason_crete.png" alt="Why" style="width:100%; height:100%; object-fit:contain; display:block;">
@@ -507,19 +500,15 @@
                                          onmouseleave="this.style.transform='scale(1)'">
                                 </div>
                             </div>
-                        </div><!-- /side-cards -->
-                    </div><!-- /db-body -->
-                </div><!-- /screen-area -->
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div><!-- /RIGHT -->
+        </div>
 
     </div>
-</div><!-- /메인 레이아웃 -->
+</div>
 
-
-<!-- ══════════════════════════════════════════════════
-     MODAL : Contact-Us
-══════════════════════════════════════════════════ -->
 <div id="modal-contact" class="modal-overlay" onclick="outsideClose(event,'modal-contact')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:520px; padding:36px 36px 28px; border-radius:12px; text-align:left;">
         <div style="font-family:'DM Mono',monospace; font-size:1.05rem; font-weight:700; color:#212529; margin-bottom:6px; letter-spacing:0.04em; display:flex; align-items:center; gap:6px;">
@@ -562,7 +551,6 @@
     </div>
 </div>
 
-<!-- MODAL : Contact-Us 전송 성공 -->
 <div id="modal-contact-success" class="modal-overlay" onclick="outsideClose(event,'modal-contact-success')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:440px; padding:40px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; color:#222; margin:0 0 10px; font-weight:400; line-height:2; word-break:keep-all;">
@@ -578,10 +566,6 @@
     </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════
-     MODAL : 회원가입
-══════════════════════════════════════════════════ -->
 <div id="modal-join" class="modal-overlay" onclick="outsideClose(event,'modal-join')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:800px; padding:24px 28px;">
         <button onclick="closeModal('modal-join')"
@@ -632,7 +616,6 @@
     </div>
 </div>
 
-<!-- 서브 팝업 : ID 중복 -->
 <div id="modal-join-errID" class="modal-overlay" onclick="outsideClose(event,'modal-join-errID')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:48px 40px 36px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; color:#222; margin:0 0 10px; font-weight:400; line-height:1.8; word-break:keep-all;">이 ID는 사용중이므로 사용하실 수 없습니다.</p>
@@ -644,7 +627,6 @@
     </div>
 </div>
 
-<!-- 서브 팝업 : e-mail 중복 -->
 <div id="modal-join-errmail" class="modal-overlay" onclick="outsideClose(event,'modal-join-errmail')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:48px 40px 36px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; color:#222; margin:0 0 10px; font-weight:400; line-height:1.8; word-break:keep-all;">이 e-mail은 사용중이므로 사용하실 수 없습니다.</p>
@@ -656,7 +638,6 @@
     </div>
 </div>
 
-<!-- 서브 팝업 : 패스워드 조건 미충족 -->
 <div id="modal-join-errPasscheck" class="modal-overlay" onclick="outsideClose(event,'modal-join-errPasscheck')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:460px; padding:48px 40px; text-align:center;">
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.95rem; color:#343a40; margin:0 0 10px; font-weight:500; word-break:keep-all;">패스워드는 영문, 숫자, 특수문자(!@#$% 등)를 포함하여 13자리 이상으로 설정해 주셔야 합니다.</p>
@@ -668,7 +649,6 @@
     </div>
 </div>
 
-<!-- 서브 팝업 : 가입 최종 확인 -->
 <div id="modal-join-confirm" class="modal-overlay" onclick="outsideClose(event,'modal-join-confirm')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:480px; padding:36px 40px;">
         <div style="font-family:'Noto Sans KR',sans-serif; font-size:0.78rem; line-height:1.8; color:#343a40; word-break:keep-all; margin-bottom:20px;">
@@ -702,7 +682,6 @@
     </div>
 </div>
 
-<!-- 서브 팝업 : 가입 취소 -->
 <div id="modal-join-cancel" class="modal-overlay" onclick="outsideClose(event,'modal-join-cancel')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:460px; padding:48px 40px; text-align:center;">
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.95rem; color:#343a40; margin:0 0 10px; font-weight:500;">회원 가입을 취소하셨습니다.</p>
@@ -714,7 +693,6 @@
     </div>
 </div>
 
-<!-- MODAL : 가입 성공 -->
 <div id="modal-join-success" class="modal-overlay" onclick="outsideClose(event,'modal-join-success')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:40px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; color:#222; margin:0 0 20px; font-weight:400; line-height:2; word-break:keep-all;">
@@ -734,10 +712,6 @@
     </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════
-     MODAL : 로그인 실패
-══════════════════════════════════════════════════ -->
 <div id="modal-login-fail" class="modal-overlay" onclick="outsideClose(event,'modal-login-fail')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:36px; text-align:left; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.77rem; color:#222; margin:0 0 18px; font-weight:400; line-height:2; word-break:keep-all;">
@@ -755,10 +729,6 @@
     </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════
-     MODAL : 관리자 로그인
-══════════════════════════════════════════════════ -->
 <div id="modal-admin" class="modal-overlay" onclick="outsideClose(event,'modal-admin')" style="z-index:300;">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:520px; padding:44px; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13); position:relative;">
         <button onclick="closeModal('modal-admin')"
@@ -796,7 +766,6 @@
     </div>
 </div>
 
-<!-- MODAL : 관리자 로그인 실패 -->
 <div id="modal-admin-fail" class="modal-overlay" onclick="outsideClose(event,'modal-admin-fail')" style="z-index:400;">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:520px; padding:44px; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
         <p style="font-family:'DM Mono',monospace; font-size:0.8rem; color:#e03131; margin:0 0 32px; font-weight:400; line-height:2; text-align:center;">
@@ -811,10 +780,6 @@
     </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════
-     MODAL : Why IMTI?
-══════════════════════════════════════════════════ -->
 <div id="modal-why" class="modal-overlay" onclick="outsideClose(event,'modal-why')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:600px; padding:36px 40px;">
         <div style="font-size:0.75rem; line-height:1.9; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all;">
@@ -831,10 +796,6 @@
     </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════
-     MODAL : 자동 로그아웃
-══════════════════════════════════════════════════ -->
 <div id="modal-auto-logout" class="modal-overlay">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:420px; padding:40px 36px 32px; text-align:center; border-radius:12px;">
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:1rem; color:#343a40; margin:0 0 14px; font-weight:700; line-height:1.7; word-break:keep-all;">사용자 동작이 없어서 자동으로 Log-out 하였습니다.</p>
@@ -846,11 +807,6 @@
     </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════
-     진행 표시 오버레이
-══════════════════════════════════════════════════ -->
-<!-- 관리자 로그인 Progress -->
 <div id="admin-progress-alert" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; z-index:500;">
     <div style="background:#343a40; color:#fff; font-family:'DM Mono',monospace; font-size:0.85rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:16px 32px; border-radius:8px; box-shadow:0 8px 32px rgba(0,0,0,0.3); display:flex; align-items:center; gap:14px;">
         <svg viewBox="0 0 56 56" style="width:22px; height:22px; animation:spin 1s linear infinite; flex-shrink:0;">
@@ -861,7 +817,6 @@
     </div>
 </div>
 
-<!-- 로그인 Progress 오버레이 -->
 <div id="login-progress" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,0.92); backdrop-filter:blur(6px); z-index:999; align-items:center; justify-content:center; flex-direction:column; gap:20px;">
     <svg viewBox="0 0 56 56" style="width:56px; height:56px; animation:spin 1s linear infinite;">
         <circle cx="28" cy="28" r="22" fill="none" stroke="#e9ecef" stroke-width="4"/>
@@ -870,13 +825,9 @@
     <div id="login-progress-msg" style="font-family:'DM Mono',monospace; font-size:0.82rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#343a40;">Authenticating...</div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════
-     JavaScript
-══════════════════════════════════════════════════ -->
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script>
-/* ── URL 상수 업데이트 (제공된 URL로 교체) ── */
+
 const JOIN_SCRIPT_URL    = 'https://script.google.com/macros/s/AKfycbwsNQKiEHC4llx5KaYxdyc7EwSOEAOx5gEGeMQAyQRKU92onRs8V6anI7mzhWu__2q60A/exec';
 const LOG_SHEET_URL      = 'https://script.google.com/macros/s/AKfycbxOPK4rzbKhiC2ytV0aHq7bZvXaLj56b3k3OlAmN2rNp3EEbyptd-xDrfagxsurQth2JA/exec';
 const ADMIN_SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbwhgPJyoLR-ZPIlVW1VTK-zXRZCkRCN6ZMepmq9_Q7SMBwAmdctCU2C3t88LcZRMXk/exec';
@@ -885,12 +836,6 @@ const CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBKXcVFkX0k
 const COUNTER_URL        = 'https://script.google.com/macros/s/AKfycbxP0wKhcBTIw2da_MUjirS1dHPSPIO2PHf6mN5VpigJ26OAioT_UI0y8mAEPt86CS9_/exec';
 const SHEET_CSV          = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTPFMK8hmmhAtMWhvX-lkqHltlxoBLg0PN_DfiLUh9J0fkr9xa9IM2HWLSztdu7zJcl4B7Z8T4oD2qP/pub?output=csv';
 
-/* ══════════════════════════════════════════════════
-   GAS JSONP 헬퍼
-   Google Apps Script는 CORS를 지원하지 않으므로
-   JSONP(스크립트 태그 삽입) 방식으로 응답을 수신합니다.
-   반드시 HTTPS 서버 환경에서 실행해야 합니다.
-══════════════════════════════════════════════════ */
 function gasJsonp(url, params) {
     return new Promise((resolve, reject) => {
         const callbackName = 'imti_cb_' + Math.round(Math.random() * 1000000);
@@ -926,14 +871,10 @@ function gasJsonp(url, params) {
     });
 }
 
-
-/* ══════════════════════════════════════════════════
-   Warm-up
-══════════════════════════════════════════════════ */
-var _imtiReady      = false;  // 일반 로그인 GAS ready
-var _adminReady     = false;  // 어드민 GAS ready
-var _appsReady      = false;  // 비밀번호변경/탈퇴 GAS ready
-var _warmupPromise  = null;   // warm-up Promise (재사용)
+var _imtiReady      = false;  
+var _adminReady     = false;  
+var _appsReady      = false;  
+var _warmupPromise  = null;   
 var _adminWarmup    = null;
 var _appsWarmup     = null;
 
@@ -946,19 +887,19 @@ function warmUpScripts() {
     const indicator = document.getElementById('warmup-indicator');
     const t0 = Date.now();
 
-    /* 세 GAS를 모두 독립적으로 ping — 각자 완료되는 즉시 ready 처리 */
+    
     _warmupPromise = _pingGas(JOIN_SCRIPT_URL).then(() => {
         _imtiReady = true;
     });
     _adminWarmup = _pingGas(ADMIN_SCRIPT_URL).then(() => {
         _adminReady = true;
     });
-    /* 비밀번호 변경·탈퇴용 GAS — 기존에 warm-up 누락되어 있던 엔드포인트 추가 */
+    
     _appsWarmup = _pingGas(IMTI_APPS_SCRIPT_URL).then(() => {
         _appsReady = true;
     });
 
-    /* 셋 다 완료되면 인디케이터 업데이트 */
+    
     Promise.all([_warmupPromise, _adminWarmup, _appsWarmup]).then(() => {
         const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
         if (indicator) {
@@ -969,9 +910,6 @@ function warmUpScripts() {
     });
 }
 
-/* ══════════════════════════════════════════════════
-   슬라이드쇼
-══════════════════════════════════════════════════ */
 const slides = [
     'img/Home_card-01.svg', 'img/Home_card-02.svg', 'img/Home_card-03.svg',
     'img/Home_card-04.svg', 'img/Home_card-05.svg'
@@ -990,9 +928,6 @@ function applySlide(index, animate) {
 }
 function nextSlide() { currentSlide = (currentSlide + 1) % slides.length; applySlide(currentSlide, true); }
 
-/* ══════════════════════════════════════════════════
-   초기화
-══════════════════════════════════════════════════ */
 window.addEventListener('load', () => {
     if (window.lucide) lucide.createIcons();
     warmUpScripts();
@@ -1011,9 +946,6 @@ window.addEventListener('load', () => {
     slideTimer = setInterval(nextSlide, 8000);
 });
 
-/* ══════════════════════════════════════════════════
-   유틸리티
-══════════════════════════════════════════════════ */
 function adjustScale() {
     document.documentElement.style.fontSize = Math.max(8, Math.min(14 * window.innerWidth / 1400, 22)) + 'px';
 }
@@ -1038,38 +970,37 @@ async function sha256(str) {
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-/* ── 로그인 Prefetch ─────────────────────────────────────────────────
-   전략: 이메일 + 비밀번호가 모두 입력된 순간 GAS 요청을 미리 시작.
-   버튼 클릭 시 결과가 이미 와 있으면 즉시 처리, 아직 오는 중이면 그 Promise를 await.
-   이메일 또는 비밀번호가 바뀌면 기존 요청/해시를 즉시 폐기.
-──────────────────────────────────────────────────────────────────── */
-let _preHashedPw   = null;   // 미리 계산된 sha256 해시
-let _preHashedRaw  = '';     // 해시의 원본 비밀번호 (검증용)
-let _prefetchEmail = '';     // prefetch에 사용한 이메일
-let _prefetchProm  = null;   // 진행 중인 GAS fetch Promise
+let _preHashedPw   = null;   
+let _preHashedRaw  = '';     
+let _prefetchEmail = '';     
+let _prefetchProm  = null;   
 
 function _preHashPw(val) {
+    
     _preHashedPw  = null;
     _preHashedRaw = val;
-    _prefetchProm = null;   // 비밀번호 바뀌면 기존 prefetch 무효화
+    _prefetchProm = null;
     if (val.length > 0) {
         sha256(val).then(h => {
-            if (_preHashedRaw !== val) return;   // 입력값이 이미 바뀐 경우 폐기
+            if (_preHashedRaw !== val) return;  
             _preHashedPw = h;
-            _tryPrefetchLogin();                  // 해시 완료 → prefetch 시도
+            _tryPrefetchLogin();                
         });
     }
 }
 
 function _onLoginEmailInput() {
+    
     _prefetchEmail = '';
-    _prefetchProm  = null;   // 이메일 바뀌면 기존 prefetch 무효화
+    _prefetchProm  = null;
+    const email = (document.getElementById('login-email')?.value || '').trim();
+    if (!email) { _preHashedPw = null; _preHashedRaw = ''; }
 }
 
 function _tryPrefetchLogin() {
     const email = (document.getElementById('login-email')?.value || '').trim();
     const hash  = _preHashedPw;
-    // 이메일·해시가 모두 준비되었고 아직 prefetch를 시작하지 않은 경우에만 실행
+    
     if (!email || !hash) return;
     if (_prefetchEmail === email && _prefetchProm) return;
 
@@ -1087,9 +1018,6 @@ function sendLog(type, id, email) {
     catch(e) {}
 }
 
-/* ══════════════════════════════════════════════════
-   모달 제어
-══════════════════════════════════════════════════ */
 function openModal(id)               { document.getElementById(id)?.classList.add('open'); }
 function closeModal(id)              { document.getElementById(id)?.classList.remove('open'); }
 function outsideClose(e, id)         { if (e.target === document.getElementById(id)) closeModal(id); }
@@ -1121,9 +1049,6 @@ document.addEventListener('keydown', e => {
     }
 });
 
-/* ══════════════════════════════════════════════════
-   Progress 표시
-══════════════════════════════════════════════════ */
 function showProgress(msg) {
     const el = document.getElementById('login-progress');
     const msgEl = document.getElementById('login-progress-msg');
@@ -1139,9 +1064,6 @@ function setProgressMsg(msg) {
     if (msgEl) msgEl.textContent = msg;
 }
 
-/* ══════════════════════════════════════════════════
-   Contact-Us
-══════════════════════════════════════════════════ */
 function validateContactForm() {
     const from    = document.getElementById('contact-from')?.value?.trim()    || '';
     const subject = document.getElementById('contact-subject')?.value?.trim() || '';
@@ -1202,9 +1124,6 @@ async function sendContactMail() {
     }
 }
 
-/* ══════════════════════════════════════════════════
-   로그인 (안전장치 강화 버전)
-══════════════════════════════════════════════════ */
 async function handleLogin() {
     const emailInput = document.getElementById('login-email');
     const pwInput    = document.getElementById('login-pw');
@@ -1218,20 +1137,23 @@ async function handleLogin() {
 
     showProgress('Authenticating...');
 
-    /* prefetch 결과 재사용 여부 판단
-       - 이메일+비밀번호가 prefetch 시점과 동일하면 이미 진행 중인 Promise를 await → 즉시 응답
-       - 변경됐거나 prefetch가 없으면 새로 요청 */
+    
+    _tryPrefetchLogin();
+
+    
     const usePrefetch = _prefetchProm
         && _prefetchEmail === email
-        && _preHashedPw
-        && _preHashedRaw === pw;
+        && _preHashedRaw  === pw;
 
     let res;
     try {
         if (usePrefetch) {
             setProgressMsg('Verifying credentials...');
-            res = await _prefetchProm;              // 이미 날아간 요청 결과를 그냥 기다림
+            res = await _prefetchProm;              
+            
+            if (res === null) throw new Error('prefetch_failed');
         } else {
+            
             const hashedPw = (_preHashedPw && _preHashedRaw === pw)
                 ? _preHashedPw : await sha256(pw);
             setProgressMsg('Verifying credentials...');
@@ -1245,10 +1167,10 @@ async function handleLogin() {
             ).then(r => { clearTimeout(_t); return r.json(); });
         }
         if (res && res.status === 'OK') {
-            const userId = res.id || email;  /* GAS가 id를 반환하면 id, 아니면 email */
+            const userId = res.id || email;  
             sessionStorage.setItem('imti_user_id',    userId);
             sessionStorage.setItem('imti_user_email', email);
-            sessionStorage.setItem('imti_log_key',    userId);  /* 로그 시트 매칭용 키 명시 저장 */
+            sessionStorage.setItem('imti_log_key',    userId);  
             sendLog('login', userId, email);
             setProgressMsg('Loading...');
             window.location.href = 'main_what_about.html';
@@ -1257,15 +1179,44 @@ async function handleLogin() {
             openModal('modal-login-fail');
         }
     } catch(e) {
+        
+        if (e.message === 'prefetch_failed') {
+            try {
+                const hashedPw = (_preHashedPw && _preHashedRaw === pw)
+                    ? _preHashedPw : await sha256(pw);
+                const ctrl = new AbortController();
+                const _t   = setTimeout(() => ctrl.abort(), 10000);
+                const res2 = await fetch(
+                    JOIN_SCRIPT_URL + '?action=login'
+                    + '&email='    + encodeURIComponent(email)
+                    + '&password=' + encodeURIComponent(hashedPw),
+                    { method: 'GET', redirect: 'follow', cache: 'no-cache', signal: ctrl.signal }
+                ).then(r => { clearTimeout(_t); return r.json(); });
+                if (res2 && res2.status === 'OK') {
+                    const userId = res2.id || email;
+                    sessionStorage.setItem('imti_user_id',    userId);
+                    sessionStorage.setItem('imti_user_email', email);
+                    sessionStorage.setItem('imti_log_key',    userId);
+                    sendLog('login', userId, email);
+                    setProgressMsg('Loading...');
+                    window.location.href = 'main_what_about.html';
+                } else {
+                    hideProgress();
+                    openModal('modal-login-fail');
+                }
+            } catch(e2) {
+                console.error('[IMTI] Login retry error:', e2);
+                hideProgress();
+                openModal('modal-login-fail');
+            }
+            return;
+        }
         console.error('[IMTI] Login error:', e);
         hideProgress();
         openModal('modal-login-fail');
     }
 }
 
-/* ══════════════════════════════════════════════════
-   회원가입 폼 검사
-══════════════════════════════════════════════════ */
 function checkJoinForm() {
     const id    = document.getElementById('join-id')?.value    || '';
     const email = document.getElementById('join-email')?.value || '';
@@ -1279,9 +1230,6 @@ function checkJoinForm() {
     btn.style.cursor     = ok ? 'pointer' : 'not-allowed';
 }
 
-/* ══════════════════════════════════════════════════
-   회원가입 1단계 : 중복 확인
-══════════════════════════════════════════════════ */
 async function handleJoinConfirm() {
     const id    = document.getElementById('join-id').value.trim();
     const email = document.getElementById('join-email').value.trim();
@@ -1303,11 +1251,11 @@ async function handleJoinConfirm() {
     };
 
     try {
-        /* sha256 해싱 완료 즉시 GAS 요청 — warm-up 대기 없이 바로 시작 */
+        
         const hashedPw = await sha256(pw);
 
         const ctrl = new AbortController();
-        const _t   = setTimeout(() => ctrl.abort(), 10000); /* 10초 타임아웃 */
+        const _t   = setTimeout(() => ctrl.abort(), 10000); 
         const res = await fetch(
             JOIN_SCRIPT_URL + '?action=checkDuplicate'
             + '&id='    + encodeURIComponent(id)
@@ -1340,9 +1288,6 @@ async function handleJoinConfirm() {
     }
 }
 
-/* ══════════════════════════════════════════════════
-   회원가입 2단계 : 최종 저장 (JSONP로 응답 받기)
-══════════════════════════════════════════════════ */
 async function handleJoinFinal() {
     const { id, email, hashedPw } = window._joinData || {};
     if (!id || !email) return;
@@ -1351,7 +1296,7 @@ async function handleJoinFinal() {
 
     try {
         const ctrl = new AbortController();
-        const _t   = setTimeout(() => ctrl.abort(), 10000); /* 10초 타임아웃 */
+        const _t   = setTimeout(() => ctrl.abort(), 10000); 
         const res = await fetch(
             JOIN_SCRIPT_URL + '?action=register'
             + '&id='       + encodeURIComponent(id)
@@ -1379,23 +1324,17 @@ async function handleJoinFinal() {
     }
 }
 
-/* ══════════════════════════════════════════════════
-   회원가입 성공 → 자동 로그인
-══════════════════════════════════════════════════ */
 function handleJoinSuccess() {
     closeModal('modal-join-success');
     const { id, email } = window._joinData || {};
     const userId        = id || email || 'unknown';
     sessionStorage.setItem('imti_user_id',    userId);
     sessionStorage.setItem('imti_user_email', email || '');
-    sessionStorage.setItem('imti_log_key',    userId);  /* 로그 시트 매칭용 키 명시 저장 */
+    sessionStorage.setItem('imti_log_key',    userId);  
     sendLog('login', userId, email || '');
     window.location.href = 'main_what_about.html';
 }
 
-/* ══════════════════════════════════════════════════
-   관리자 로그인 (객체 응답 확인)
-══════════════════════════════════════════════════ */
 async function handleAdminLogin() {
     const email = document.getElementById('admin-email').value.trim();
     const pw    = document.getElementById('admin-pw').value.trim();
@@ -1404,15 +1343,15 @@ async function handleAdminLogin() {
     const progressEl = document.getElementById('admin-progress-alert');
     if (progressEl) progressEl.style.display = 'flex';
 
-    /* sha256 해싱과 IP 조회를 병렬 실행 — 직렬 대기 제거 */
+    
     const [hashedPw, clientIp] = await Promise.all([
         sha256(pw),
         fetch('https://api.ipify.org?format=json')
             .then(r => r.json()).then(d => d.ip || 'unknown')
-            .catch(() => 'unknown')  /* IP 조회 실패 → unknown 유지 */
+            .catch(() => 'unknown')  
     ]);
 
-    /* warm-up 대기 제거 — GAS 준비 여부와 무관하게 즉시 요청 시작 */
+    
     const url = ADMIN_SCRIPT_URL
         + '?action=adminLogin'
         + '&email='    + encodeURIComponent(email)
@@ -1421,7 +1360,7 @@ async function handleAdminLogin() {
 
     try {
         const ctrl = new AbortController();
-        const _t   = setTimeout(() => ctrl.abort(), 8000); /* 8초 타임아웃 */
+        const _t   = setTimeout(() => ctrl.abort(), 8000); 
         const res = await fetch(url, { method: 'GET', redirect: 'follow', cache: 'no-cache', signal: ctrl.signal })
             .then(r => { clearTimeout(_t); return r.json(); });
         if (progressEl) progressEl.style.display = 'none';
@@ -1444,9 +1383,6 @@ async function handleAdminLogin() {
     }
 }
 
-/* ══════════════════════════════════════════════════
-   방문자 카운터 / 시트 날짜
-══════════════════════════════════════════════════ */
 async function runCounter() {
     try {
         const count = await fetch(COUNTER_URL).then(r => r.text());

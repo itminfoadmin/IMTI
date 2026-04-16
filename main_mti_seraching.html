@@ -26,7 +26,7 @@
         }
         body::-webkit-scrollbar { display: none; }
 
-        /* ── Navigation ── */
+        
         .topnav {
             background: #fff;
             padding: 4vh 5% 1vh 5%;
@@ -57,10 +57,10 @@
         }
         .nav-menu-item:hover, .nav-menu-item.active { color: #212529; font-weight: 700; border-bottom: 2px solid #212529; }
 
-        /* ── Main ── */
+        
         .main-content { flex: 1; min-height: 0; padding: 10px 15%; display: flex; flex-direction: column; gap: 0; }
 
-        /* ── Search Bar ── */
+        
         .search-bar {
             display: flex;
             align-items: stretch;
@@ -138,7 +138,7 @@
         }
         .reset-all-btn:hover { background: #e03131; color: #fff; border-color: #e03131; }
 
-        /* ── Dropdown ── */
+        
         .filter-dropdown {
             position: absolute;
             top: 100%;
@@ -176,7 +176,7 @@
         .dropdown-item.selected::before { background: #d47878; }
         #filter-result { border-right: 1px solid #fff !important; }
 
-        /* ── Body Row ── */
+        
         .body-row { flex: 1; min-height: 0; display: flex; gap: 0; position: relative; }
         .iframe-wrap { flex: 1; min-width: 0; position: relative; background: #fff; border: 1px solid #dee2e6; overflow: hidden; }
         .iframe-inner { width: 100%; height: 100%; position: relative; overflow: hidden; background: #fff; }
@@ -188,7 +188,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .scrollbar-cover { position: absolute; top: 0; right: 0; width: 16px; height: 100%; background: #fff; z-index: 2; pointer-events: none; }
 
-        /* ── 문서 로딩 오버레이 ── */
+        
         #doc-loading-overlay {
             position: absolute; inset: 0; background: #fff;
             display: none; flex-direction: column;
@@ -212,7 +212,7 @@
             border-radius: 99px; transition: width 0.28s ease;
         }
 
-        /* ── Side Buttons ── */
+        
         .side-btns { position: absolute; top: 0; right: -73px; display: flex; flex-direction: column; gap: 7px; z-index: 200; }
         .side-btn {
             display: flex;
@@ -241,8 +241,7 @@
         .side-btn-icon { font-size: 1.05rem; }
         .side-btn:hover .side-btn-icon { filter: brightness(10); }
 
-
-        /* ── Popup Buttons ── */
+        
         .popup-btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .popup-btn-primary {
             flex: 1; padding: 11px; background: #343a40; color: #fff; border: none; border-radius: 8px; cursor: pointer;
@@ -257,13 +256,13 @@
         }
         .popup-btn-secondary:hover { background: #dee2e6; }
 
-        /* ── No-exist Box ── */
+        
         .noexist-box { background: #fff; border-radius: 12px; width: 90%; max-width: 420px; padding: 36px 32px 28px; text-align: center; }
         .noexist-icon { font-size: 2.5rem; margin-bottom: 14px; }
         .noexist-title { font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 700; color: #212529; margin-bottom: 8px; }
         .noexist-desc { font-size: 0.8rem; color: #868e96; line-height: 1.7; margin-bottom: 24px; }
 
-        /* ── Board Popup ── */
+        
         .board-popup-box {
             background: #fff;
             border-radius: 12px;
@@ -277,7 +276,7 @@
         }
         .board-header {
             padding: 22px 28px 14px;
-            border-bottom: 1px solid #fff;   /* ← 상단 가로줄 흰색 */
+            border-bottom: 1px solid #fff;   
             flex-shrink: 0;
             display: flex;
             justify-content: space-between;
@@ -309,7 +308,7 @@
         .board-val { padding: 10px 14px; line-height: 1.7; }
         .board-val-tall { padding: 12px 14px; line-height: 1.7; min-height: 80px; vertical-align: top !important; }
 
-        /* ── Pagination ── */
+        
         .pg-btn {
             min-width: 30px; height: 30px; padding: 0 8px;
             background: #fff; border: 1px solid #dee2e6; border-radius: 5px; cursor: pointer;
@@ -320,8 +319,7 @@
         .pg-btn.active { background: #343a40; color: #fff; border-color: #343a40; font-weight: 700; }
         .pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-
-        /* ── Preload Overlay ── */
+        
         #preload-overlay {
             position: fixed; inset: 0; background: #fff; z-index: 2000;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
@@ -336,7 +334,7 @@
         .preload-bar-wrap { flex: 1; height: 2px; background: #f1f3f5; border-radius: 99px; overflow: hidden; }
         .preload-bar { height: 100%; width: 0%; background: #d47878; border-radius: 99px; transition: width 0.3s ease; }
 
-        /* ── Experience Popup ── */
+        
         .exp-popup-box {
             background: #fff; border-radius: 10px; width: 95%; max-width: 980px;
             padding: 0; text-align: left; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.22);
@@ -364,7 +362,6 @@
 </head>
 <body id="main-body">
 
-<!-- ── Preload Overlay ── -->
 <div id="preload-overlay">
     <img src="img/logo.png" alt="IMTI" class="preload-logo" onerror="this.style.display='none'">
     <div class="preload-bar-row">
@@ -374,31 +371,29 @@
     <div class="preload-title">Loading Contents...</div>
 </div>
 
-<!-- ── Navigation ── -->
 <div id="navbar-placeholder"></div>
 
-<!-- ── Main Content ── -->
 <div class="main-content">
 <div class="search-bar" id="search-bar">
-    <!-- 1. 영역(D) -->
+    
     <div class="filter-item" id="filter-domain">
         <div class="filter-label" id="label-domain" onclick="toggleDropdown('dd-domain','label-domain')">영역(D) 선택 <span class="filter-caret">▾</span></div>
         <div class="filter-dropdown" id="dd-domain"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
     </div>
     
-    <!-- 2. 대상(P) -->
+    
     <div class="filter-item" id="filter-participants">
         <div class="filter-label" id="label-participants" onclick="toggleDropdown('dd-participants','label-participants')">대상(P) 선택 <span class="filter-caret">▾</span></div>
         <div class="filter-dropdown" id="dd-participants"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
     </div>
 
-    <!-- 3. 지향(O) -->
+    
     <div class="filter-item" id="filter-orientation">
         <div class="filter-label" id="label-orientation" onclick="toggleDropdown('dd-orientation','label-orientation')">지향(O) 선택 <span class="filter-caret">▾</span></div>
         <div class="filter-dropdown" id="dd-orientation"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
     </div>
 
-    <!-- 4. 역량(C) -->
+    
     <div class="filter-item" id="filter-competency">
         <div class="filter-label" id="label-competency" onclick="toggleDropdown('dd-competency','label-competency')">역량(C) 선택 <span class="filter-caret">▾</span></div>
         <div class="filter-dropdown" id="dd-competency"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
@@ -406,7 +401,7 @@
 
     <div class="filter-arrow-sep">&#x2192;</div>
 
-    <!-- 결과 선택 -->
+    
     <div class="filter-item result-item" id="filter-result">
         <div class="filter-label" id="label-result" onclick="toggleDropdown('dd-result','label-result')">
             <span class="result-label-text">수업 모형(MTI)을 선택하세요.</span>
@@ -446,7 +441,6 @@
     </div>
 </div>
 
-<!-- ── 경험 공유하기 팝업 ── -->
 <div id="modal-exp-write" class="modal-bg" onclick="outsideClose(event,'modal-exp-write')">
     <div class="exp-popup-box" onclick="event.stopPropagation()">
         <div style="display:flex;align-items:flex-start;padding:22px 40px 0;">
@@ -504,7 +498,6 @@
     </div>
 </div>
 
-<!-- ── 알림 모달들 ── -->
 <div id="modal-exp-nomodel" class="modal-bg">
     <div class="alert-modal-box">
         <p>경험을 등록할 수업 모형(MTI)을 선택해 주세요.<span class="en">Please select a teaching model first.</span></p>
@@ -533,7 +526,6 @@ to search for a teaching model.</span></p>
     </div>
 </div>
 
-<!-- ── 적용 사례 없음 팝업 ── -->
 <div id="modal-spread-noexist" class="modal-bg" onclick="outsideClose(event,'modal-spread-noexist')">
     <div class="noexist-box" onclick="event.stopPropagation()">
         <div class="noexist-icon">📭</div>
@@ -546,7 +538,6 @@ to search for a teaching model.</span></p>
     </div>
 </div>
 
-<!-- ── 수업 모형 적용 사례 게시판 팝업 ── -->
 <div id="modal-spread-board" class="modal-bg" onclick="outsideClose(event,'modal-spread-board')">
     <div class="board-popup-box" onclick="event.stopPropagation()" style="width:90%;max-width:1000px;height:90vh;">
         <div class="board-header">
@@ -575,30 +566,23 @@ to search for a teaching model.</span></p>
     </div>
 </div>
 
-<!-- ── Contact Modal ── -->
-
 </div>
 
-<!-- ══════════════════════════════════════════════
-     SCRIPTS
-════════════════════════════════════════════════ -->
 <script>
-    /* ── URL Constants ── */    
+        
     const SHEET_SCRIPT_URL      = 'https://script.google.com/macros/s/AKfycbxLGB_T508QU7nzcNGe1pOHBz476SPe5V3sgHqMYQLI7veTSbFsACas_qxTncSRkqzn/exec';
     const EXP_SURVEY_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQsbx3nRvJfrJGISQAZ6oU8Xz1x2MXJFnXR0WcrbyBx4n1BYDcuqDs6_0oh64i26Cs/exec';
     const DEFAULT_DOC_URL       = 'https://docs.google.com/document/d/1sijxV3Kz_LJ10rBSj60nU5OlVgdAZ8aC0L5Jx4AEJUo/preview?rm=minimal';
-    const GUIDE_URL             = 'Main_mti_searching_guide.html?v=' + Date.now();   /* 초기 안내 페이지 — 캐시 방지 */
+    const GUIDE_URL             = 'Main_mti_searching_guide.html?v=' + Date.now();   
     const BASE_WIDTH            = 1100;
 
-    /* ── State ── */
+    
     var sheetRows = [], MODEL_URL = {}, MODEL_NUM = {};
     var DOMAIN_LIST = [], ORIENTATION_LIST = [], COMPETENCY_LIST = [], PARTICIPANTS_LIST = [];
     var COMPETENCY_MAP = {}, PARTICIPANTS_MAP = {};
     var boardAllEntries = [], boardCurrentPage = 1;
 
-    /* ─────────────────────────────────────────
-       시트 데이터 로드
-    ───────────────────────────────────────── */
+    
     function loadSheetData() {
         return new Promise(function(resolve) {
             var url = SHEET_SCRIPT_URL + '?action=getSheetData';
@@ -632,7 +616,7 @@ to search for a teaching model.</span></p>
                 resolve();
             }
 
-            /* JSONP */
+            
             var cbName = 'imti_sheet_cb_' + Date.now();
             var s = document.createElement('script');
             var timeout = setTimeout(function() {
@@ -685,7 +669,7 @@ to search for a teaching model.</span></p>
         });
     }
 
-    /* ── Filter State ── */
+    
     var filterState = { domain: null, orientation: null, competency: null, participants: null };
     var selectedResult = null;
 
@@ -713,6 +697,15 @@ to search for a teaching model.</span></p>
         var ri = document.getElementById('filter-result');
         if (ri) ri.classList.toggle('has-results', any && models.length > 0);
 
+        
+        if (selectedResult && models.indexOf(selectedResult) === -1) {
+            selectedResult = null;
+            var labelResult = document.getElementById('label-result');
+            if (labelResult) labelResult.classList.remove('active');
+            var nameEl = document.getElementById('result-model-name');
+            if (nameEl) nameEl.innerHTML = '';
+        }
+
         if (ls) {
             if (!any)           ls.textContent = '수업 모형(MTI)의 검색을 위한 조건을 선택하세요.';
             else if (!models.length) ls.textContent = '선택한 조건의 수업 모형(MTI)이 검색되지 않았습니다.';
@@ -727,16 +720,16 @@ to search for a teaching model.</span></p>
             var item = document.createElement('div');
             item.className = 'dropdown-item' + (selectedResult === name ? ' selected' : '');
             item.dataset.modelName = name;
-            /* 괄호로 묶인 영역 표시 제거 — e.g. "문제 해결 모형 (컴퓨터 시스템 영역)" → "문제 해결 모형" */
+            
             var displayName = name.replace(/\s*\([^)]*영역\)\s*$/, '').trim();
-            /* MTI 번호 찾기 */
+            
             var numTag = '';
             if (MODEL_NUM[name]) {
                 numTag = '<span style="font-family:\'DM Mono\',monospace;font-size:0.78rem;font-weight:700;color:inherit;margin-right:6px;flex-shrink:0;">[' + MODEL_NUM[name] + ']</span>';
             }
             item.innerHTML = numTag + '<span>' + displayName + '</span>';
             item.onclick = function() { selectResult(name); };
-            /* hover 시 해당 문서를 백그라운드에서 미리 로드 — 클릭 전에 이미 로딩 시작 */
+            
             item.onmouseenter = function() {
                 var url = MODEL_URL[name];
                 if (url) prefetchIframe(url);
@@ -744,7 +737,7 @@ to search for a teaching model.</span></p>
             dd.appendChild(item);
         });
 
-        /* 검색 결과가 1개뿐이면 사용자가 클릭할 문서가 확정 → 즉시 prefetch */
+        
         if (models.length === 1 && MODEL_URL[models[0]]) {
             prefetchIframe(MODEL_URL[models[0]]);
         }
@@ -753,7 +746,7 @@ to search for a teaching model.</span></p>
     function selectResult(name) {
         selectedResult = name;
         var displayName = name.replace(/\s*\([^)]*영역\)\s*$/, '').trim();
-        /* MTI 번호를 결과 라벨에도 표시 */
+        
         var nameEl = document.getElementById('result-model-name');
         if (MODEL_NUM[name]) {
             nameEl.innerHTML = '✔ &nbsp <span style="font-family:\'Noto Sans KR\',sans-serif;font-size:0.88rem;font-weight:700;color:#6a6868;margin-right:4px;">[' + MODEL_NUM[name] + ']</span>' + displayName;
@@ -767,7 +760,7 @@ to search for a teaching model.</span></p>
         closeAllDropdowns();
         var em = document.getElementById('exp-model');
         if (em) em.value = displayName;
-        /* board-model-meta 는 항상 고정 문구 유지 */
+        
         var bm = document.getElementById('board-model-meta');
         if (bm) bm.textContent = '이 수업 모형(MTI)을 직접 적용한 사례와 경험들입니다.';
         var url = MODEL_URL[name];
@@ -824,7 +817,7 @@ to search for a teaching model.</span></p>
         filterState = { domain: null, participants: null, orientation: null, competency: null };
         selectedResult = null;
         ['domain','participants','orientation','competency'].forEach(clearFilter);
-        /* 결과 라벨 초기화 (innerHTML로 MTI 번호 잔재 제거) */
+        
         var nameEl = document.getElementById('result-model-name');
         if (nameEl) nameEl.innerHTML = '';
         document.getElementById('label-result').classList.remove('active');
@@ -832,7 +825,7 @@ to search for a teaching model.</span></p>
         if (ls) ls.textContent = '수업 모형(MTI)을 선택하세요.';
         buildResultDropdown();
 
-        /* 열려있는 doc overlay / spinner 즉시 닫기 */
+        
         hideDocOverlay();
         var ov = document.getElementById('doc-loading-overlay');
         if (ov) { ov.classList.remove('show', 'visible'); }
@@ -841,14 +834,14 @@ to search for a teaching model.</span></p>
         var sp = document.getElementById('loading-spinner');
         sp.classList.remove('show');
 
-        /* 모든 iframe 비활성화 + 즉시 숨김 (display는 block 유지) */
+        
         c.querySelectorAll('iframe').forEach(function(f) {
             f.classList.remove('active');
             f.style.visibility = 'hidden';
             f.style.display    = 'block';
         });
 
-        /* 가이드 iframe이 있으면 바로 표시, 없으면 새로 생성 */
+        
         var guide = c.querySelector('iframe[data-is-guide="true"]');
         if (guide) {
             guide.classList.add('active');
@@ -874,9 +867,7 @@ to search for a teaching model.</span></p>
         closeAllDropdowns();
     }
 
-    /* ─────────────────────────────────────────
-       iframe
-    ───────────────────────────────────────── */
+    
     function scaleIframes() {
         var c = document.getElementById('iframe-container');
         if (!c || c.clientWidth === 0) return;
@@ -884,24 +875,23 @@ to search for a teaching model.</span></p>
         var containerW = c.clientWidth;
         var containerH = c.clientHeight;
 
-        /* DPR 보정: 물리 픽셀 기준으로 렌더링해 Retina에서 2배 선명하게 표시.
-           CSS scale()로 논리 크기에 맞추므로 화면에 보이는 크기는 기존과 동일. */
+        
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-        /* 기존 방식의 논리적 배율 — 화면 표시 크기 결정, 유지 */
+        
         var logicalScale = containerW / BASE_WIDTH;
         if (isNaN(logicalScale) || logicalScale <= 0) logicalScale = 1;
 
-        /* 물리 픽셀 렌더 크기 = 논리 크기 x DPR */
+        
         var renderW = Math.round(BASE_WIDTH * dpr);
         var renderH = Math.round(Math.ceil(containerH / logicalScale) * dpr);
 
-        /* CSS transform으로 화면 표시 크기를 기존과 동일하게 유지 */
+        
         var cssScale = logicalScale / dpr;
 
         document.querySelectorAll('#iframe-container iframe').forEach(function(f) {
             if (f.dataset.isGuide === 'true') {
-                /* 가이드 페이지는 스케일 없이 컨테이너 전체를 채움 */
+                
                 f.style.width  = '100%';
                 f.style.height = '100%';
                 f.style.transform = 'none';
@@ -912,28 +902,25 @@ to search for a teaching model.</span></p>
                 f.style.transform    = 'scale(' + cssScale + ')';
                 f.style.transformOrigin = 'top left';
             }
-            /* display는 항상 block 유지 (none으로 하면 onload가 안 발생).
-               화면 표시/숨김은 visibility로만 제어 */
+            
             f.style.display    = 'block';
             f.style.visibility = f.classList.contains('active') ? 'visible' : 'hidden';
         });
     }
 
-    /* ── Google Docs URL → preview URL 변환 ──
-       /edit, /view, /pub, 날것의 /d/ID 등 모두 /preview?rm=minimal 로 정규화 */
+    
     function toPreviewUrl(src) {
         if (!src || !src.includes('docs.google.com')) return src;
-        /* 이미 preview + rm=minimal 이면 그대로 */
+        
         if (src.includes('/preview') && src.includes('rm=minimal')) return src;
-        /* 쿼리스트링 제거 후 경로만 추출 */
+        
         var base = src.split('?')[0].split('#')[0];
-        /* /edit, /view, /pub, /preview, /copy 등 말미 suffix 제거 */
+        
         base = base.replace(/\/(edit|view|pub|preview|copy|export)(\/.*)?$/, '');
         return base + '/preview?rm=minimal';
     }
 
-    /* prefetchIframe: 백그라운드에서 iframe을 미리 생성·로드만 하고 표시하지 않음.
-       로드 완료 시 data-loaded='true' 마킹 → loadIframe이 즉시 표시 가능 여부 판단에 활용. */
+    
     function findIframeByUrl(fs) {
         var c = document.getElementById('iframe-container');
         var found = null;
@@ -945,7 +932,7 @@ to search for a teaching model.</span></p>
 
     function prefetchIframe(src) {
         var fs = toPreviewUrl(src);
-        if (findIframeByUrl(fs)) return;   /* 이미 존재 */
+        if (findIframeByUrl(fs)) return;   
         var c = document.getElementById('iframe-container');
         var f = document.createElement('iframe');
         f.dataset.src    = fs;
@@ -954,7 +941,7 @@ to search for a teaching model.</span></p>
         f.style.background = '#fff';
         f.onload = function() {
             f.dataset.loaded = 'true';
-            /* loadIframe이 먼저 _pendingShow를 세팅한 경우 — 오버레이 닫고 표시 */
+            
             if (f._pendingShow) {
                 f.classList.add('active');
                 hideDocOverlay();
@@ -965,7 +952,7 @@ to search for a teaching model.</span></p>
         c.appendChild(f);
     }
 
-    /* ── 문서 로딩 오버레이 제어 ── */
+    
     var _docProgressTimer = null;
     var _docProgressPct   = 0;
 
@@ -974,7 +961,7 @@ to search for a teaching model.</span></p>
         var bar = document.getElementById('doc-progress-bar');
         var lbl = document.getElementById('doc-loading-label');
         if (!ov) return;
-        /* 이전 타이머 정리 */
+        
         if (_docProgressTimer) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
         _docProgressPct = 0;
         if (bar) bar.style.transition = 'none';
@@ -985,7 +972,7 @@ to search for a teaching model.</span></p>
             requestAnimationFrame(function() {
                 ov.classList.add('visible');
                 if (bar) bar.style.transition = 'width 0.28s ease';
-                /* 가짜 진행: 0→70% 를 천천히, 이후 멈춤 — onload에서 100%로 점프 */
+                
                 _docProgressTimer = setInterval(function() {
                     var step = _docProgressPct < 40 ? 2.5 : (_docProgressPct < 65 ? 1.2 : 0.4);
                     _docProgressPct = Math.min(_docProgressPct + step, 70);
@@ -1001,7 +988,7 @@ to search for a teaching model.</span></p>
         var bar = document.getElementById('doc-progress-bar');
         if (!ov) return;
         if (_docProgressTimer) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
-        /* 100%로 채운 뒤 0.35s 후 페이드아웃 */
+        
         if (bar) { bar.style.transition = 'width 0.2s ease'; bar.style.width = '100%'; }
         setTimeout(function() {
             ov.classList.remove('visible');
@@ -1016,19 +1003,19 @@ to search for a teaching model.</span></p>
         var sp = document.getElementById('loading-spinner');
         sp.classList.remove('show');
 
-        /* 모든 iframe 비활성화 — display는 block 유지(onload 보장) */
+        
         c.querySelectorAll('iframe').forEach(function(f) {
             f.classList.remove('active');
             f.style.visibility = 'hidden';
         });
 
-        /* 로딩 오버레이 즉시 표시 */
+        
         showDocOverlay('선택한 MTI 불러오는 중...');
 
         var ex = findIframeByUrl(fs);
 
         if (ex) {
-            /* 이미 로드 완료된 경우: 짧게 대기 후 즉시 표시 */
+            
             var delay = (ex.dataset.loaded === 'true') ? 150 : 400;
             setTimeout(function() {
                 ex.classList.add('active');
@@ -1038,7 +1025,7 @@ to search for a teaching model.</span></p>
             return;
         }
 
-        /* 신규 로드 */
+        
         var f = document.createElement('iframe');
         f.dataset.src    = fs;
         f.dataset.loaded = 'false';
@@ -1046,7 +1033,7 @@ to search for a teaching model.</span></p>
         f.style.background = '#fff';
         f.onload = function() {
             f.dataset.loaded = 'true';
-            /* Google Docs는 onload 후에도 내부 렌더링이 이어지므로 짧게 대기 */
+            
             setTimeout(function() {
                 f.classList.add('active');
                 hideDocOverlay();
@@ -1062,9 +1049,7 @@ to search for a teaching model.</span></p>
 </script>
 
 <script>
-    /* ─────────────────────────────────────────
-       팝업
-    ───────────────────────────────────────── */
+    
     function openPopup(type) {
         var modelName = selectedResult || document.getElementById('result-model-name').textContent.trim();
 
@@ -1099,7 +1084,7 @@ to search for a teaching model.</span></p>
                 console.warn('[IMTI] No matching row for model:', modelName);
             }
 
-            /* board-model-meta 는 항상 고정 문구 */
+            
             var bm = document.getElementById('board-model-meta');
             if (bm) bm.textContent = '이 수업 모형(MTI)을 직접 적용한 사례와 경험들입니다.';
 
@@ -1131,7 +1116,7 @@ to search for a teaching model.</span></p>
         if (pg) pg.style.display = show ? 'none'  : 'flex';
     }
 
-    /* ── EXP_SURVEY_SCRIPT_URL JSONP 조회 ── */
+    
     function fetchExpSurveyData(mtiId, callback) {
         var url = EXP_SURVEY_SCRIPT_URL + '?action=getExpSurvey&mtiId=' + encodeURIComponent(mtiId);
         console.log('[IMTI] fetchExpSurveyData → mtiId:', JSON.stringify(mtiId), 'url:', url);
@@ -1148,7 +1133,7 @@ to search for a teaching model.</span></p>
             });
     }
 
-    /* ── 게시판 렌더링 ── */
+    
     function renderBoardPage(page) {
         boardCurrentPage = page;
         var entry = boardAllEntries[page - 1];
@@ -1161,7 +1146,7 @@ to search for a teaching model.</span></p>
         var disadvantage = entry.disadvantage || entry.disadvantege || '—';
         var etc          = entry.etc          || '—';
 
-        /* 날짜: YYYY-MM-DD 형식만 표시 */
+        
         var rawDate  = String(entry.timestamp || entry.date || '').substring(0, 10);
 
         document.getElementById('board-entry-author').textContent = '작성자: ' + userId;
@@ -1192,11 +1177,11 @@ to search for a teaching model.</span></p>
         if (!pg) return;
         pg.innerHTML = '';
 
-        var PAGE_GROUP = 10; /* 한 번에 보여줄 페이지 번호 수 */
+        var PAGE_GROUP = 10; 
         var groupStart = Math.floor((current - 1) / PAGE_GROUP) * PAGE_GROUP + 1;
         var groupEnd   = Math.min(groupStart + PAGE_GROUP - 1, total);
-        var prevGroup  = groupStart - 1;          /* 이전 그룹 마지막 페이지 */
-        var nextGroup  = groupEnd   + 1;          /* 다음 그룹 첫 페이지 */
+        var prevGroup  = groupStart - 1;          
+        var nextGroup  = groupEnd   + 1;          
 
         function mkBtn(label, page, disabled, active) {
             var b = document.createElement('button');
@@ -1207,32 +1192,32 @@ to search for a teaching model.</span></p>
             pg.appendChild(b);
         }
 
-        /* << : 첫 페이지 / < : 이전 그룹 마지막 페이지 */
+        
         mkBtn('<<', 1,          current <= 1,          false);
         mkBtn('<',  prevGroup,  groupStart <= 1,        false);
 
-        /* 현재 그룹의 페이지 번호들 */
+        
         for (var i = groupStart; i <= groupEnd; i++) {
             mkBtn(String(i), i, false, i === current);
         }
 
-        /* > : 다음 그룹 첫 페이지 / >> : 마지막 페이지 */
+        
         mkBtn('>',  nextGroup, groupEnd >= total, false);
         mkBtn('>>', total,     current >= total,  false);
     }
 
-    /* ── 경험 등록 ── */
+    
     function submitExpWrite() {
         var model  = (document.getElementById('exp-model')       || {}).value || '';
         var userId = sessionStorage.getItem('imti_user_id') || '';
 
-        /* mtiId 추출 — sheetRows의 키 이름이 다를 수 있으므로 복수 후보 탐색 */
+        
         var mr    = sheetRows.find(function(r) { return r.model === model; });
         var mtiId = '';
         if (mr) {
             mtiId = mr.mtiId || mr.mti_id || mr.mtiID || mr.MTI_ID || mr.id || '';
             if (!mtiId) {
-                /* 키 이름을 소문자+언더스코어 제거로 정규화해서 재탐색 */
+                
                 Object.keys(mr).forEach(function(k) {
                     if (!mtiId && k.toLowerCase().replace(/_/g, '') === 'mtiid')
                         mtiId = mr[k] || '';
@@ -1293,7 +1278,7 @@ to search for a teaching model.</span></p>
                 }
             })
             .catch(function(err) {
-                /* CORS 차단 시 no-cors POST fallback */
+                
                 console.warn('[IMTI] POST CORS 차단 → no-cors fallback:', err);
                 fetch(EXP_SURVEY_SCRIPT_URL, {
                     method:  'POST',
@@ -1313,17 +1298,17 @@ to search for a teaching model.</span></p>
             });
     }
 
-    /* ── 출력 ── */
+    
     function printCurrentDoc() {
-        /* 선택된 모형의 URL을 우선 사용, 없으면 active iframe으로 폴백 */
+        
         var src = '';
         if (selectedResult && MODEL_URL[selectedResult]) {
             src = MODEL_URL[selectedResult];
         } else {
             var f = document.querySelector('#iframe-container iframe.active');
-            /* 가이드 페이지는 출력 대상 제외 */
+            
             if (f && f.dataset.isGuide === 'true') {
-                /* 가이드 페이지가 활성 상태이면 가이드 내용을 그대로 인쇄 */
+                
                 try { f.contentWindow.print(); } catch(e) {
                     var pw = window.open('Main_mti_searching_guide.html', '_blank');
                     if (pw) pw.onload = function() { pw.print(); };
@@ -1377,11 +1362,9 @@ to search for a teaching model.</span></p>
 
     
     
-    /* ─────────────────────────────────────────
-       초기화
-    ───────────────────────────────────────── */
+    
     document.addEventListener('DOMContentLoaded', async function() {
-        /* user-email-display는 navbar.html 로드 후 자동 설정됩니다. */
+        
 
         function dismissOverlay() {
             var ov  = document.getElementById('preload-overlay');
@@ -1408,17 +1391,17 @@ to search for a teaching model.</span></p>
             if (!sheetDone || !iframeDone) return;
             clearInterval(fakeTimer);
             dismissOverlay();
-            /* 오버레이 해제와 동시에 DEFAULT_DOC 백그라운드 프리페치 시작 */
+            
             prefetchIframe(DEFAULT_DOC_URL);
         }
 
         loadSheetData().then(function() { sheetDone = true; fakeTarget = 95; checkAllDone(); });
 
-        /* ── 가이드 페이지를 초기 iframe으로 표시 ── */
+        
         var c = document.getElementById('iframe-container');
         var f = document.createElement('iframe');
         f.dataset.src    = GUIDE_URL;
-        f.dataset.isGuide = 'true';   /* 가이드 페이지 구분 플래그 */
+        f.dataset.isGuide = 'true';   
         f.allowFullscreen = true;
         f.onload = function() {
             iframeDone = true;
@@ -1431,7 +1414,7 @@ to search for a teaching model.</span></p>
         f.src = GUIDE_URL;
         scaleIframes();
 
-        /* 15초 안전망 — 가이드 로딩이 실패해도 오버레이 해제 */
+        
         setTimeout(function() {
             clearInterval(fakeTimer);
             sheetDone = true; iframeDone = true;

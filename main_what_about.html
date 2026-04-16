@@ -34,7 +34,7 @@
         html { scrollbar-width: none; -ms-overflow-style: none; }
         html::-webkit-scrollbar { display: none; }
 
-        /* ── TOP NAV ── */
+        
         .topnav {
             background: #fff;
             padding: 4vh 5% 1vh 5%;
@@ -61,7 +61,7 @@
         }
         .nav-menu-item:hover, .nav-menu-item.active { color: #212529; font-weight: 700; border-bottom: 2px solid #212529; }
 
-        /* ── TAB BAR ── */
+        
         .tab-bar {
             display: flex;
             padding: 0 15%;
@@ -81,14 +81,14 @@
         .tab-btn.active[data-idx="0"] { background: #d47878; color: #fff; }
         .tab-btn.active[data-idx="1"] { background: #d49860; color: #fff; }
 
-        /* ── IFRAME AREA ── */
+        
         .iframe-wrap { flex: 1; min-height: 0; padding: 10px 10%; position: relative; }
         .iframe-inner {
             width: 100%; height: 100%; background: #fff;
             position: relative; overflow: hidden;
         }
 
-        /* 실제 스크롤이 일어나는 래퍼 - 스크롤바 숨김 */
+        
         .iframe-scroll {
             position: absolute; inset: 0;
             overflow-y: auto; overflow-x: hidden;
@@ -97,7 +97,7 @@
         }
         .iframe-scroll::-webkit-scrollbar { display: none; }
 
-        /* 스크롤 가능 높이를 만드는 spacer */
+        
         .iframe-spacer { width: 1px; pointer-events: none; }
 
         iframe {
@@ -116,8 +116,7 @@
             pointer-events: auto;
         }
 
-
-        /* ── 전체화면 로딩 오버레이 ── */
+        
         #preload-overlay {
             position: fixed; inset: 0;
             background: #fff;
@@ -176,9 +175,6 @@
 </head>
 <body id="main-body">
 
-<!-- ════════════════════════════════
-     전체화면 사전 로딩 오버레이
-════════════════════════════════ -->
 <div id="preload-overlay">
     <img src="img/logo.png" alt="IMTI" class="preload-logo"
          onerror="this.style.display='none'">
@@ -207,19 +203,14 @@
     </div>
 </div>
 
-
-
 <script>
-/* ── 탭 정의 ── */
-/* ※ 탭 1의 src에 Google Sheet 공유 embed URL을 입력하세요.
-      예) https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/htmlembed          */
+
 const TABS = [
     { src: "Main_Greeting.html",               type: "local", baseWidth: 1100 },
     { src: "Main_Reference.html",               type: "local", baseWidth: 1100 }
 ];
 let currentTabIdx = 0;
 
-/* ─ 콘텐츠 실제 높이(scale 적용 후 px) ─ */
 function getScaledContentH(iframe, scale) {
     try {
         const doc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -228,7 +219,6 @@ function getScaledContentH(iframe, scale) {
     return Math.ceil(2400 * scale);
 }
 
-/* ─ iframe 스케일 & spacer 높이 설정 ─ */
 function scaleIframes() {
     const container = document.getElementById('iframe-container');
     const spacer    = document.getElementById('iframe-spacer');
@@ -244,11 +234,11 @@ function scaleIframes() {
         f.style.width     = baseWidth + 'px';
         f.style.height    = Math.ceil(container.clientHeight / scale) + 'px';
         f.style.transform = `scale(${scale})`;
-        /* 스크롤 오프셋을 iframe top 이동으로 반영 */
+        
         f.style.top  = (-scrollTop / scale) + 'px';
         f.style.left = '0px';
 
-        /* 활성 탭의 spacer 높이 갱신 */
+        
         if (idx === currentTabIdx && spacer) {
             const ch = getScaledContentH(f, scale);
             spacer.style.height = ch + 'px';
@@ -257,8 +247,6 @@ function scaleIframes() {
 }
 window.addEventListener('resize', scaleIframes);
 
-
-/* ─ 스크롤 이벤트 → iframe top 오프셋 갱신 ─ */
 function onScroll() {
     const container = document.getElementById('iframe-container');
     const scrollEl  = document.getElementById('iframe-scroll');
@@ -272,7 +260,6 @@ function onScroll() {
     });
 }
 
-/* ─ 사전 로딩 (Preload) ─ */
 function preloadAll() {
     const container  = document.getElementById('iframe-container');
     const bar        = document.getElementById('preload-bar');
@@ -280,7 +267,7 @@ function preloadAll() {
     const overlay    = document.getElementById('preload-overlay');
     const total      = TABS.length;
 
-    /* 로컬 파일은 빠르게, Google Sheet는 여유 있게 */
+    
     const PER_TIMEOUT_LOCAL = 8000;
     const PER_TIMEOUT_SHEET = 20000;
 
@@ -289,7 +276,7 @@ function preloadAll() {
 
     countEl.textContent = `0 / ${total}`;
 
-    /* ── 1단계: 모든 iframe을 src 없이 DOM에 삽입 (크기 확보) ── */
+    
     const iframes = TABS.map((tab, idx) => {
         const iframe = document.createElement('iframe');
         iframe.dataset.idx     = idx;
@@ -300,7 +287,7 @@ function preloadAll() {
         return iframe;
     });
 
-    /* 크기 확보 후 스케일 적용 */
+    
     scaleIframes();
 
     function onOneLoaded() {
@@ -324,7 +311,7 @@ function preloadAll() {
         }, 300);
     }
 
-    /* ── 2단계: 각 탭 타입에 맞는 타임아웃으로 병렬 로딩 ── */
+    
     TABS.forEach((tab, idx) => {
         const iframe  = iframes[idx];
         const timeout = tab.type === 'local' ? PER_TIMEOUT_LOCAL : PER_TIMEOUT_SHEET;
@@ -339,19 +326,18 @@ function preloadAll() {
         iframe.addEventListener('error', markDone);
         setTimeout(markDone, timeout);
 
-        /* 캐시 방지: 로컬 파일은 타임스탬프 쿼리스트링 추가 */
+        
         iframe.src = tab.type === 'local'
             ? tab.src + '?v=' + Date.now()
             : tab.src;
-        /* 로드 완료 후 spacer 높이 재계산 */
+        
         iframe.addEventListener('load', () => { scaleIframes(); }, { once: true });
     });
 
-    /* 전체 안전망 */
+    
     setTimeout(dismiss, 35000);
 }
 
-/* ── 탭 전환 ── */
 function switchTab(idx) {
     currentTabIdx = idx;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -359,13 +345,12 @@ function switchTab(idx) {
     document.querySelectorAll('#iframe-container iframe').forEach(f => {
         f.classList.toggle('active', parseInt(f.dataset.idx) === idx);
     });
-    /* 스크롤 초기화 후 spacer & 위치 재계산 */
+    
     const scrollEl = document.getElementById('iframe-scroll');
     if (scrollEl) scrollEl.scrollTop = 0;
     scaleIframes();
 }
 
-/* ── 초기화 ── */
 document.addEventListener('DOMContentLoaded', () => {
     preloadAll();
 });

@@ -1,16 +1,10 @@
-/* ─── API URLs ─────────────────────────────────────────────────────── */
+/* --- API URLs --- */
 var IMTI_APPS_SCRIPT_URL    = 'https://script.google.com/macros/s/AKfycbwsNQKiEHC4llx5KaYxdyc7EwSOEAOx5gEGeMQAyQRKU92onRs8V6anI7mzhWu__2q60A/exec';
 var IMTI_LOG_SHEET_URL      = 'https://script.google.com/macros/s/AKfycbxOPK4rzbKhiC2ytV0aHq7bZvXaLj56b3k3OlAmN2rNp3EEbyptd-xDrfagxsurQth2JA/exec';
 var IMTI_CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBKXcVFkX0kgc8p6rmaSVh6RHeo821-IPN8MK6BP2cEMHHUhyaizWRUKxu0gNAwLf9hA/exec';
-
-/* ─── Admin GAS URL (v1.5 신규 배포) ──────────────────────────────── */
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbyLTQ-1r9n-3weRUtRL9Cqo5H4GeRDYnKzlGXL60Tk3geSF86OwXJ0RvJQxZ4ucXRkJ/exec';
 
-/* ─── 세션 가드 ─────────────────────────────────────────────────────
-   내부 페이지(main_*, ad_door 등) 로드 시 호출.
-   sessionStorage에 로그인 정보가 없으면 즉시 index.html로 리다이렉트.
-   반드시 <script src="common.js"> 직후 imtiRequireAuth() 를 호출하세요.
-──────────────────────────────────────────────────────────────────── */
+/* --- Session Guard --- */
 function imtiRequireAuth() {
     if (!sessionStorage.getItem('imti_user_email')) {
         sessionStorage.clear();
@@ -25,7 +19,7 @@ function imtiRequireAdminAuth() {
     }
 }
 
-/* ─── Modal CSS (common) ───────────────────────────────────────────────── */
+/* --- Common Modal CSS --- */
 (function injectCommonStyles() {
     if (document.getElementById('imti-common-style')) return;
     var s = document.createElement('style');
@@ -79,7 +73,7 @@ function imtiRequireAdminAuth() {
     document.head.appendChild(s);
 })();
 
-/* ─── Common Modal HTML  ────────────────────────────────────────────── */
+/* --- Common Modal HTM --- */
 function imtiInjectModals() {
     if (document.getElementById('imti-common-modals')) return;
     var wrap = document.createElement('div');
@@ -131,7 +125,7 @@ function imtiInjectModals() {
         '    </div>',
         '    <div class="btn-row">',
         '      <button class="btn-confirm" style="background:#e03131;" onclick="imtiDoWithdraw()">확인 (Confirm)</button>',
-        '      <button class="btn-cancel" onclick="imtiCloseModal(\'modal-withdraw\')">취소 (Cancel)</button>',
+        '      <button class="btn-cancel" onclick="imtiCloseModal(\'modal-withdraw\');document.getElementById(\'withdraw-pw\').value=\'\';document.getElementById(\'withdraw-error\').textContent=\'\';">취소 (Cancel)</button>',
         '    </div>',
         '  </div>',
         '</div>',
@@ -179,11 +173,15 @@ function imtiInjectModals() {
     document.body.appendChild(wrap);
 }
 
-/* ─── Modal control ─────────────────────────────────────────────────────── */
+/* --- Modal control --- */
 function imtiOpenModal(id) {
     if (id === 'modal-withdraw') {
         document.getElementById('withdraw-email').textContent = sessionStorage.getItem('imti_user_email') || '';
         document.getElementById('withdraw-id').textContent    = sessionStorage.getItem('imti_user_id')    || '';
+        var wpEl = document.getElementById('withdraw-pw');
+        if (wpEl) wpEl.value = '';
+        var weEl = document.getElementById('withdraw-error');
+        if (weEl) weEl.textContent = '';
     }
     if (id === 'modal-contact') {
         var fi = document.getElementById('contact-from');
@@ -196,7 +194,7 @@ function imtiCloseModal(id) { document.getElementById(id).classList.remove('open
 function imtiOutsideClose(e, id) { if (e.target === document.getElementById(id)) imtiCloseModal(id); }
 function imtiOutsideCloseContact(e) { if (e.target === document.getElementById('modal-contact')) imtiCloseModal('modal-contact'); }
 
-/* ─── Contact ────────────────────────────────────────────────────── */
+/* --- Contact --- */
 function imtiValidateContactForm() {
     var f   = (document.getElementById('contact-from')    || {}).value || '';
     var s   = (document.getElementById('contact-subject') || {}).value || '';
@@ -226,7 +224,7 @@ async function imtiSendContactMail() {
 
         if (res && res.status === 'OK') {
             document.getElementById('contact-from').value    = '';
-            document.getElementById('contact-subject').value = 'IMTI Inquiry';
+            document.getElementById('contact-subject').value = '';
             document.getElementById('contact-body').value    = '';
             imtiCloseModal('modal-contact');
             imtiOpenModal('modal-contact-success');
@@ -245,7 +243,7 @@ async function imtiSendContactMail() {
                 body:    JSON.stringify({ action: 'sendContact', from: from, subject: subject, body: body })
             });
             document.getElementById('contact-from').value    = '';
-            document.getElementById('contact-subject').value = 'IMTI Inquiry';
+            document.getElementById('contact-subject').value = '';
             document.getElementById('contact-body').value    = '';
             imtiCloseModal('modal-contact');
             imtiOpenModal('modal-contact-success');
@@ -257,7 +255,7 @@ async function imtiSendContactMail() {
     }
 }
 
-/* ─── Authorization Util ─────────────────────────────────────────────────────── */
+/* --- Authorization Util  --- */
 async function imtiSha256(str) {
     var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
@@ -287,13 +285,7 @@ function imtiSendLog(type, id, email) {
     } catch (e) {}
 }
 
-/* ─── Admin log (Admin-log 탭) ───────────────────────────────────────
-   type : 'admin-login'  → Admin-log 탭에 신규 행 추가 (login-time 기록, no. 자동 채번)
-          'admin-logout' → Admin-log 탭에서 해당 이메일의 마지막 미완료 행에 logout-time 기록
-   GAS action 파라미터:
-     - login  → action=adminLogin  (GAS에서 IP도 함께 수신)
-     - logout → action=adminLog&type=logout
-──────────────────────────────────────────────────────────────────── */
+/* --- Admin log  --- */
 function imtiSendAdminLog(type, email, ip) {
     try {
         var params = { action: 'adminLog', type: type, email: email };
@@ -302,11 +294,6 @@ function imtiSendAdminLog(type, email, ip) {
             { method: 'GET', mode: 'no-cors', keepalive: true }).catch(function() {});
     } catch (e) {}
 }
-
-/* Admin 로그인 성공 후 호출 — ipify로 클라이언트 IP 조회 후 Admin-log에 login 행 추가
-   GAS의 adminLogin 액션이 인증과 동시에 로그를 기록하므로,
-   이 함수는 index.html(로그인 페이지)의 Admin 인증 성공 콜백에서 호출하지 않아도 됨.
-   별도로 프론트에서 IP를 넘겨야 할 때만 사용. */
 async function imtiSendAdminLoginLog(email) {
     var ip = 'unknown';
     try {
@@ -317,7 +304,7 @@ async function imtiSendAdminLoginLog(email) {
     imtiSendAdminLog('login', email, ip);
 }
 
-/* ─── log out──────────────────────────────────────────────────────── */
+/* --- log out  --- */
 function imtiDoLogout() {
     /* 일반 유저 로그아웃 */
     if (sessionStorage.getItem('imti_user_email')) {
@@ -338,7 +325,7 @@ function imtiDoLogout() {
     location.href = 'index.html';
 }
 
-/* ─── member withdraw ─────────────────────────────────────────────────────── */
+/* --- member withdraw  --- */
 async function imtiDoWithdraw() {
     var email = sessionStorage.getItem('imti_user_email') || '';
     var pw    = document.getElementById('withdraw-pw').value.trim();
@@ -368,7 +355,7 @@ function imtiDoWithdrawSuccess() {
     location.href = 'index.html';
 }
 
-/* ─── p/w change ─────────────────────────────────────────────────── */
+/* --- p/w change  --- */
 function imtiIsValidPassword(pw) {
     return pw.length >= 13 &&
         /[a-zA-Z]/.test(pw) &&
@@ -404,20 +391,17 @@ async function imtiDoChangePassword() {
     var nw    = document.getElementById('pw-new').value;
     var cf    = document.getElementById('pw-confirm').value;
 
-    /* 새 비밀번호 형식·일치 검사는 네트워크 요청 전에 즉시 처리 */
     if (!imtiIsValidPassword(nw)) { imtiOpenModal('modal-pw-errpasscheck'); return; }
     if (nw !== cf)                { imtiOpenModal('modal-pw-errinpassput'); return; }
 
     imtiShowPwProgress();
 
-    /* sha256 해싱 두 개를 병렬로 처리 */
     var hashes = await Promise.all([imtiSha256(cur), imtiSha256(nw)]);
     var hc = hashes[0], hn = hashes[1];
     var base = IMTI_APPS_SCRIPT_URL;
 
     function isOK(r) { return r && (r === 'OK' || r.status === 'OK'); }
 
-    /* id / email / password 검증 3개를 동시에 요청 — 직렬 대기 제거 */
     var results = await new Promise(function(resolve) {
         var done = 0, out = [null, null, null];
         function check(i, url) {
@@ -431,12 +415,10 @@ async function imtiDoChangePassword() {
         check(2, base + '?action=checkField&field=password&id=' + encodeURIComponent(id) + '&email=' + encodeURIComponent(email) + '&currentPassword=' + encodeURIComponent(hc));
     });
 
-    /* 검증 결과 순서대로 확인 — 가장 먼저 실패한 항목을 안내 */
     if (!isOK(results[0])) { imtiHidePwProgress(); imtiOpenModal('modal-pw-errinput-id');    return; }
     if (!isOK(results[1])) { imtiHidePwProgress(); imtiOpenModal('modal-pw-errinput-email'); return; }
     if (!isOK(results[2])) { imtiHidePwProgress(); imtiOpenModal('modal-pw-errinput-pw');    return; }
 
-    /* 검증 통과 → 비밀번호 변경 최종 요청 */
     imtiJsonpCall(
         base + '?action=changePassword'
         + '&id='              + encodeURIComponent(id)
@@ -451,13 +433,10 @@ async function imtiDoChangePassword() {
     );
 }
 
-/* ─── navbar loader ───────────────────────────── */
+/* --- navbar loader  --- */
 function imtiLoadNavbar(currentPage) {
     function _run() {
-        /* 1) 공통 모달 HTML 삽입 (body 준비 후) */
         imtiInjectModals();
-
-        /* 2) navbar.html fetch & 삽입 — HTTP(S) 서버 환경에서만 동작 */
         fetch('navbar.html', { credentials: 'same-origin' })
             .then(function(r) {
                 if (!r.ok) throw new Error('navbar fetch failed: ' + r.status);
@@ -467,16 +446,12 @@ function imtiLoadNavbar(currentPage) {
                 var placeholder = document.getElementById('navbar-placeholder');
                 if (!placeholder) return;
                 placeholder.innerHTML = html;
-
-                /* 현재 페이지 메뉴 active 표시 */
                 document.querySelectorAll('.nav-menu-item[data-page]').forEach(function(el) {
                     if (el.getAttribute('data-page') === currentPage) {
                         el.classList.add('active');
                         el.removeAttribute('href');
                     }
                 });
-
-                /* 사용자 이메일 표시 */
                 var emailEl = document.getElementById('user-email-display');
                 if (emailEl) emailEl.textContent = sessionStorage.getItem('imti_user_email') || 'Guest User';
             })
@@ -484,8 +459,6 @@ function imtiLoadNavbar(currentPage) {
                 console.error('[IMTI] navbar load error:', err);
             });
     }
-
-    /* body가 이미 있으면 즉시, 없으면 DOMContentLoaded 후 실행 */
     if (document.body) {
         _run();
     } else {

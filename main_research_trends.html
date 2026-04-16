@@ -26,7 +26,7 @@
         }
         body.has-subtab { grid-template-rows: auto auto 2.8rem 1fr; }
 
-        /* ── TOP NAV ── */
+        
         .topnav { background: #fff; padding: 4vh 5% 1vh 5%; display: flex; justify-content: space-between; align-items: flex-end; }
         .logo-area { padding-left: 5%; flex-shrink: 0; }
         .logo-img { height: 4rem; width: auto; transition: transform 0.3s; cursor: pointer; }
@@ -40,7 +40,7 @@
         .nav-menu-item { font-family: 'Noto Sans KR'; font-size: 0.85rem; color: #495057; text-decoration: none; transition: 0.2s; cursor: pointer; background: none; border: none; padding: 0; }
         .nav-menu-item:hover, .nav-menu-item.active { color: #212529; font-weight: 700; border-bottom: 2px solid #212529; }
 
-        /* ── TAB BAR ── */
+        
         .tab-bar { display: flex; padding: 0 15%; gap: 4px; margin-top: 3vh; }
         .tab-btn {
             flex: 1; padding: 10px 5px; font-size: 0.8rem; border: 1px solid #eee; border-bottom: none;
@@ -51,7 +51,7 @@
         .tab-btn.active[data-idx="1"] { background: #7392D5; color: #fff; }
         .tab-btn.active[data-idx="2"] { background: #c0b840; color: #fff; }
 
-        /* ── SUB TAB BAR ── */
+        
         .subtab-bar { display: flex; margin: 0 15%; background: #f1f3f5; overflow: hidden; height: 0; transition: 0.2s; border-radius: 0 0 8px 8px; }
         body.has-subtab .subtab-bar { height: 2.4rem; }
         .subtab-btn { flex: 1; border: none; background: none; cursor: pointer; font-size: 0.78rem; transition: 0.2s; font-family: 'Noto Sans KR'; }
@@ -59,13 +59,13 @@
         .subtab-divider { display: flex; align-items: center; justify-content: center; padding: 0 54px; color: #495057; font-weight: 300; font-size: 0.9rem; background: #fff; user-select: none; transition: color 0.15s ease; cursor: pointer; }
         .subtab-divider:hover { font-weight: 700; color: #212529; }
 
-        /* ── IFRAME AREA ── */
+        
         .iframe-wrap { padding: 20px 20%; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         .iframe-inner { width: 100%; flex: 1; background: #fff; position: relative; min-height: 600px; height: 600px; }
 
-        /* iframe 스타일은 하단 블록에서 정의 */
+        
 
-        /* ── 전체화면 로딩 오버레이 ── */
+        
         #preload-overlay {
             position: fixed; inset: 0; background: #fff; z-index: 2000;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
@@ -83,7 +83,7 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── 탭 전환 로딩 오버레이 ── */
+        
         #tab-loading-overlay {
             position: absolute; inset: 0; background: #fff;
             display: none; flex-direction: column;
@@ -106,7 +106,7 @@
             border-radius: 99px; transition: width 0.28s ease;
         }
 
-        /* iframe: opacity 대신 visibility로 전환 (레이아웃 유지) */
+        
         iframe {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -126,7 +126,6 @@
 </head>
 <body id="main-body">
 
-<!-- 전체화면 사전 로딩 오버레이 -->
 <div id="preload-overlay">
     <img src="img/logo.png" alt="IMTI" class="preload-logo"
          onerror="this.style.display='none'">
@@ -156,8 +155,8 @@
 
 <div class="iframe-wrap">
     <div class="iframe-inner" id="iframe-container">
-        <!-- iframe들은 JS로 사전 삽입됨 -->
-        <!-- 탭 전환 로딩 오버레이 -->
+        
+        
         <div id="tab-loading-overlay">
             <div class="tab-loading-label" id="tab-loading-label">Data를 불러오는 중...</div>
             <div class="tab-progress-track">
@@ -167,10 +166,8 @@
     </div>
 </div>
 
-
-
 <script>
-/* ── 탭 정의 ── */
+
 const TABS = [
     {
         hasSub: false,
@@ -186,18 +183,14 @@ const TABS = [
     },
 ];
 
-/* Looker Studio는 onload 이후에도 내부 데이터 렌더링이 계속됨.
-   onload 후 이 시간만큼 추가 대기해야 실제로 차트가 보임 */
-const LOOKER_RENDER_DELAY = 4000;   /* ms — 필요시 조정 */
-const PER_TIMEOUT         = 20000;  /* iframe onload 타임아웃 */
+const LOOKER_RENDER_DELAY = 4000;   
+const PER_TIMEOUT         = 20000;  
 
 let currentTabIdx = 0;
 let currentSubIdx = 0;
 
-/* src → { iframe, loaded, ready } */
 const iframeState = {};
 
-/* ── 탭 로딩 오버레이 제어 ── */
 var _tabProgressTimer = null, _tabProgressPct = 0;
 
 function showTabOverlay() {
@@ -232,7 +225,6 @@ function hideTabOverlay() {
     }, 300);
 }
 
-/* ── 모든 src 평탄화 ── */
 function getAllSrcs() {
     const srcs = [];
     TABS.forEach(tab => {
@@ -242,7 +234,6 @@ function getAllSrcs() {
     return srcs;
 }
 
-/* ── 사전 로딩: 모든 Looker iframe이 완전히 렌더될 때까지 오버레이 유지 ── */
 function preloadAll() {
     const container = document.getElementById('iframe-container');
     const bar       = document.getElementById('preload-bar');
@@ -253,79 +244,67 @@ function preloadAll() {
     let   readyCnt  = 0;
     let   dismissed = false;
 
-    /* ── 프로그레스 관리 ──
-       각 탭을 3단계로 나눠 진행률 표현:
-         단계1 (네트워크 요청 시작)  : 탭당 5%  → 전체 15%
-         단계2 (onload 완료)        : 탭당 20% → 전체 60%
-         단계3 (렌더 완료 대기)      : 탭당 ~8% → 전체 ~24%
-       단계 사이엔 가짜 진행 타이머로 바를 부드럽게 채움 */
-    const STEP_START  = 100 / total * 0.05;   /* 요청 시작: 탭당 5% */
-    const STEP_LOADED = 100 / total * 0.20;   /* onload:   탭당 20% */
-    const STEP_READY  = 100 / total * 0.08;   /* 렌더완료: 탭당 8%  */
-    /* 나머지 ~67%는 각 단계 사이 가짜 진행 타이머가 채움 */
+    
 
-    let   pct        = 0;          /* 현재 실제 진행률 */
-    let   fakeTimer  = null;
+    const SLOT = 100 / total;          
 
-    function setBar(target) {
-        /* 가짜 타이머 정리 후 목표값으로 즉시 점프 */
-        if (fakeTimer) { clearInterval(fakeTimer); fakeTimer = null; }
-        pct = Math.max(pct, target);
-        bar.style.width = pct.toFixed(1) + '%';
+    
+    const slotPct   = new Array(total).fill(0);
+    const slotTimer = new Array(total).fill(null);
+
+    
+    function renderBar() {
+        if (dismissed) return;
+        const v = slotPct.reduce((s, p) => s + p * SLOT / 100, 0);
+        bar.style.width = Math.min(v, 99.9).toFixed(1) + '%';
     }
 
-    function animateTo(target, stepMs) {
-        /* 현재 pct → target 까지 stepMs 간격으로 부드럽게 올림 */
-        if (fakeTimer) { clearInterval(fakeTimer); fakeTimer = null; }
-        fakeTimer = setInterval(() => {
-            if (dismissed) { clearInterval(fakeTimer); return; }
-            pct = Math.min(pct + 0.6, target);
-            bar.style.width = pct.toFixed(1) + '%';
-            if (pct >= target) { clearInterval(fakeTimer); fakeTimer = null; }
+    
+    function slotFill(i, target, stepMs) {
+        if (slotTimer[i]) { clearInterval(slotTimer[i]); slotTimer[i] = null; }
+        if (dismissed) return;
+        slotTimer[i] = setInterval(() => {
+            if (dismissed) { clearInterval(slotTimer[i]); slotTimer[i] = null; return; }
+            slotPct[i] = Math.min(slotPct[i] + 0.8, target);
+            renderBar();
+            if (slotPct[i] >= target) { clearInterval(slotTimer[i]); slotTimer[i] = null; }
         }, stepMs);
+    }
+
+    
+    function slotAdvance(i, target) {
+        if (slotTimer[i]) { clearInterval(slotTimer[i]); slotTimer[i] = null; }
+        slotPct[i] = Math.max(slotPct[i], target);
+        renderBar();
     }
 
     const firstSrc = TABS[0].hasSub ? TABS[0].sub[0].src : TABS[0].src;
 
-    /* 1단계: 모든 iframe을 src 없이 DOM에 삽입 */
-    allSrcs.forEach(src => {
+    
+    allSrcs.forEach((src, i) => {
         const iframe = document.createElement('iframe');
         iframe.dataset.src     = src;
         iframe.allow           = 'fullscreen';
         iframe.allowFullscreen = true;
         if (src === firstSrc) iframe.classList.add('active');
         container.appendChild(iframe);
-        iframeState[src] = { iframe, loaded: false, ready: false, pctBase: 0 };
-    });
-
-    /* 각 탭의 기준 진행률 구간 설정 (탭 인덱스 × 33.3%) */
-    allSrcs.forEach((src, i) => {
-        iframeState[src].pctBase = (100 / total) * i;
+        iframeState[src] = { iframe, loaded: false, ready: false, slotIdx: i };
     });
 
     function onOneReady(src) {
         if (iframeState[src].ready) return;
         iframeState[src].ready = true;
         readyCnt++;
-
-        const base = iframeState[src].pctBase;
-        setBar(base + STEP_START + STEP_LOADED + STEP_READY);
-
+        const i = iframeState[src].slotIdx;
+        slotAdvance(i, 100);                          
         countEl.textContent = `${readyCnt} / ${total}`;
-
-        if (readyCnt >= total) {
-            dismiss();
-        } else {
-            /* 다음 탭 구간 시작까지 가짜 진행 */
-            const nextBase = base + (100 / total);
-            animateTo(Math.min(nextBase + STEP_START, 99), 60);
-        }
+        if (readyCnt >= total) dismiss();
     }
 
     function dismiss() {
         if (dismissed) return;
         dismissed = true;
-        if (fakeTimer) { clearInterval(fakeTimer); fakeTimer = null; }
+        slotTimer.forEach((t, i) => { if (t) { clearInterval(t); slotTimer[i] = null; } });
         bar.style.transition = 'width 0.3s ease';
         bar.style.width = '100%';
         const dot = document.getElementById('preload-dot');
@@ -336,59 +315,39 @@ function preloadAll() {
         }, 300);
     }
 
-    /* 2단계: 로딩 큐 — 각 단계마다 프로그레스 업데이트 */
-    const queue = [firstSrc, ...allSrcs.filter(s => s !== firstSrc)];
-    let   qIdx  = 0;
-    const CONCURRENT = 3;
-
-    function loadNext() {
-        if (qIdx >= queue.length) return;
-        const src    = queue[qIdx++];
+    
+    allSrcs.forEach((src) => {
         const state  = iframeState[src];
         const iframe = state.iframe;
-        const base   = state.pctBase;
+        const i      = state.slotIdx;
 
-        /* 단계1: 요청 시작 */
-        setBar(base + STEP_START);
-        /* 요청~onload 사이 가짜 진행 (onload 직전 70%까지) */
-        animateTo(base + STEP_START + STEP_LOADED * 0.7, 80);
+        
+        slotAdvance(i, 15);
+        slotFill(i, 70, 80);         
 
         let loadDone = false;
         function onLoaded() {
             if (loadDone) return;
             loadDone = true;
             state.loaded = true;
-
-            /* 단계2: onload 완료 */
-            setBar(base + STEP_START + STEP_LOADED);
-            /* onload~렌더완료 사이 가짜 진행 */
-            animateTo(base + STEP_START + STEP_LOADED + STEP_READY * 0.5, 100);
-
-            /* 단계3: LOOKER_RENDER_DELAY 후 렌더 완료 */
-            setTimeout(() => {
-                onOneReady(src);
-                loadNext();
-            }, LOOKER_RENDER_DELAY);
+            slotAdvance(i, 75);      
+            slotFill(i, 91, 100);    
+            setTimeout(() => onOneReady(src), LOOKER_RENDER_DELAY);
         }
 
         iframe.addEventListener('load',  onLoaded);
         iframe.addEventListener('error', onLoaded);
         setTimeout(onLoaded, PER_TIMEOUT);
         iframe.src = src;
-    }
+    });
 
-    /* 초기 가짜 진행: 0→5% (첫 요청 시작 전 짧은 준비 느낌) */
-    animateTo(3, 60);
-    setTimeout(() => {
-        for (let i = 0; i < Math.min(CONCURRENT, total); i++) loadNext();
-    }, 200);
-
+    
+    allSrcs.forEach((_, i) => slotFill(i, 5, 60));
     setTimeout(dismiss, 90000);
 }
 
-/* ── iframe 표시 — ready 상태에 따라 로딩 오버레이 제어 ── */
 function showIframe(src) {
-    /* 모든 iframe 숨김 */
+    
     document.querySelectorAll('#iframe-container iframe').forEach(f => {
         f.classList.remove('active');
     });
@@ -397,13 +356,13 @@ function showIframe(src) {
     if (!state) return;
 
     if (state.ready) {
-        /* 이미 렌더 완료 → 바로 표시 */
+        
         state.iframe.classList.add('active');
         hideTabOverlay();
     } else {
-        /* 아직 로딩 중 → 오버레이 표시 후 준비되면 전환 */
+        
         showTabOverlay();
-        /* 준비 완료 폴링 */
+        
         var poll = setInterval(() => {
             if (iframeState[src] && iframeState[src].ready) {
                 clearInterval(poll);
@@ -411,7 +370,7 @@ function showIframe(src) {
                 hideTabOverlay();
             }
         }, 200);
-        /* 안전망: 30초 후 강제 표시 */
+        
         setTimeout(() => {
             clearInterval(poll);
             state.iframe.classList.add('active');
@@ -420,7 +379,6 @@ function showIframe(src) {
     }
 }
 
-/* ── 탭 전환 ── */
 function switchTab(idx) {
     currentTabIdx = idx;
     currentSubIdx = 0;
@@ -440,7 +398,6 @@ function switchTab(idx) {
     }
 }
 
-/* ── 서브탭 전환 ── */
 function switchSubtab(sIdx) {
     currentSubIdx = sIdx;
     const tabData = TABS[currentTabIdx];
@@ -457,7 +414,6 @@ function updateSubtabLabels(tabIdx, activeSubIdx) {
     });
 }
 
-/* ── 초기화 ── */
 window.addEventListener('DOMContentLoaded', () => {
     const firstTab = TABS[0];
     if (firstTab.hasSub) {

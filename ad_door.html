@@ -10,7 +10,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DM Mono', 'Noto Sans KR', monospace; background: #fff; color: var(--gray-text); min-height: 100vh; display: flex; flex-direction: column; }
 
-        /* ── Top Nav ── */
+        
         .topnav { height: 88px; background: #fff; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; padding: 0 28px; position: sticky; top: 0; z-index: 100; }
         .topnav-logo-area { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-right: 28px; text-decoration: none; }
         .topnav-logo-img { height: 68px; width: auto; }
@@ -25,22 +25,22 @@
         .topnav-btn { display: flex; align-items: center; gap: 4px; background: none; border: none; padding: 0 12px; height: 56px; font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-dark); cursor: pointer; transition: color 0.2s; white-space: nowrap; }
         .topnav-btn:hover { color: var(--accent); }
 
-        /* ── Main ── */
+        
         .main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 24px; border: 1px dashed #ccc; border-radius: 2px; padding: 60px 36px; }
         .main-text { font-family: 'DM Mono', monospace; font-size: 1.1rem; color: var(--gray-text); line-height: 2.2; text-align: center; margin-bottom: 48px; }
         .admin-mode-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px; padding: 10px 32px; font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-text); cursor: pointer; transition: all 0.2s; }
         .admin-mode-btn:hover { background: var(--gray-text); color: #fff; border-color: var(--gray-text); }
 
-        /* ── Popup Overlay ── */
+        
         .popup-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); z-index: 999; align-items: center; justify-content: center; }
         .popup-overlay.active { display: flex; }
 
-        /* ── Popup Box ── */
+        
         .popup-box { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; width: 560px; max-width: 90vw; padding: 64px 48px 48px; display: flex; flex-direction: column; align-items: center; gap: 48px; animation: popupIn 0.18s ease; }
         @keyframes popupIn { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .popup-message { font-family: 'DM Mono', monospace; font-size: 0.9rem; color: var(--gray-text); text-align: center; line-height: 1.8; }
 
-        /* ── Popup Buttons ── */
+        
         .popup-cancel-btn { background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px; padding: 10px 56px; font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-mid); cursor: pointer; transition: all 0.2s; }
         .popup-cancel-btn:hover { background: #f1f3f5; border-color: #868e96; color: var(--gray-dark); }
         .popup-confirm-btn { background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px; padding: 10px 56px; font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-text); cursor: pointer; transition: all 0.2s; }
@@ -50,7 +50,6 @@
 </head>
 <body>
 
-<!-- ── Top Nav ── -->
 <br>
 <nav class="topnav">
     <a class="topnav-logo-area" href="ad_door.html" style="display:flex;align-items:center;text-decoration:none;flex-shrink:0;margin-right:28px;">
@@ -65,13 +64,11 @@
     </div>
 </nav>
 
-<!-- ── Main ── -->
 <div class="main">
     <div class="main-text">You have logged in with the admin account.<br>If you wish to maintenance the web page, please click [Admin-Mode].</div>
     <button class="admin-mode-btn" onclick="goAdminMode()">Admin-Mode</button>
 </div>
 
-<!-- ── Popup: Popup-Admin_quick-confirm ── -->
 <div class="popup-overlay" id="logout-popup">
     <div class="popup-box">
         <p class="popup-message">Would you like to log out as an administrator?</p>
@@ -83,7 +80,7 @@
 </div>
 
 <script>
-    /* ── 어드민 세션 가드 (인라인) ── */
+    
     (function() {
         if (!sessionStorage.getItem('admin_email')) {
             sessionStorage.clear();
@@ -93,17 +90,17 @@
 
     function goAdminMode()  { window.location.href = 'ad_pages/ad_intro.html'; }
 
-    /* 페이지 로드 시 이메일 복원 */
+    
     window.addEventListener('DOMContentLoaded', () => {
         const email = sessionStorage.getItem('admin_email') || '-';
         document.getElementById('admin-email-display').textContent = email;
     });
 
-    /* 팝업 열기 / 닫기 */
+    
     function openLogoutPopup()  { document.getElementById('logout-popup').classList.add('active'); }
     function closeLogoutPopup() { document.getElementById('logout-popup').classList.remove('active'); }
 
-    /* Confirm 클릭 → 로그아웃 기록 후 이동 */
+    
     async function handleAdminLogout() {
         const btn = document.getElementById('confirm-btn');
         btn.disabled = true;
@@ -113,7 +110,7 @@
         const email   = sessionStorage.getItem('admin_email') || '';
 
         try {
-            /* keepalive: true → 페이지 언로드 후에도 요청이 완료됨 */
+            
             const url = `${GAS_URL}?action=adminLog&type=logout&email=${encodeURIComponent(email)}`;
             await fetch(url, { method: 'GET', mode: 'no-cors', keepalive: true });
         } catch (e) {

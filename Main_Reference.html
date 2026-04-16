@@ -45,7 +45,7 @@
         }
         .content-wrap::-webkit-scrollbar { display: none; }
 
-        /* 로딩 */
+        
         .loading {
             display: flex;
             align-items: center;
@@ -66,7 +66,7 @@
             50%       { opacity: 0.3; transform: scale(0.6); }
         }
 
-        /* 에러 */
+        
         .error {
             display: none;
             padding: 20px 0;
@@ -74,7 +74,7 @@
             font-size: 0.82rem;
         }
 
-        /* 건수 - notice 자리에 오른쪽 정렬로 표시 */
+        
         .count-bar {
             display: none;
             font-size: 0.78rem;
@@ -84,14 +84,14 @@
             text-align: right;
         }
 
-        /* 리스트 - APA 들여쓰기 (hanging indent) */
+        
         ol {
             display: none;
             list-style: none;
             padding-left: 0;
         }
         ol li {
-            padding: 5px 0 5px 3.5em;   /* APA hanging indent */
+            padding: 5px 0 5px 3.5em;   
             text-indent: -3.5em;
             font-size: 0.78rem;
             line-height: 1.75;
@@ -125,7 +125,7 @@
     <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ24XF_HTBizSRiTXbh4r-3xDEePscvTTnJwoRR1v1sFjDU94s2nUxanMZV-moXFhZUXApxGlJVchSD/pub?gid=0&single=true&output=csv';
 
-    /* CSV 파싱 (큰따옴표 포함 필드 대응) */
+    
     function parseCSV(text) {
         const rows = [];
         const lines = text.split('\n');
@@ -157,16 +157,16 @@
             const text = await res.text();
             const rows = parseCSV(text);
 
-            /* 헤더 제외, I열(index 8) 추출 */
+            
             const items = rows
                 .slice(1)
                 .map(r => (r[8] || '').trim())
                 .filter(v => v.length > 0);
 
-            /* 오름차순 정렬 */
+            
             items.sort((a, b) => a.localeCompare(b, 'ko'));
 
-            /* 렌더링 */
+            
             const list = document.getElementById('ref-list');
             items.forEach(item => {
                 const li = document.createElement('li');
