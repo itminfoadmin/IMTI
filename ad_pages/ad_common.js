@@ -70,11 +70,17 @@ async function injectNavbar() {
             oldScript.remove();
         });
 
-        /* 현재 페이지 메뉴 밑줄 표시 */
+        /* 현재 페이지 메뉴 표시
+           — 일반 버튼: current 클래스 → # # # 표시
+           — 드롭다운 하위 버튼: current + 부모 .nav-dropdown 에 active → 부모 위에 # # # 표시 */
         const cur = location.pathname.split('/').pop();
         document.querySelectorAll('#admin-topnav .topnav-btn[onclick]').forEach(btn => {
             const m = btn.getAttribute('onclick').match(/location\.href='([^']+)'/);
-            if (m && m[1] === cur) btn.classList.add('current');
+            if (m && m[1] === cur) {
+                btn.classList.add('current');
+                const parentDropdown = btn.closest('.nav-dropdown');
+                if (parentDropdown) parentDropdown.classList.add('active');
+            }
         });
 
     } catch (e) {
