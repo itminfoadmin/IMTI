@@ -876,18 +876,11 @@ to search for a teaching model.</span></p>
         var containerH = c.clientHeight;
 
         
-        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var scale = containerW / BASE_WIDTH;
+        if (isNaN(scale) || scale <= 0) scale = 1;
 
         
-        var logicalScale = containerW / BASE_WIDTH;
-        if (isNaN(logicalScale) || logicalScale <= 0) logicalScale = 1;
-
-        
-        var renderW = Math.round(BASE_WIDTH * dpr);
-        var renderH = Math.round(Math.ceil(containerH / logicalScale) * dpr);
-
-        
-        var cssScale = logicalScale / dpr;
+        var iframeH = Math.ceil(containerH / scale);
 
         document.querySelectorAll('#iframe-container iframe').forEach(function(f) {
             if (f.dataset.isGuide === 'true') {
@@ -897,9 +890,9 @@ to search for a teaching model.</span></p>
                 f.style.transform = 'none';
                 f.style.transformOrigin = 'top left';
             } else {
-                f.style.width        = renderW + 'px';
-                f.style.height       = renderH + 'px';
-                f.style.transform    = 'scale(' + cssScale + ')';
+                f.style.width        = BASE_WIDTH + 'px';
+                f.style.height       = iframeH + 'px';
+                f.style.transform    = 'scale(' + scale + ')';
                 f.style.transformOrigin = 'top left';
             }
             
