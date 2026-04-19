@@ -1,7 +1,7 @@
 /* --- API URLs --- */
-var IMTI_APPS_SCRIPT_URL    = 'https://script.google.com/macros/s/AKfycbwsNQKiEHC4llx5KaYxdyc7EwSOEAOx5gEGeMQAyQRKU92onRs8V6anI7mzhWu__2q60A/exec';
-var IMTI_LOG_SHEET_URL      = 'https://script.google.com/macros/s/AKfycbxOPK4rzbKhiC2ytV0aHq7bZvXaLj56b3k3OlAmN2rNp3EEbyptd-xDrfagxsurQth2JA/exec';
-var IMTI_CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBKXcVFkX0kgc8p6rmaSVh6RHeo821-IPN8MK6BP2cEMHHUhyaizWRUKxu0gNAwLf9hA/exec';
+var IMTI_APPS_SCRIPT_URL    = 'https://script.google.com/macros/s/AKfycbx4SXbyr-NoPYgs0xB5wWHiPb2qbn_DEiRbfMUSgMST_d7HnFmSCeBEXTlz3xNsz3wsFg/exec';
+var IMTI_LOG_SHEET_URL      = 'https://script.google.com/macros/s/AKfycbyEUW4PVXAUaug9iC5iWp7ANatksYrhpSM6zBc5IrBeuxVpSIMpJXqT1QyaZeZAy2FO9A/exec';
+var IMTI_CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBInDqEoLUfRUKmAGEdvgJhFy6FHsp0uqv0HnhgVfh4Lb5F-NeeSACdMAJdT9DYaBZlA/exec';
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbyLTQ-1r9n-3weRUtRL9Cqo5H4GeRDYnKzlGXL60Tk3geSF86OwXJ0RvJQxZ4ucXRkJ/exec';
 
 /* --- Session Guard --- */
