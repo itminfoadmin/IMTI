@@ -26,9 +26,10 @@
         }
 
         .notice {
-            margin-left: 10%;
-            padding: 20px 10% 10px;
-            font-size: 0.78rem;
+            font-family: 'DM Mono';
+            padding: 10px 0 10px;
+            font-size: 0.73rem;
+            font-weight: 700;
             color: #343a40;
             line-height: 1.6;
             flex-shrink: 0;
@@ -45,7 +46,6 @@
         }
         .content-wrap::-webkit-scrollbar { display: none; }
 
-        
         .loading {
             display: flex;
             align-items: center;
@@ -66,7 +66,6 @@
             50%       { opacity: 0.3; transform: scale(0.6); }
         }
 
-        
         .error {
             display: none;
             padding: 20px 0;
@@ -74,7 +73,6 @@
             font-size: 0.82rem;
         }
 
-        
         .count-bar {
             display: none;
             font-size: 0.78rem;
@@ -84,24 +82,30 @@
             text-align: right;
         }
 
-        
         ol {
             display: none;
             list-style: none;
             padding-left: 0;
         }
         ol li {
-            padding: 5px 0 5px 3.5em;   
+            padding: 5px 0 5px 3.5em;
             text-indent: -3.5em;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             line-height: 1.75;
             color: #343a40;
             word-break: keep-all;
         }
+        .sub-notice {
+            display: none;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #343a40;
+            margin-bottom: 10px;
+        }
         .end-of-list {
             display: none;
             margin-top: 16px;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             color: #343a40;
             font-family: 'Noto Sans KR', sans-serif;
             text-align: right;
@@ -110,22 +114,21 @@
 </head>
 <body>
 
-    <p class="notice" id="notice-count"></p>
-
     <div class="content-wrap">
         <div class="loading" id="loading">
             <div class="loading-dot"></div>
             <span>Loading...</span>
-        </div>
+        </div><br>
         <div class="error" id="error">데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해 주세요.</div>
+        <div class="sub-notice" id="sub-notice">※ 누락, 오기 혹은 추천 연구물이 있으면 상단 메뉴의 [Contact-US]를 통해 운영진에게 알려주세요.</div>
+        <p class="notice" id="notice-count"></p>
         <ol id="ref-list"></ol>
         <div class="end-of-list" id="end-of-list">— End of List —</div>
     </div>
 
     <script>
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ24XF_HTBizSRiTXbh4r-3xDEePscvTTnJwoRR1v1sFjDU94s2nUxanMZV-moXFhZUXApxGlJVchSD/pub?gid=0&single=true&output=csv';
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vReDdJqNzhR0M-GLK0d5fvyALhSllo1vbFGrB3FRFcU7gpdYbriPrx-Sb6FN1eiAUHrBlvdOY4Y5Y9E/pub?gid=0&single=true&output=csv';
 
-    
     function parseCSV(text) {
         const rows = [];
         const lines = text.split('\n');
@@ -157,16 +160,13 @@
             const text = await res.text();
             const rows = parseCSV(text);
 
-            
             const items = rows
                 .slice(1)
-                .map(r => (r[8] || '').trim())
-                .filter(v => v.length > 0);
+                .map(r => (r[21] || '').trim())
+                .filter(v => v.length > 0 && /\S/.test(v));  // 실제 문자가 포함된 값만
 
-            
             items.sort((a, b) => a.localeCompare(b, 'ko'));
 
-            
             const list = document.getElementById('ref-list');
             items.forEach(item => {
                 const li = document.createElement('li');
@@ -176,6 +176,7 @@
 
             document.getElementById('notice-count').textContent = `전체 연구물 건수 :  ${items.length}건`;
             document.getElementById('loading').style.display = 'none';
+            document.getElementById('sub-notice').style.display = 'block';
             list.style.display = 'block';
             document.getElementById('end-of-list').style.display = 'block';
 
