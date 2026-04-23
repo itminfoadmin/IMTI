@@ -39,10 +39,10 @@
             margin-bottom: 2px;
         }
         .current-id-badge {
-            font-family: 'DM Mono', monospace; font-size: 0.70rem; font-weight: 700;
+            font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 550;
             letter-spacing: 0.08em; color: #343a40;
             background: #f1f3f5; border: 1.5px solid #adb5bd;
-            border-radius: 2px; padding: 4px 12px;
+            border-radius: 2px; padding: 7px 14px;
             white-space: nowrap;
         }
         .article-id-label {
@@ -91,6 +91,9 @@
         .btn-danger:hover:not(:disabled)  { background: #fff0f0; border-color: #e03131; }
         .btn-print   { background: #fff; border-color: #d0ebff; color: #1971c2; }
         .btn-print:hover:not(:disabled)   { background: #e7f5ff; border-color: #1971c2; }
+        .btn-nav     { background: #D1DCE0; border-color: #dee2e6; color: #495057; }
+        .btn-nav:hover:not(:disabled)     { border-color: #868e96; color: #212529; background: #A4C5D3; }
+        .btn-nav:disabled { opacity: 0.25; cursor: not-allowed; }
 
         /* ── Editor Area ── */
         .editor-wrap {
@@ -328,8 +331,9 @@
             <span class="status-badge" id="status-badge"></span>
         </div>
 
-        <!-- 버튼 순서: Reload → Save → Delete → Print -->
         <div class="toolbar-right">
+            <button class="btn btn-nav" id="btn-prev" disabled>‹ Prev_Article</button>
+            <button class="btn btn-nav" id="btn-next" disabled>Next_Article ›</button>
             <button class="btn btn-outline" id="btn-reload">↺ RELOAD</button>
             <button class="btn btn-primary" id="btn-save"   disabled>✓ SAVE</button>
             <button class="btn btn-danger"  id="btn-delete" disabled>✕ DELETE</button>
@@ -544,27 +548,6 @@ window.__pageInit = function () {
         ? window.GAS_URL
         : 'https://script.google.com/macros/s/AKfycbwXGsZFdsVcn-uzuItYmd1ijp4vnOKYY1ynVndqysGJMuKU2Zdwwk9ACPNPfDFSzlMs/exec';
 
-    /*
-       컬럼 매핑 (0-index, 헤더 제외)
-       A=0  B=1  C=2  D=3  E=4  F=5  G=6  H=7
-       I=8  J=9  K=10 L=11 M=12 N=13 O=14 P=15
-       Q=16 R=17 S=18 T=19 U=20 V=21
-
-       A  : ID (Article ID) ← 드롭다운
-       I  : Domain(영역)
-       J  : Orientation(지향)
-       K  : Competency(역량)
-       L  : Participants(대상)
-       M  : Setting
-       N  : Treatment
-       O  : Outcome
-       P  : Unit
-       R  : Teaching_Procedure
-       S  : Article_Sum. (Summary)
-       T  : Main-Ref.
-       U  : Latest Update 표시 (읽기 전용)
-       V  : APA
-    */
     const COL = {
         ARTICLE_ID:  0,   // A  ← 드롭다운
         DOMAIN:      8,   // I
@@ -599,6 +582,14 @@ window.__pageInit = function () {
         ['btn-save','btn-delete','btn-print'].forEach(id => {
             document.getElementById(id).disabled = !on;
         });
+        updateNavButtons();
+    }
+
+    /* Prev / Next 버튼 활성화 상태 갱신 */
+    function updateNavButtons() {
+        const hasList = allRows.length > 0;
+        document.getElementById('btn-prev').disabled = !hasList || currentIdx <= 0;
+        document.getElementById('btn-next').disabled = !hasList || currentIdx < 0 || currentIdx >= allRows.length - 1;
     }
 
     /* textarea 내용에 맞게 높이 자동 조절 */
@@ -645,6 +636,7 @@ window.__pageInit = function () {
                 buildDropdown();
                 document.getElementById('sb-total').textContent = allRows.length;
                 setSbMsg('✓ ' + allRows.length + '개 항목 로드 완료');
+                updateNavButtons();
             })
             .catch(err => setSbMsg('⚠ 데이터 로드 실패: ' + err.message));
     }
@@ -704,7 +696,7 @@ window.__pageInit = function () {
         const now = new Date();
         const todayDD = String(now.getDate()).padStart(2, '0');
         const todayMM = String(now.getMonth() + 1).padStart(2, '0');
-        badge.textContent = '[' + todayDD + '/' + todayMM + '] ' + aid;
+        badge.textContent = aid;
         document.getElementById('article-id-above').style.display = 'flex';
 
         // ── 인쇄 전용 레이아웃 채우기 ──
@@ -730,6 +722,7 @@ window.__pageInit = function () {
         requestAnimationFrame(() => requestAnimationFrame(autoResizeAll));
 
         document.getElementById('editor-wrap').scrollTop = 0;
+        updateNavButtons();
     }
 
     function clearForm() {
@@ -832,6 +825,22 @@ window.__pageInit = function () {
         if (!isNaN(idx)) fillForm(idx);
     });
     document.getElementById('btn-reload').addEventListener('click', loadData);
+    document.getElementById('btn-prev').addEventListener('click', function () {
+        if (currentIdx > 0) {
+            const newIdx = currentIdx - 1;
+            const aid = v(allRows[newIdx], COL.ARTICLE_ID);
+            document.getElementById('article-id-select').value = aid;
+            fillForm(newIdx);
+        }
+    });
+    document.getElementById('btn-next').addEventListener('click', function () {
+        if (currentIdx >= 0 && currentIdx < allRows.length - 1) {
+            const newIdx = currentIdx + 1;
+            const aid = v(allRows[newIdx], COL.ARTICLE_ID);
+            document.getElementById('article-id-select').value = aid;
+            fillForm(newIdx);
+        }
+    });
     document.getElementById('btn-save').addEventListener('click', handleSave);
     document.getElementById('btn-print').addEventListener('click', () => window.print());
     document.getElementById('btn-delete').addEventListener('click', function () {
