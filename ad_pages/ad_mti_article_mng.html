@@ -219,12 +219,13 @@
 
         /* ── Print ── */
         @page {
-            size: letter landscape;
-            margin: 12mm 16mm;
+            size: A4 portrait;
+            margin: 15mm 15mm;
         }
         @media print {
-            /* 네비바 및 공통 UI 숨김 */
-            body { overflow: visible; height: auto; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            body { overflow: visible; height: auto; background: #fff;
+                   -webkit-print-color-adjust: exact; print-color-adjust: exact;
+                   font-family: 'Noto Sans KR', sans-serif; font-size: 9pt; }
             .page-body { display: block !important; }
             nav, header, .navbar, .nav-bar, .sidebar,
             [class*="nav"], [class*="header"], [id*="nav"], [id*="header"] { display: none !important; }
@@ -232,57 +233,50 @@
             .main { margin: 0; border: none; overflow: visible; box-shadow: none; }
             .toolbar, .statusbar { display: none !important; }
             .editor-wrap { overflow: visible; height: auto !important; }
-            .editor-body { padding: 0; max-width: 100%; }
-
-            /* 전체 13% 축소 */
-            .editor-wrap {
-                zoom: 0.8;
-                -webkit-transform: scale(0.8);
-                -webkit-transform-origin: top left;
-                transform: scale(0.8);
-                transform-origin: top left;
-                width: calc(100% / 0.8);
-            }
-
-            /* 필드: 인쇄 시 흰색 배경 */
-            .f-textarea {
-                background: #ffffff !important;
-                border: 1px solid #e9ecef !important;
-                border-radius: 2px !important;
-                padding: 7px 10px !important;
-                overflow: visible !important;
-                min-height: unset !important;
-                /* height는 JS inline style 그대로 유지 — !important 사용 안 함 */
-            }
-
-            /* 라벨 */
-            .form-label { color: #868e96; }
-            .col-tag { color: #ced4da; }
-
-            /* 행 hover 효과 제거 */
-            .form-row { padding: 6px 0; border-bottom: 1px solid #f1f3f5; }
-            .form-row:hover, .form-row-2col:hover { background: transparent; margin: 0; padding-left: 0; padding-right: 0; }
-
-            /* 2컬럼 */
-            .form-row-2col { border-bottom: 1px solid #f1f3f5; }
-            .col-half + .col-half { border-left: 1px solid #f1f3f5; }
-            .sub-row { padding: 5px 0; }
-
-            .section-sep { border-top: 1px solid #e9ecef; margin: 8px 0 2px; }
-            .empty-state { display: none !important; }
             .confirm-overlay { display: none !important; }
-
-            /* print-header 숨김 (article-id-above 사용) */
+            .empty-state { display: none !important; }
             .print-header { display: none !important; }
+            .section-sep { display: none !important; }
 
-            /* Article ID: APA 위 오른쪽 */
-            .article-id-above { display: flex !important; justify-content: flex-end; padding-left: 140px; margin-bottom: 6px; }
-            .current-id-badge {
-                font-family: 'DM Mono', monospace; font-size: 1.0rem; font-weight: 700;
-                letter-spacing: 0.08em; color: #343a40;
-                background: #f1f3f5 !important; border: 1.5px solid #adb5bd !important;
-                border-radius: 2px; padding: 4px 14px;
+            .editor-body { padding: 0 !important; max-width: 100% !important; display: block !important; }
+
+            /* 기존 화면 요소 모두 숨김 */
+            .article-id-above,
+            .form-row,
+            .form-row-2col { display: none !important; }
+
+            /* 인쇄 전용 레이아웃 표시 */
+            #print-layout { display: block !important; }
+
+            /* 배지 */
+            #print-layout .p-badge-wrap {
+                display: flex; justify-content: flex-start; margin-bottom: 10pt;
             }
+            #print-layout .p-badge {
+                font-family: 'DM Mono', monospace; font-size: 8.5pt; font-weight: 700;
+                letter-spacing: 0.06em; color: #343a40;
+                border: 1.5pt solid #adb5bd; border-radius: 2px; padding: 3pt 10pt;
+            }
+
+            /* APA: 테두리 없이 일반 텍스트 */
+            #print-layout .p-apa {
+                font-size: 9pt; line-height: 1.65; color: #212529;
+                margin-bottom: 10pt; word-break: break-word;
+            }
+
+            /* 공통 테이블 */
+            #print-layout table {
+                width: 100%; border-collapse: collapse; margin-bottom: 6pt; font-size: 8.5pt;
+            }
+            #print-layout td {
+                border: 0.75pt solid #adb5bd; padding: 5pt 7pt;
+                vertical-align: top; line-height: 1.6; color: #212529;
+            }
+            #print-layout .p-label {
+                font-family: 'DM Mono', monospace; font-size: 7.5pt; font-weight: 700;
+                color: #495057; white-space: nowrap; width: 68pt;
+            }
+            #print-layout .p-val { word-break: break-word; }
         }
         .print-header {
             display: none;
@@ -446,6 +440,76 @@
                 </div>
             </div>
 
+
+            <!-- ══ 인쇄 전용 레이아웃 (화면에서는 숨김) ══ -->
+            <div id="print-layout" style="display:none;">
+
+                <div class="p-badge-wrap">
+                    <span class="p-badge" id="pl-badge"></span>
+                </div>
+
+                <div class="p-apa" id="pl-apa"></div>
+
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="p-label">Domain</td>
+                            <td class="p-val" id="pl-domain"></td>
+                            <td class="p-label">Orientation</td>
+                            <td class="p-val" id="pl-orientation"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-label">Participant</td>
+                            <td class="p-val" id="pl-participant"></td>
+                            <td class="p-label">Competency</td>
+                            <td class="p-val" id="pl-competency"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="p-label">Unit</td>
+                            <td class="p-val" id="pl-unit"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-label">Treatment</td>
+                            <td class="p-val" id="pl-treatment"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-label">Outcome</td>
+                            <td class="p-val" id="pl-outcome"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-label">Setting</td>
+                            <td class="p-val" id="pl-setting"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table><tbody>
+                    <tr>
+                        <td class="p-label">T_Procedure</td>
+                        <td class="p-val" id="pl-tprocedure"></td>
+                    </tr>
+                </tbody></table>
+
+                <table><tbody>
+                    <tr>
+                        <td class="p-label">Article_Sum.</td>
+                        <td class="p-val" id="pl-summary"></td>
+                    </tr>
+                </tbody></table>
+
+                <table><tbody>
+                    <tr>
+                        <td class="p-label">Main_Ref.</td>
+                        <td class="p-val" id="pl-mainref"></td>
+                    </tr>
+                </tbody></table>
+
+            </div><!-- #print-layout -->
         </div><!-- .editor-body -->
     </div><!-- .editor-wrap -->
 
@@ -637,8 +701,30 @@ window.__pageInit = function () {
 
         // APA 위 Article ID 표시
         const badge = document.getElementById('current-id-badge');
-        badge.textContent = aid;
+        const now = new Date();
+        const todayDD = String(now.getDate()).padStart(2, '0');
+        const todayMM = String(now.getMonth() + 1).padStart(2, '0');
+        badge.textContent = '[' + todayDD + '/' + todayMM + '] ' + aid;
         document.getElementById('article-id-above').style.display = 'flex';
+
+        // ── 인쇄 전용 레이아웃 채우기 ──
+        const setText = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+        setText('pl-badge',       '[' + todayDD + '/' + todayMM + '] ' + aid);
+        setText('pl-apa',         v(row, COL.APA));
+        setText('pl-domain',      v(row, COL.DOMAIN));
+        setText('pl-orientation', v(row, COL.ORIENTATION));
+        setText('pl-participant', v(row, COL.PARTICIPANT));
+        setText('pl-competency',  v(row, COL.COMPETENCY));
+        setText('pl-unit',        v(row, COL.UNIT));
+        setText('pl-treatment',   v(row, COL.TREATMENT));
+        setText('pl-outcome',     v(row, COL.OUTCOME));
+        setText('pl-setting',     v(row, COL.SETTING));
+        setText('pl-tprocedure',  v(row, COL.T_PROCEDURE));
+        setText('pl-summary',     v(row, COL.SUMMARY));
+        setText('pl-mainref',     v(row, COL.MAIN_REF));
 
         // textarea 자동 높이 조절 (두 번 rAF으로 레이아웃 확정 후 측정)
         requestAnimationFrame(() => requestAnimationFrame(autoResizeAll));
