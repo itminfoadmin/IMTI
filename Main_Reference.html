@@ -38,7 +38,7 @@
 
         .content-wrap {
             flex: 1;
-            margin-left: 10%;
+            margin-left: 3%;
             padding: 10px 10% 20px;
             overflow-y: auto;
             scrollbar-width: none;
@@ -90,7 +90,7 @@
         ol li {
             padding: 5px 0 5px 3.5em;
             text-indent: -3.5em;
-            font-size: 0.72rem;
+            font-size: 0.71rem;
             line-height: 1.75;
             color: #343a40;
             word-break: keep-all;
@@ -122,7 +122,7 @@
         <div class="error" id="error">데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해 주세요.</div>
         <div class="sub-notice" id="sub-notice">※ 누락, 오기 혹은 추천 연구물이 있으면 상단 메뉴의 [Contact-US]를 통해 운영진에게 알려주세요.</div>
         <p class="notice" id="notice-count"></p>
-        <ol id="ref-list"></ol>
+        <ol id="ref-list"></ol><br>
         <div class="end-of-list" id="end-of-list">— End of List —</div>
     </div>
 
@@ -174,7 +174,7 @@
                 list.appendChild(li);
             });
 
-            document.getElementById('notice-count').textContent = `전체 연구물 건수 :  ${items.length}건`;
+            document.getElementById('notice-count').textContent = `분석 및 분류 연구물 건수 :  ${items.length}건`;
             document.getElementById('loading').style.display = 'none';
             document.getElementById('sub-notice').style.display = 'block';
             list.style.display = 'block';
