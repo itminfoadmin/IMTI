@@ -99,8 +99,9 @@
         }
         .sub-notice {
             display: none;
-            font-size: 0.72rem;
+            font-size: 0.8rem;
             font-weight: 700;
+            font-family: 'Gowun Batang', serif;
             color: #343a40;
             margin-bottom: 10px;
         }
@@ -131,29 +132,43 @@
     <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vReDdJqNzhR0M-GLK0d5fvyALhSllo1vbFGrB3FRFcU7gpdYbriPrx-Sb6FN1eiAUHrBlvdOY4Y5Y9E/pub?gid=0&single=true&output=csv';
 
-    function parseCSV(text) {
-        const rows = [];
-        const lines = text.split('\n');
-        for (const line of lines) {
-            if (!line.trim()) continue;
-            const cols = [];
-            let cur = '', inQ = false;
-            for (let i = 0; i < line.length; i++) {
-                const ch = line[i];
-                if (ch === '"') {
-                    if (inQ && line[i+1] === '"') { cur += '"'; i++; }
-                    else inQ = !inQ;
-                } else if (ch === ',' && !inQ) {
-                    cols.push(cur); cur = '';
-                } else {
-                    cur += ch;
-                }
+function parseCSV(text) {
+    const rows = [];
+    let curRow = [];
+    let curCell = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (inQuotes && char === '"' && nextChar === '"') {
+            curCell += '"';
+            i++;
+        } else if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (!inQuotes && char === ',') {
+            curRow.push(curCell);
+            curCell = '';
+        } else if (!inQuotes && (char === '\r' || char === '\n')) {
+            if (curCell !== '' || curRow.length > 0) {
+                curRow.push(curCell);
+                rows.push(curRow);
+                curRow = [];
+                curCell = '';
             }
-            cols.push(cur);
-            rows.push(cols);
+            if (char === '\r' && nextChar === '\n') i++; // CRLF 처리
+        } else {
+            curCell += char;
         }
-        return rows;
     }
+    // 마지막 남은 데이터 처리
+    if (curRow.length > 0 || curCell !== '') {
+        curRow.push(curCell);
+        rows.push(curRow);
+    }
+    return rows;
+}
 
     async function loadData() {
         try {
@@ -191,13 +206,35 @@
             .filter(v => v.length > 0 && /\S/.test(v));
 
 
-            items.sort((a, b) => a.localeCompare(b, 'ko'));
+items.sort((a, b) => {
+                // 1. HTML 태그(<strong> 등)를 제거한 순수 텍스트로 비교 대상 생성
+                const cleanA = a.replace(/<\/?[^>]+(>|$)/g, "");
+                const cleanB = b.replace(/<\/?[^>]+(>|$)/g, "");
+
+                // 2. 한글 여부 확인 (첫 글자 기준)
+                const isKorean = (str) => /^[가-힣]/.test(str);
+                const aIsKo = isKorean(cleanA);
+                const bIsKo = isKorean(cleanB);
+
+                // 한글과 영어가 섞여 있을 때 한글을 위로
+                if (aIsKo !== bIsKo) {
+                    return aIsKo ? -1 : 1;
+                }
+
+                // 3. 동일 언어 내에서 "괄호("가 "쉼표,"보다 먼저 오게 설정
+                // 쉼표(,)를 유니코드의 가장 마지막 문자인 \uffff로 치환하여 비교
+                const sortA = cleanA.replace(/,/g, '\uffff');
+                const sortB = cleanB.replace(/,/g, '\uffff');
+
+                return sortA.localeCompare(sortB, 'ko');
+            });
+
             const list = document.getElementById('ref-list');
             items.forEach(item => {
             const li = document.createElement('li');
             li.innerHTML = item; // textContent에서 innerHTML로 변경
             list.appendChild(li);
-});
+            });
 
             document.getElementById('notice-count').textContent = `분석 및 분류 연구물 건수 :  ${items.length}건`;
             document.getElementById('loading').style.display = 'none';
