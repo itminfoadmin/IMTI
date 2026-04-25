@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MTI-Searching 사용 안내</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red:    #e03131;
+    --dark:   #212529;
+    --mid:    #495057;
+    --muted:  #868e96;
+    --border: #dee2e6;
+    --bg:     #f8f9fa;
+    --bg2:    #f5f4f1;
+    --pink:   #d47878;
+    --pink-l: #fff5f5;
+    --blue:   #1a56db;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #fff;
+    color: var(--dark);
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 48px 52px 64px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  
+  .section-label {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: #555;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label:first-of-type {
+    margin-top: 28px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  
+  .flow-steps {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    margin-bottom: 48px;
+  }
+  .flow-arrow {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 12px;
+    font-size: 18px;
+    color: var(--muted);
+    font-weight: 900;
+    flex-shrink: 0;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .flow-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+  .flow-step::after { display: none; }
+  .flow-bubble {
+    width: 62px; height: 62px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  .flow-step.highlight .flow-bubble {
+    background: var(--dark);
+    border-color: var(--dark);
+  }
+  .flow-step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.1em;
+  }
+  .flow-step-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+    line-height: 1.4;
+  }
+
+  
+  .searchbar-visual {
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 20px 20px 24px;
+    margin-bottom: 32px;
+  }
+  .mock-bar {
+    display: flex;
+    align-items: stretch;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .mock-filter {
+    padding: 10px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: default;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .mock-filter.active {
+    background: #6a6868;
+    color: #fff;
+  }
+  .mock-filter-result {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 11.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: default;
+    color: var(--muted);
+  }
+  .mock-filter-result.found {
+    background: #ffbaba;
+    color: var(--dark);
+    font-weight: 700;
+  }
+  .mock-reset {
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+  }
+  .mock-reset span {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--mid);
+    font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+  }
+  .mock-arrow {
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    color: #bbb;
+    font-weight: 800;
+    font-size: 16px;
+    background: #fff;
+    border-right: 1px solid #fff;
+    border-left: 1px solid var(--border);
+  }
+  .mock-dd {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--dark);
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+    width: 200px;
+    margin-left: 20px;
+    margin-top: 0;
+  }
+  .mock-dd-item {
+    padding: 9px 16px;
+    font-size: 12px;
+    color: var(--mid);
+    border-bottom: 1px solid #f5f3f0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mock-dd-item::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #ddd;
+    flex-shrink: 0;
+  }
+  .mock-dd-item.sel {
+    color: var(--pink);
+    font-weight: 700;
+    background: #fff8f5;
+  }
+  .mock-dd-item.sel::before { background: var(--pink); }
+  .mock-dd-item:last-child { border-bottom: none; }
+
+  .annotation-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .ann-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--mid);
+  }
+  .ann-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 48px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: box-shadow 0.18s;
+  }
+  .card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .card-icon {
+    width: 42px; height: 42px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+  .card-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .card p {
+    font-size: 13px;
+    color: var(--mid);
+    line-height: 1.75;
+  }
+  .card .tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    background: var(--bg2);
+    border-radius: 4px;
+    padding: 3px 8px;
+    color: var(--muted);
+  }
+
+  
+  .side-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .side-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    transition: box-shadow 0.15s;
+  }
+  .side-item:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.08); }
+  .mock-side-btn {
+    width: 56px; height: 56px;
+    flex-shrink: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 9.5px;
+    color: var(--mid);
+    text-align: center;
+    line-height: 1.3;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+  }
+  .mock-side-btn .btn-icon { font-size: 16px; }
+  .side-desc-body { flex: 1; }
+  .side-desc-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 3px;
+  }
+  .side-desc-text {
+    font-size: 12px;
+    color: var(--mid);
+    line-height: 1.65;
+  }
+
+  
+  .tip-box {
+    background: var(--pink-l);
+    border: 1px solid #f5c0c0;
+    border-left: 4px solid var(--pink);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    margin-bottom: 48px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .tip-box .tip-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .tip-box p { font-size: 13px; color: var(--mid); line-height: 1.75; }
+  .tip-box strong { color: var(--dark); }
+
+  
+  .guide-footer {
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .guide-footer span {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .version-badge {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 3px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  
+  .filter-key-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+    font-size: 13px;
+    table-layout: fixed;
+  }
+  .filter-key-table th {
+    background: var(--bg2);
+    padding: 8px 14px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--mid);
+    border: 1px solid var(--border);
+  }
+  .filter-key-table td {
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    color: var(--mid);
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .filter-key-table tr:hover td { background: #fafaf8; }
+  .key-badge {
+    display: inline-block;
+    background: #6a6868;
+    color: #fff;
+    border-radius: 5px;
+    padding: 2px 9px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 4px;
+  }
+
+  
+  .real-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #343a40;
+    background: #f5f4f1;
+    padding: 9px 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  .real-filter-chip .caret {
+    font-size: 0.85rem;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="section-label">전체 사용 흐름</div>
+<div class="flow-steps">
+  <div class="flow-step">
+    <div class="flow-bubble">🔍</div>
+    <div class="flow-step-num">STEP 01</div>
+    <div class="flow-step-title">필터 조건<br>선택</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">
+    <div class="flow-bubble">📋</div>
+    <div class="flow-step-num">STEP 02</div>
+    <div class="flow-step-title">수업 모형(MTI)<br>선택</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">
+    <div class="flow-bubble">📄</div>
+    <div class="flow-step-num">STEP 03</div>
+    <div class="flow-step-title">수업 모형(MTI)<br>확인</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">
+    <div class="flow-bubble">⚙️</div>
+    <div class="flow-step-num">STEP 04</div>
+    <div class="flow-step-title">부가 기능<br>활용</div>
+  </div>
+</div>
+<br><br>
+
+<div class="section-label">단계별 상세 설명</div>
+<div class="card-grid">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#e8f4fd;">🔍</div>
+      <div>
+        <div class="card-title">Step 01 · 필터 조건 선택</div>
+        <div class="card-sub">SEARCH FILTER</div>
+      </div>
+    </div>
+    <p>상단 검색바에서 <strong>영역(D)·대상(P)·지향(O)·역량(C)</strong> 중 원하는 조건을 클릭해 드롭다운에서 선택하세요. 하나 이상 선택하면 검색 결과 드롭다운에 검색 결과가 표시됩니다.</p>
+    <span class="tag">1개 이상 선택 필수</span>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#fff5f5;">📋</div>
+      <div>
+        <div class="card-title">Step 02 · 수업 모형(MTI) 선택</div>
+        <div class="card-sub">SELECT MODEL</div>
+      </div>
+    </div>
+    <p>필터 조건을 선택하면 오른쪽 결과 칸이 분홍색으로 바뀌며 검색된 수업 모형(MTI)의 건수가 표시됩니다. 결과 칸을 클릭하면 해당 수업 모형 목록이 드롭다운으로 펼쳐집니다.</p>
+    <span class="tag">분홍 배경 = 결과 있음</span>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#f0fdf4;">📄</div>
+      <div>
+        <div class="card-title">Step 03 · 수업 모형(MTI) 확인</div>
+        <div class="card-sub">VIEW DOCUMENT</div>
+      </div>
+    </div>
+    <p>드롭다운에서 수업 모형(MIT)을 선택하면 아래 뷰어에 해당 수업 모형(MTI)의 상세 내용이 <strong>바로</strong> 표시되며, 오른쪽의 사이드 버튼을 이용하여 수업 모형(MTI)에 대한 부가기능을 이용하실 수 있습니다.</p>
+    <span class="tag">선택 즉시 문서 전환</span>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#fdf4ff;">🔄</div>
+      <div>
+        <div class="card-title">필터 초기화 (Reset)</div>
+        <div class="card-sub">RESET ALL</div>
+      </div>
+    </div>
+    <p>검색바의 오른쪽 끝 <strong>Reset ↺</strong> 버튼을 클릭하면 모든 필터와 선택된 수업 모형(MTI)이 초기화되어 이 페이지로 돌아옵니다. 다른 조건으로 다시 검색할 때 사용하세요.</p>
+    <span class="tag">조건 변경 시 활용</span>
+  </div>
+</div>
+<br><br>
+
+<div class="section-label">필터키 상세 설명</div>
+<table class="filter-key-table" style="margin-bottom: 32px;">
+  <thead>
+    <tr>
+      <th style="width:152px;">필터 키</th>
+      <th style="width:22%;">차원(Dimention)</th>
+      <th style="width:78%;">선택 가능 항목</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="real-filter-chip">영역(D) 선택 <span class="caret">▾</span></span></td>
+      <td>정보 교과 영역<br>(Doamins)</td>
+      <td>컴퓨터 시스템/ 데이터/ 알고리즘과 프로그래밍/ 인공지능(AI)/ 디지털 문화/ 기타</td>
+    </tr>
+    <tr>
+      <td><span class="real-filter-chip">대상(P) 선택 <span class="caret">▾</span></span></td>
+      <td>대상 학습자 유형<br>(Participants)</td>
+      <td>영유아/ 초등학생/ 중학생/ 고등학생/ 특수학습자/ 영재학습자/ 성인학습자</td>
+    </tr>
+    <tr>
+      <td><span class="real-filter-chip">지향(O) 선택 <span class="caret">▾</span></span></td>
+      <td>지향된 학습 형태<br>(Orientations)</td>
+      <td>문제 해결/ 과제 수행/ 공동 학습/ 심화 학습/개념 학습/ 안내된 실습/</td>
+    </tr>
+    <tr>
+      <td><span class="real-filter-chip">역량(C) 선택 <span class="caret">▾</span></span></td>
+      <td>기대되는 역량<br>(Competencies)</td>
+      <td>컴퓨팅 사고력/ 디지털 문화 소양/ 인공지능 소양/기타</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="tip-box">
+  <div class="tip-icon">💡</div>
+  <p>
+    <strong>필터 키 활용 팁.</strong> 필터 조건을 여러 개 조합할수록 결과가 좁혀집니다. 원하는 수업 모형(MTI)이 보이지 않을 때는 조건을 하나씩 줄여보세요.<br>
+    결과 드롭다운에서 항목에 마우스를 올려두면 해당 문서가 미리 로딩되어, 클릭 시 더 빠르게 표시됩니다.
+  </p>
+</div>
+<br><br>
+
+<div class="section-label">부가 기능 — 사이드 버튼</div>
+<div class="side-section">
+  <div class="side-item">
+    <div class="mock-side-btn"><div class="btn-icon">✏️</div>나의 경험<br>공유하기</div>
+    <div class="side-desc-body">
+      <div class="side-desc-title">나의 경험 공유하기</div>
+      <div class="side-desc-text">선택한 수업 모형을 실제 수업에 적용한 경험을 공유합니다. 수업 대상, 내용, 좋았던 점, 문제점, 조언 등을 입력한 뒤 등록하세요.</div>
+    </div>
+  </div>
+  <div class="side-item">
+    <div class="mock-side-btn"><div class="btn-icon">📋</div>수업 모형<br>적용 사례</div>
+    <div class="side-desc-body">
+      <div class="side-desc-title">수업 모형 적용 사례</div>
+      <div class="side-desc-text">해당 모형을 실제 수업에 적용한 사례와 후기를 확인할 수 있습니다. 아직 사례가 없으면 첫 경험 공유 팝업으로 연결됩니다.</div>
+    </div>
+  </div>
+  <div class="side-item">
+    <div class="mock-side-btn"><div class="btn-icon">🔗</div>RISS<br>바로 가기</div>
+    <div class="side-desc-body">
+      <div class="side-desc-title">RISS 바로 가기</div>
+      <div class="side-desc-text">학술 논문·연구 자료 검색 사이트인 <strong>RISS</strong>를 새 탭으로 바로 열어줍니다. 관련 연구물을 직접 조회할 때 활용하세요.</div>
+    </div>
+  </div>
+  <div class="side-item">
+    <div class="mock-side-btn"><div class="btn-icon">🖨️</div>문서로<br>출력하기</div>
+    <div class="side-desc-body">
+      <div class="side-desc-title">문서로 출력하기</div>
+      <div class="side-desc-text">현재 보고 있는 수업 모형(MTI)에 대한 문서를 출력할 수 있습니다. 출력시 더 선명하게 내용을 확인하실 수 있습니다.</div>
+    </div>
+  </div>
+</div>
+
+<div class="guide-footer">
+  <span>IMTI · MTI-Searching Guide</span>
+  <span class="version-badge">v1.0 · 2026/04/13</span>
+</div>
+
+</body>
+</html>

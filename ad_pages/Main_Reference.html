@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관련 연구물 목록</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            width: 100%; height: 100%;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar { display: none !important; width: 0 !important; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #fff;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .notice {
+            font-family: 'DM Mono';
+            padding: 10px 0 10px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            color: #343a40;
+            line-height: 1.6;
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .content-wrap {
+            flex: 1;
+            margin-left: 3%;
+            padding: 10px 10% 20px;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .content-wrap::-webkit-scrollbar { display: none; }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 30px 0;
+            color: #adb5bd;
+            font-size: 0.78rem;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.1em;
+        }
+        .loading-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #d49860;
+            animation: dot-pulse 1.2s ease-in-out infinite;
+        }
+        @keyframes dot-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.3; transform: scale(0.6); }
+        }
+
+        .error {
+            display: none;
+            padding: 20px 0;
+            color: #e03131;
+            font-size: 0.82rem;
+        }
+
+        .count-bar {
+            display: none;
+            font-size: 0.78rem;
+            color: #343a40;
+            font-family: 'Noto Sans KR', sans-serif;
+            margin-bottom: 8px;
+            text-align: right;
+        }
+
+        ol {
+            display: none;
+            list-style: none;
+            padding-left: 0;
+        }
+        ol li {
+            padding: 5px 0 5px 3.5em;
+            text-indent: -3.5em;
+            font-size: 0.71rem;
+            line-height: 1.75;
+            color: #343a40;
+            font-family: 'Gowun Batang', serif;
+            word-break: keep-all;
+        }
+        .sub-notice {
+            display: none;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #343a40;
+            margin-bottom: 10px;
+        }
+        .end-of-list {
+            display: none;
+            margin-top: 16px;
+            font-size: 0.72rem;
+            color: #343a40;
+            font-family: 'Noto Sans KR', sans-serif;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="content-wrap">
+        <div class="loading" id="loading">
+            <div class="loading-dot"></div>
+            <span>Loading...</span>
+        </div><br>
+        <div class="error" id="error">데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해 주세요.</div>
+        <div class="sub-notice" id="sub-notice">※ 누락, 오기 혹은 추천 연구물이 있으면 상단 메뉴의 [Contact-US]를 통해 운영진에게 알려주세요.</div>
+        <p class="notice" id="notice-count"></p>
+        <ol id="ref-list"></ol><br>
+        <div class="end-of-list" id="end-of-list">— End of List —</div>
+    </div>
+
+    <script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vReDdJqNzhR0M-GLK0d5fvyALhSllo1vbFGrB3FRFcU7gpdYbriPrx-Sb6FN1eiAUHrBlvdOY4Y5Y9E/pub?gid=0&single=true&output=csv';
+
+    function parseCSV(text) {
+        const rows = [];
+        const lines = text.split('\n');
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            const cols = [];
+            let cur = '', inQ = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') {
+                    if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+                    else inQ = !inQ;
+                } else if (ch === ',' && !inQ) {
+                    cols.push(cur); cur = '';
+                } else {
+                    cur += ch;
+                }
+            }
+            cols.push(cur);
+            rows.push(cols);
+        }
+        return rows;
+    }
+
+    async function loadData() {
+        try {
+            const res = await fetch(CSV_URL);
+            if (!res.ok) throw new Error('fetch failed');
+            const text = await res.text();
+            const rows = parseCSV(text);
+
+            const items = rows
+            .slice(1)
+            .map(r => {
+                let text = (r[21] || '').trim();         // 21번째 열 (전체 텍스트)
+                const type = (r[22] || '').trim();       // 22번째 열 (조건 확인)
+                const target4 = (r[4] || '').trim();     // 4번째 열 (강조 대상 1)
+                const anchor16 = (r[16] || '').trim();   // 16번째 열 (기준점)
+                const target6Raw = (r[6] || '').trim();  // 6번째 열 (강조 대상 2 원본)
+                const target6Name = target6Raw.split('(')[0].trim(); // 6번 열의 '(' 이전 내용
+
+                if (type === "학술지 논문" && text) {
+                    if (target4 && text.includes(target4)) {
+                        text = text.split(target4).join(`<strong>${target4}</strong>`);
+                    }
+                    if (anchor16 && target6Name && text.includes(anchor16)) {
+                        const anchorIdx = text.indexOf(anchor16) + anchor16.length;
+                        const beforePart = text.substring(0, anchorIdx);
+                        const afterPart = text.substring(anchorIdx);
+                        if (afterPart.includes(target6Name)) {
+                            const newAfterPart = afterPart.replace(target6Name, `<strong>${target6Name}</strong>`);
+                            text = beforePart + newAfterPart;
+                        }
+                    }
+                }
+                return text;
+            })
+            .filter(v => v.length > 0 && /\S/.test(v));
+
+
+            items.sort((a, b) => a.localeCompare(b, 'ko'));
+            const list = document.getElementById('ref-list');
+            items.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = item; // textContent에서 innerHTML로 변경
+            list.appendChild(li);
+});
+
+            document.getElementById('notice-count').textContent = `분석 및 분류 연구물 건수 :  ${items.length}건`;
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('sub-notice').style.display = 'block';
+            list.style.display = 'block';
+            document.getElementById('end-of-list').style.display = 'block';
+
+        } catch (e) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        }
+    }
+
+    loadData();
+    </script>
+
+</body>
+</html>
