@@ -5,30 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMTI - Admin Door</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --gray-text: #343a40; --gray-mid: #adb5bd; --gray-dark: #6c757d; --accent: #1a56db; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Mono', 'Noto Sans KR', monospace; background: #fff; color: var(--gray-text); min-height: 100vh; display: flex; flex-direction: column; }
+        body { font-family: 'DM Mono', 'Noto Sans KR', 'Gowun Batang', monospace; background: #fff; color: var(--gray-text); min-height: 100vh; display: flex; flex-direction: column; }
 
         
         .topnav { height: 88px; background: #fff; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; padding: 0 28px; position: sticky; top: 0; z-index: 100; }
         .topnav-logo-area { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-right: 28px; text-decoration: none; }
         .topnav-logo-img { height: 68px; width: auto; }
         .topnav-menu { display: flex; align-items: center; flex: 1; }
-        .topnav-menu-item { font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-dark); text-decoration: none; padding: 0 14px; height: 56px; display: flex; align-items: center; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+        .topnav-menu-item { font-family: 'Gowun Batang', serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-dark); text-decoration: none; padding: 0 14px; height: 56px; display: flex; align-items: center; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
         .topnav-menu-item:hover { color: var(--accent); border-bottom-color: var(--accent); }
-        .topnav-right { font-family: 'DM Mono', monospace; font-size: 1.2em; display: flex; align-items: center; gap: 0; flex-shrink: 0; }
-        .topnav-email { font-family: 'DM Mono', monospace; font-size: 0.85em; color: var(--gray-dark); padding: 0 12px; white-space: nowrap; }
+        .topnav-right { font-family: 'Gowun Batang', serif; font-size: 1.2em; display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+        .topnav-email { font-family: 'Gowun Batang', serif; font-size: 0.85em; color: var(--gray-dark); padding: 0 12px; white-space: nowrap; }
         .topnav-divider-v { width: 1px; height: 16px; background: #e9ecef; flex-shrink: 0; }
-        .topnav-timer { font-family: 'DM Mono', monospace; font-size: 1.0em; font-weight: 500; color: var(--gray-mid); padding: 0 10px; white-space: nowrap; }
+        .topnav-timer { font-family: 'Gowun Batang', serif; font-size: 1.0em; font-weight: 500; color: var(--gray-mid); padding: 0 10px; white-space: nowrap; }
         .topnav-timer.warning { color: #e03131; }
-        .topnav-btn { display: flex; align-items: center; gap: 4px; background: none; border: none; padding: 0 12px; height: 56px; font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-dark); cursor: pointer; transition: color 0.2s; white-space: nowrap; }
+        .topnav-btn { display: flex; align-items: center; gap: 4px; background: none; border: none; padding: 0 12px; height: 56px; font-family: 'Gowun Batang', serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-dark); cursor: pointer; transition: color 0.2s; white-space: nowrap; }
         .topnav-btn:hover { color: var(--accent); }
 
         
         .main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 24px; border: 1px dashed #ccc; border-radius: 2px; padding: 60px 36px; }
-        .main-text { font-family: 'DM Mono', monospace; font-size: 1.1rem; color: var(--gray-text); line-height: 2.2; text-align: center; margin-bottom: 48px; }
-        .admin-mode-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px; padding: 10px 32px; font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-text); cursor: pointer; transition: all 0.2s; }
+        .main-text { font-family: 'Gowun Batang', serif; font-size: 1.1rem; color: var(--gray-text); line-height: 2.2; text-align: center; margin-bottom: 48px; }
+        .admin-mode-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px; padding: 10px 32px; font-family: 'Gowun Batang', serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-text); cursor: pointer; transition: all 0.2s; }
         .admin-mode-btn:hover { background: var(--gray-text); color: #fff; border-color: var(--gray-text); }
 
         
@@ -38,12 +39,12 @@
         
         .popup-box { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; width: 560px; max-width: 90vw; padding: 64px 48px 48px; display: flex; flex-direction: column; align-items: center; gap: 48px; animation: popupIn 0.18s ease; }
         @keyframes popupIn { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        .popup-message { font-family: 'DM Mono', monospace; font-size: 0.9rem; color: var(--gray-text); text-align: center; line-height: 1.8; }
+        .popup-message { font-family: 'Gowun Batang', serif; font-size: 0.9rem; color: var(--gray-text); text-align: center; line-height: 1.8; }
 
         
-        .popup-cancel-btn { background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px; padding: 10px 56px; font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-mid); cursor: pointer; transition: all 0.2s; }
+        .popup-cancel-btn { background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px; padding: 10px 56px; font-family: 'Gowun Batang', serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-mid); cursor: pointer; transition: all 0.2s; }
         .popup-cancel-btn:hover { background: #f1f3f5; border-color: #868e96; color: var(--gray-dark); }
-        .popup-confirm-btn { background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px; padding: 10px 56px; font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-text); cursor: pointer; transition: all 0.2s; }
+        .popup-confirm-btn { background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px; padding: 10px 56px; font-family: 'Gowun Batang', serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gray-text); cursor: pointer; transition: all 0.2s; }
         .popup-confirm-btn:hover { background: var(--gray-text); color: #fff; border-color: var(--gray-text); }
         .popup-confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
