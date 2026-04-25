@@ -895,7 +895,7 @@ function warmUpScripts() {
         _adminReady = true;
     });
     
-    _appsWarmup = _pingGas(IMTI_APPS_SCRIPT_URL).then(() => {
+    _appsWarmup = Promise.resolve().then(() => {
         _appsReady = true;
     });
 
