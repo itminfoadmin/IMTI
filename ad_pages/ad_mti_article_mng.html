@@ -223,13 +223,13 @@
 
         /* ── Print ── */
         @page {
-            size: A4 portrait;
+            size: Letter portrait;
             margin: 15mm 15mm;
         }
         @media print {
             body { overflow: visible; height: auto; background: #fff;
                    -webkit-print-color-adjust: exact; print-color-adjust: exact;
-                   font-family: 'Noto Sans KR', sans-serif; font-size: 9pt; }
+                   font-family: 'Gowun Batang', serif; font-size: 9pt; }
             .page-body { display: block !important; }
             nav, header, .navbar, .nav-bar, .sidebar,
             [class*="nav"], [class*="header"], [id*="nav"], [id*="header"] { display: none !important; }
@@ -254,12 +254,12 @@
 
             /* 배지 */
             #print-layout .p-badge-wrap {
-                display: flex; justify-content: flex-start; margin-bottom: 10pt;
+                display: flex; justify-content: flex-end; margin-bottom: 10pt;
             }
             #print-layout .p-badge {
-                font-family: 'Gowun Batang', serif; font-size: 8.5pt; font-weight: 700;
-                letter-spacing: 0.06em; color: #343a40;
-                border: 1.5pt solid #adb5bd; border-radius: 2px; padding: 3pt 10pt;
+                font-family: 'Gowun Batang', serif; font-size: 8.5pt; font-weight: 500;
+                letter-spacing: 0.05em; color: #343a40;
+                border: 0.1pt solid #adb5bd; border-radius: 1px; padding: 3pt 10pt;
             }
 
             /* APA: 테두리 없이 일반 텍스트 */
@@ -273,11 +273,11 @@
                 width: 100%; border-collapse: collapse; margin-bottom: 6pt; font-size: 8.5pt;
             }
             #print-layout td {
-                border: 0.75pt solid #adb5bd; padding: 5pt 7pt;
+                border: 0.0pt solid #adb5bd; padding: 5pt 7pt;
                 vertical-align: top; line-height: 1.6; color: #212529;
             }
             #print-layout .p-label {
-                font-family: 'Gowun Batang', serif; font-size: 7.5pt; font-weight: 700;
+                font-family: 'Gowun Batang', serif; font-size: 7.5pt; font-weight: 700;  text-align: right;
                 color: #495057; white-space: nowrap; width: 68pt;
             }
             #print-layout .p-val { word-break: break-word; }
@@ -451,22 +451,22 @@
 
                 <div class="p-badge-wrap">
                     <span class="p-badge" id="pl-badge"></span>
-                </div>
+                </div><br>
 
-                <div class="p-apa" id="pl-apa"></div>
+                <div class="p-apa" id="pl-apa"></div><br>
 
                 <table>
                     <tbody>
                         <tr>
-                            <td class="p-label">Domain</td>
+                            <td class="p-label">Domain :</td>
                             <td class="p-val" id="pl-domain"></td>
-                            <td class="p-label">Orientation</td>
+                            <td class="p-label">Orientation :</td>
                             <td class="p-val" id="pl-orientation"></td>
                         </tr>
                         <tr>
-                            <td class="p-label">Participant</td>
+                            <td class="p-label">Participant :</td>
                             <td class="p-val" id="pl-participant"></td>
-                            <td class="p-label">Competency</td>
+                            <td class="p-label">Competency :</td>
                             <td class="p-val" id="pl-competency"></td>
                         </tr>
                     </tbody>
@@ -475,19 +475,19 @@
                 <table>
                     <tbody>
                         <tr>
-                            <td class="p-label">Unit</td>
+                            <td class="p-label">Unit :</td>
                             <td class="p-val" id="pl-unit"></td>
                         </tr>
                         <tr>
-                            <td class="p-label">Treatment</td>
+                            <td class="p-label">Treatment :</td>
                             <td class="p-val" id="pl-treatment"></td>
                         </tr>
                         <tr>
-                            <td class="p-label">Outcome</td>
+                            <td class="p-label">Outcomes :</td>
                             <td class="p-val" id="pl-outcome"></td>
                         </tr>
                         <tr>
-                            <td class="p-label">Setting</td>
+                            <td class="p-label">Setting :</td>
                             <td class="p-val" id="pl-setting"></td>
                         </tr>
                     </tbody>
@@ -495,21 +495,21 @@
 
                 <table><tbody>
                     <tr>
-                        <td class="p-label">T_Procedure</td>
+                        <td class="p-label">T_Procedure :</td>
                         <td class="p-val" id="pl-tprocedure"></td>
                     </tr>
                 </tbody></table>
 
                 <table><tbody>
                     <tr>
-                        <td class="p-label">Article_Sum.</td>
+                        <td class="p-label">Summary :</td>
                         <td class="p-val" id="pl-summary"></td>
                     </tr>
                 </tbody></table>
 
                 <table><tbody>
                     <tr>
-                        <td class="p-label">Main_Ref.</td>
+                        <td class="p-label">Reference :</td>
                         <td class="p-val" id="pl-mainref"></td>
                     </tr>
                 </tbody></table>
@@ -705,7 +705,7 @@ window.__pageInit = function () {
             const el = document.getElementById(id);
             if (el) el.textContent = val;
         };
-        setText('pl-badge',       '[' + todayDD + '/' + todayMM + '] ' + aid);
+        setText('pl-badge',      aid);
         setText('pl-apa',         v(row, COL.APA));
         setText('pl-domain',      v(row, COL.DOMAIN));
         setText('pl-orientation', v(row, COL.ORIENTATION));
