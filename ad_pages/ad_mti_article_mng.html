@@ -633,7 +633,12 @@ window.__pageInit = function () {
         document.querySelectorAll('.f-textarea').forEach(el => autoResize(el));
     }
 
-    /* CSV 파싱 */
+    /* CSV 파싱
+     * [FIX 1] "" 이스케이프 처리 추가
+     *   구글 시트 CSV는 셀 내부의 큰따옴표를 ""로 이스케이프함.
+     *   기존 코드는 이를 처리하지 못해 inQ 플래그가 잘못 토글되고,
+     *   결과적으로 그 행의 뒤따르는 셀들이 앞으로 밀려 읽히는 버그가 있었음.
+     */
     function parseCSV(text) {
         const rows = [];
         for (const line of text.split('\n')) {
@@ -642,9 +647,17 @@ window.__pageInit = function () {
             let cur = '', inQ = false;
             for (let i = 0; i < line.length; i++) {
                 const ch = line[i];
-                if (ch === '"') inQ = !inQ;
-                else if (ch === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
-                else cur += ch;
+                if (ch === '"') {
+                    if (inQ && line[i + 1] === '"') {
+                        cur += '"'; i++;        // "" → 리터럴 " 한 개
+                    } else {
+                        inQ = !inQ;             // 인용 구간 시작/종료
+                    }
+                } else if (ch === ',' && !inQ) {
+                    cells.push(cur.trim()); cur = '';
+                } else {
+                    cur += ch;
+                }
             }
             cells.push(cur.trim());
             rows.push(cells);
@@ -682,9 +695,12 @@ window.__pageInit = function () {
             if (!id) return;
             const opt = document.createElement('option');
             opt.value = id; opt.dataset.idx = i; opt.textContent = id;
-            // 20번째 열(1-based) = index 19 값이 "Just-Analyzed"가 아니면 이탤릭 처리
-            const col20Val = v(row, 20);
-            if (col20Val !== 'Just-Analyzed') {
+            // [FIX 2] LATEST_UPD(U열)가 비어있으면 미분석 항목으로 이탤릭 표시.
+            // 기존 코드는 하드코딩된 인덱스 20(U열)을 'Just-Analyzed' 문자열과
+            // 비교했는데, GAS는 U열에 날짜 문자열만 기록하므로 항상 조건이
+            // 참이 되어 모든 항목이 이탤릭으로 표시되는 버그가 있었음.
+            const isAnalyzed = !!v(row, COL.LATEST_UPD);
+            if (!isAnalyzed) {
                 opt.classList.add('not-analyzed');
                 opt.style.fontStyle = 'italic';
             }
@@ -852,9 +868,12 @@ window.__pageInit = function () {
             if (res.status === 'ok') {
                 setBadge('ok', '✓ 삭제 완료');
                 setSbMsg('✓ ' + data.articleId + ' 삭제됨');
-                allRows.splice(currentIdx, 1);
-                document.getElementById('sb-total').textContent = allRows.length;
-                clearForm(); buildDropdown();
+                // [FIX 3] 기존 코드는 allRows.splice()로 클라이언트 배열만 수정했으나,
+                // GAS가 시트에서 행을 삭제하면 행 번호가 당겨지므로
+                // 서버 상태와 클라이언트 상태가 불일치할 수 있음.
+                // 삭제 성공 후 clearForm() → loadData()로 전체 재동기화.
+                clearForm();
+                loadData();
             } else { throw new Error(res.message || '알 수 없는 오류'); }
         })
         .catch(err => { setBadge('err', '✗ 삭제 실패'); setSbMsg('⚠ 오류: ' + err.message); });
