@@ -60,11 +60,11 @@
 
         .latest-update-wrap { display: flex; align-items: center; gap: 6px; }
         .latest-update-label {
-            font-family: 'Gowun Batang', serif; font-size: 0.62rem; font-weight: 700;
-            letter-spacing: 0.08em; color: #ced4da; text-transform: uppercase; white-space: nowrap;
+            font-family: 'Gowun Batang', serif; font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 0.04em; color: #495057; text-transform: uppercase; white-space: nowrap;
         }
         .latest-update-val {
-            font-family: 'Gowun Batang', serif; font-size: 0.72rem; color: #868e96; white-space: nowrap;
+            font-family: 'Gowun Batang', serif; font-size: 0.7rem; font-weight: 700; color: #495057; white-space: nowrap;
         }
 
         .status-badge {
@@ -95,6 +95,27 @@
         .btn-nav     { background: #D1DCE0; border-color: #dee2e6; color: #495057; }
         .btn-nav:hover:not(:disabled)     { border-color: #868e96; color: #212529; background: #A4C5D3; }
         .btn-nav:disabled { opacity: 0.25; cursor: not-allowed; }
+
+        /* ── Last-Saved ID chip (Prev 버튼 왼쪽) ── */
+        .last-saved-wrap {
+            display: flex; align-items: center; gap: 5px;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .last-saved-wrap.visible { opacity: 1; pointer-events: auto; }
+        .last-saved-label {
+            font-family: 'Gowun Batang', serif; font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 0.04em; color: #495057; text-transform: uppercase; white-space: nowrap;
+        }
+        .last-saved-id {
+            font-family: 'Gowun Batang', serif; font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 0.06em; color: #495057;
+            background: #fff; border: 0px solid #a5d0ee;
+            border-radius: 2px; padding: 7px 10px;
+            white-space: nowrap; cursor: pointer;
+            transition: background 0.18s, border-color 0.18s;
+        }
+        .last-saved-id:hover { background: #d0ebff; border-color: #1971c2; color: #1971c2; }
 
         /* ── Editor Area ── */
         .editor-wrap {
@@ -316,7 +337,7 @@
             <div class="article-id-wrap">
                 <span class="article-id-label">Article ID</span>
                 <select class="article-id-select" id="article-id-select">
-                    <option value="">— 선택하세요 —</option>
+                    <option value="">— Select Article No. —</option>
                 </select>
             </div>
 
@@ -327,12 +348,16 @@
                 <span class="latest-update-label">Latest Update</span>
                 <span class="latest-update-val" id="latest-update-val">—</span>
             </div>
-
             <div class="toolbar-divider"></div>
             <span class="status-badge" id="status-badge"></span>
+
         </div>
 
         <div class="toolbar-right">
+            <div class="last-saved-wrap" id="last-saved-wrap">
+                <span class="last-saved-label">Previous: </span>
+                <span class="last-saved-id" id="last-saved-id" title="클릭하면 해당 Article로 이동"></span>
+            </div>
             <button class="btn btn-nav" id="btn-prev" disabled>‹ Prev_Article</button>
             <button class="btn btn-nav" id="btn-next" disabled>Next_Article ›</button>
             <button class="btn btn-outline" id="btn-reload">↺ RELOAD</button>
@@ -569,6 +594,7 @@ window.__pageInit = function () {
     let allRows    = [];
     let currentRow = null;
     let currentIdx = -1;
+    let lastSavedId = null;   // 가장 최근 저장 처리된 Article ID
 
     const v = (row, idx) => (row[idx] || '').replace(/^"|"$/g, '').trim();
 
@@ -771,6 +797,12 @@ window.__pageInit = function () {
             if (res.status === 'ok') {
                 setBadge('ok', '✓ 저장 완료');
                 setSbMsg('✓ ' + data.articleId + ' 저장됨');
+
+                // 최근 저장 ID 기록 & 칩 표시
+                lastSavedId = data.articleId;
+                document.getElementById('last-saved-id').textContent = lastSavedId;
+                document.getElementById('last-saved-wrap').classList.add('visible');
+
                 if (currentRow) {
                     currentRow[COL.APA]         = data.apa;
                     currentRow[COL.SETTING]     = data.setting;
@@ -857,6 +889,17 @@ window.__pageInit = function () {
     document.getElementById('confirm-ok-btn').addEventListener('click', handleDeleteConfirmed);
     document.getElementById('confirm-overlay').addEventListener('click', function (e) {
         if (e.target === this) this.classList.remove('open');
+    });
+
+    // Last-Saved ID 칩 클릭 → 해당 Article로 이동
+    document.getElementById('last-saved-id').addEventListener('click', function () {
+        if (!lastSavedId) return;
+        const sel = document.getElementById('article-id-select');
+        const opt = sel.querySelector(`option[value="${lastSavedId.replace(/"/g,'&quot;')}"]`);
+        if (opt) {
+            sel.value = lastSavedId;
+            fillForm(parseInt(opt.dataset.idx));
+        }
     });
 
     // textarea 입력 시 실시간 높이 조절
