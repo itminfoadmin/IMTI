@@ -57,6 +57,10 @@
             transition: border-color 0.2s;
         }
         .article-id-select:focus { border-color: #1a56db; }
+        .article-id-select option.not-analyzed {
+            font-style: italic;
+            color: #868e96;
+        }
 
         .latest-update-wrap { display: flex; align-items: center; gap: 6px; }
         .latest-update-label {
@@ -672,12 +676,18 @@ window.__pageInit = function () {
     function buildDropdown() {
         const sel     = document.getElementById('article-id-select');
         const prevVal = sel.value;
-        sel.innerHTML = '<option value="">— 선택하세요 —</option>';
+        sel.innerHTML = '<option value="">— Select Article No. —</option>';
         allRows.forEach((row, i) => {
             const id = v(row, COL.ARTICLE_ID);
             if (!id) return;
             const opt = document.createElement('option');
             opt.value = id; opt.dataset.idx = i; opt.textContent = id;
+            // 20번째 열(1-based) = index 19 값이 "Just-Analyzed"가 아니면 이탤릭 처리
+            const col20Val = v(row, 20);
+            if (col20Val !== 'Just-Analyzed') {
+                opt.classList.add('not-analyzed');
+                opt.style.fontStyle = 'italic';
+            }
             sel.appendChild(opt);
         });
         if (prevVal) {
