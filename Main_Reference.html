@@ -180,7 +180,7 @@ function parseCSV(text) {
             const items = rows
             .slice(1)
             .map(r => {
-                let text = (r[21] || '').trim();         // 21번째 열 (전체 텍스트)
+                let text = (r[23] || '').trim();         // 23번째 열 (전체 텍스트)
                 const type = (r[22] || '').trim();       // 22번째 열 (조건 확인)
                 const target4 = (r[4] || '').trim();     // 4번째 열 (강조 대상 1)
                 const anchor16 = (r[16] || '').trim();   // 16번째 열 (기준점)
