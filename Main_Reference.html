@@ -26,17 +26,40 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .notice {
-            font-family: 'DM Mono';
-            padding: 10px 0 10px;
-            font-size: 0.73rem;
-            font-weight: 700;
-            color: #343a40;
-            line-height: 1.6;
+        /* ── 고정 헤더 바 ── */
+        .fixed-header {
             flex-shrink: 0;
-            text-align: right;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #fff;
+            margin-left: 3%;
+            padding: 10px 10% 10px;
+            border-bottom: 1px solid #ffffff;
+        }
+        .header-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+        .sub-notice {
+            font-size: 0.73rem;
+            font-weight: 600;
+            font-family: 'Gowun Batang', serif;
+            color: #343a40;
+            display: none;
+        }
+        .notice {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #D49860;
+            white-space: nowrap;
+            display: none;
         }
 
+        /* ── 스크롤 영역 ── */
         .content-wrap {
             flex: 1;
             margin-left: 3%;
@@ -44,6 +67,7 @@
             overflow-y: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            min-height: 0;
         }
         .content-wrap::-webkit-scrollbar { display: none; }
 
@@ -91,19 +115,11 @@
         ol li {
             padding: 5px 0 5px 3.5em;
             text-indent: -3.5em;
-            font-size: 0.81rem;
+            font-size: 0.73rem;
             line-height: 1.85;
             color: #343a40;
             font-family: 'Gowun Batang', serif;
             word-break: keep-all;
-        }
-        .sub-notice {
-            display: none;
-            font-size: 0.8rem;
-            font-weight: 700;
-            font-family: 'Gowun Batang', serif;
-            color: #343a40;
-            margin-bottom: 10px;
         }
         .end-of-list {
             display: none;
@@ -117,15 +133,22 @@
 </head>
 <body>
 
+    <!-- ── 고정 헤더: 건수만 ── -->
+    <div class="fixed-header">
+        <div class="header-row">
+            <p class="notice" id="notice-count"></p>
+        </div>
+    </div>
+
+    <!-- ── 스크롤 영역: 로딩 + sub-notice + 목록 ── -->
     <div class="content-wrap">
         <div class="loading" id="loading">
             <div class="loading-dot"></div>
             <span>Loading...</span>
-        </div><br>
+        </div>
         <div class="error" id="error">데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해 주세요.</div>
-        <div class="sub-notice" id="sub-notice">※ 누락, 오기 혹은 추천 연구물이 있으면 상단 메뉴의 [Contact-US]를 통해 운영진에게 알려주세요.</div>
-        <p class="notice" id="notice-count"></p><br><br>
-        <ol id="ref-list"></ol><br>
+        <div class="sub-notice" id="sub-notice">※ 누락, 오기 혹은 추천 연구물이 있으면 상단 메뉴의 [Contact-US]를 통해 운영진에게 알려주세요.</div><br>
+        <ol id="ref-list"></ol>
         <div class="end-of-list" id="end-of-list">— End of List —</div>
     </div>
 
@@ -236,9 +259,18 @@ items.sort((a, b) => {
             list.appendChild(li);
             });
 
-            document.getElementById('notice-count').textContent = `분석 및 분류 연구물 건수 :  ${items.length}건`;
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mi = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+            const timestamp = `${yyyy}/${mm}/${dd} ${hh}:${mi}:${ss}`;
+            document.getElementById('notice-count').textContent = `☞ 총 ${items.length}건의 연구물이 분석 및 분류됨(${timestamp} 기준)`;
             document.getElementById('loading').style.display = 'none';
             document.getElementById('sub-notice').style.display = 'block';
+            document.getElementById('notice-count').style.display = 'inline';
             list.style.display = 'block';
             document.getElementById('end-of-list').style.display = 'block';
 
