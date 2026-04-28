@@ -667,30 +667,57 @@ window.__pageInit = function () {
 
     /* 데이터 로드 */
     function loadData() {
+        // 현재 선택된 Article ID 기억 (reload 후 복원용)
+        const preservedId = document.getElementById('article-id-select').value || null;
+
         setSbMsg('불러오는 중...');
         setButtons(false);
-        document.getElementById('editor-body').style.display = 'none';
-        document.getElementById('empty-state').style.display = 'flex';
+
+        // article이 선택된 상태라면 editor를 유지하고 로딩 표시만,
+        // 아무것도 선택 안 된 상태라면 empty-state로 전환
+        if (!preservedId) {
+            document.getElementById('editor-body').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'flex';
+        }
 
         // 로드 시작 시 allRows를 초기화해 이전 데이터가 잔류하지 않도록 함
         allRows = [];
-        buildDropdown();
+        buildDropdown(true);
 
         fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' })
             .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
             .then(text => {
                 const rows = parseCSV(text);
                 allRows = rows.slice(1);
-                buildDropdown();
+                buildDropdown(true);
                 document.getElementById('sb-total').textContent = allRows.length;
                 setSbMsg('✓ ' + allRows.length + '개 항목 로드 완료');
+
+                // reload 전에 article이 선택돼 있었으면 해당 항목 즉시 복원
+                if (preservedId) {
+                    const sel = document.getElementById('article-id-select');
+                    const opt = sel.querySelector(`option[value="${preservedId.replace(/"/g,'&quot;')}"]`);
+                    if (opt) {
+                        sel.value = preservedId;
+                        fillForm(parseInt(opt.dataset.idx));
+                        setSbMsg('✓ ' + allRows.length + '개 항목 로드 완료  —  ' + preservedId + ' 복원됨');
+                    } else {
+                        // 해당 ID가 사라진 경우(삭제 등) → empty state로
+                        document.getElementById('editor-body').style.display = 'none';
+                        document.getElementById('empty-state').style.display = 'flex';
+                    }
+                }
+
                 updateNavButtons();
             })
             .catch(err => setSbMsg('⚠ 데이터 로드 실패: ' + err.message));
     }
 
-    /* 드롭다운 빌드 */
-    function buildDropdown() {
+    /* 드롭다운 빌드
+     * skipAutoFill=true 이면 prevVal 복원 시 fillForm() 호출을 건너뜀.
+     * (loadData() 에서는 fetch 완료 후 명시적으로 복원하므로 중복 방지)
+     */
+    function buildDropdown(skipAutoFill) {
         const sel     = document.getElementById('article-id-select');
         const prevVal = sel.value;
         sel.innerHTML = '<option value="">— Select Article No. —</option>';
@@ -709,7 +736,7 @@ window.__pageInit = function () {
             }
             sel.appendChild(opt);
         });
-        if (prevVal) {
+        if (prevVal && !skipAutoFill) {
             sel.value = prevVal;
             const opt = sel.querySelector(`option[value="${prevVal.replace(/"/g,'&quot;')}"]`);
             if (opt) fillForm(parseInt(opt.dataset.idx));
