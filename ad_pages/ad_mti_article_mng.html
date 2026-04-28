@@ -672,7 +672,11 @@ window.__pageInit = function () {
         document.getElementById('editor-body').style.display = 'none';
         document.getElementById('empty-state').style.display = 'flex';
 
-        fetch(CSV_URL + '&t=' + Date.now())
+        // 로드 시작 시 allRows를 초기화해 이전 데이터가 잔류하지 않도록 함
+        allRows = [];
+        buildDropdown();
+
+        fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' })
             .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
             .then(text => {
                 const rows = parseCSV(text);
@@ -695,11 +699,10 @@ window.__pageInit = function () {
             if (!id) return;
             const opt = document.createElement('option');
             opt.value = id; opt.dataset.idx = i; opt.textContent = id;
-            // [FIX 2] LATEST_UPD(U열)가 비어있으면 미분석 항목으로 이탤릭 표시.
-            // 기존 코드는 하드코딩된 인덱스 20(U열)을 'Just-Analyzed' 문자열과
-            // 비교했는데, GAS는 U열에 날짜 문자열만 기록하므로 항상 조건이
-            // 참이 되어 모든 항목이 이탤릭으로 표시되는 버그가 있었음.
-            const isAnalyzed = !!v(row, COL.LATEST_UPD);
+            // U열(LATEST_UPD) 값이 "Just-Analyzed"인 경우만 분석 완료로 간주.
+            // 그 외(빈 값이거나 다른 값)인 경우 미분석 항목으로 이탤릭 표시.
+            const latestUpd = v(row, COL.LATEST_UPD);
+            const isAnalyzed = latestUpd === 'Just-Analyzed';
             if (!isAnalyzed) {
                 opt.classList.add('not-analyzed');
                 opt.style.fontStyle = 'italic';
