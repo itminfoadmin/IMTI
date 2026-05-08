@@ -391,7 +391,7 @@
     window.__pageInit = function() { loadData(); };
 
     /* ── URL ── */
-    const EXP_GAS_URL  = 'https://script.google.com/macros/s/AKfycbyYTsHpZRvho-HHOXkK5XbYgON3DuZwqeU5usTTXOcrcccMMnCANN2z7rbuCp2dkk3k/exec';
+    const EXP_GAS_URL  = 'https://script.google.com/macros/s/AKfycbye_Tya-8ItxfkD3DLYysmXImC4FM-N7nb_clv3AWuM59Mb389oZ1E6bp9YCy_MxYRt/exec';
     const EXP_SHEET_ID = '1nF6oXqXkEvUHtokWDbcXYn-NOTbSL6W7_YQ7j2-W8gg';
     const EXP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRu8rnCQm2t9HzfDAgttuJkZGLOCtOK-Wj2Z82gAn4OpwMrghDhMdPey8O7sacx4jAerSVJhNJpc8pX/pub?gid=0&single=true&output=csv';
 
@@ -445,7 +445,8 @@
                     advantage:    r.advantage     || '-',
                     disadvantage: r.disadvantage  || '-',
                     etc:          r.etc           || '-',
-                    rowIndex:     i + 2
+                    rowIndex:     i + 2,   // 하위 호환 유지
+                    sheetRow:     i + 2    // 삭제에 사용할 불변 시트 행 번호 — 절대 재계산 금지
                 };
             });
             console.log('[DEBUG] expData.length:', expData.length);
@@ -538,7 +539,13 @@
             if (cb) cb.focus();
         }, 50);
     }
-    function closeDelPopup() { document.getElementById('del-popup').classList.remove('active'); selectedRow = null; }
+    function closeDelPopup() {
+        document.getElementById('del-popup').classList.remove('active');
+        // View 모달이 열려 있는 경우(View → Delete 경로)에는 selectedRow를 유지
+        if (!document.getElementById('view-popup').classList.contains('active')) {
+            selectedRow = null;
+        }
+    }
 
     function openDelReconfirmPopup() {
         document.getElementById('del-popup').classList.remove('active');
@@ -604,13 +611,13 @@
         resultEl.textContent = '';
 
         try {
-            var url = EXP_GAS_URL + '?action=deleteExpComment&rowIndex=' + encodeURIComponent(selectedRow.rowIndex) + '&t=' + Date.now();
+            var url = EXP_GAS_URL + '?action=deleteExpComment&rowIndex=' + encodeURIComponent(selectedRow.sheetRow) + '&t=' + Date.now();
             var res = await fetch(url, { method: 'GET', redirect: 'follow', cache: 'no-cache' });
             var data = await res.json();
             if (data && data.status === 'OK') {
-                var deletedNo = selectedRow.no;
-                expData = expData.filter(function(m) { return m.no !== deletedNo; });
-                expData.forEach(function(m, i) { m.no = i + 1; });
+                var deletedSheetRow = selectedRow.sheetRow;
+                expData = expData.filter(function(m) { return m.sheetRow !== deletedSheetRow; });
+                expData.forEach(function(m, i) { m.no = i + 1; /* sheetRow는 변경하지 않음 */ });
                 renderTable();
                 closeDelReconfirmPopup();
                 closeViewPopup();
