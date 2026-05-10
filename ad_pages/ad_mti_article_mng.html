@@ -225,6 +225,7 @@
             font-family: 'Gowun Batang', serif; font-size: 0.65rem; color: #adb5bd; letter-spacing: 0.04em;
         }
         .statusbar-text span { color: #6c757d; font-weight: 700; }
+        #sb-analyzed { color: #2f9e44 !important; font-weight: 700; }
 
         /* ── Confirm Overlay ── */
         .confirm-overlay {
@@ -549,7 +550,9 @@
 
     <!-- ── Status Bar ── -->
     <div class="statusbar">
-        <span class="statusbar-text"><span id="sb-total">0</span> articles loaded</span>
+        <span class="statusbar-text"><span id="sb-total">0</span> Articles Loaded</span>
+        <div class="toolbar-divider"></div>
+        <span class="statusbar-text"><span id="sb-analyzed">0</span> Just-Analyzed!!</span>
         <div class="toolbar-divider"></div>
         <span class="statusbar-text" id="sb-msg"></span>
     </div>
@@ -609,6 +612,10 @@ window.__pageInit = function () {
         if (type === 'ok') setTimeout(() => { el.className = 'status-badge'; }, 3000);
     }
     function setSbMsg(msg) { document.getElementById('sb-msg').textContent = msg; }
+    function updateAnalyzedCount() {
+        const count = allRows.filter(row => v(row, COL.LATEST_UPD) === 'Just-Analyzed').length;
+        document.getElementById('sb-analyzed').textContent = count;
+    }
     function setButtons(on) {
         ['btn-save','btn-delete','btn-print'].forEach(id => {
             document.getElementById(id).disabled = !on;
@@ -691,6 +698,7 @@ window.__pageInit = function () {
                 allRows = rows.slice(1).filter(row => v(row, COL.ARTICLE_ID) !== '');
                 buildDropdown(true);
                 document.getElementById('sb-total').textContent = allRows.length;
+                updateAnalyzedCount();
                 setSbMsg('✓ ' + allRows.length + '개 항목 로드 완료');
 
                 // reload 전에 article이 선택돼 있었으면 해당 항목 즉시 복원
@@ -877,6 +885,7 @@ window.__pageInit = function () {
                         document.getElementById('latest-update-val').textContent = res.savedAt;
                         document.getElementById('print-update').textContent = 'Updated: ' + res.savedAt;
                     }
+                    updateAnalyzedCount();
                 }
             } else { throw new Error(res.message || '알 수 없는 오류'); }
         })
