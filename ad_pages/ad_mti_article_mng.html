@@ -688,7 +688,7 @@ window.__pageInit = function () {
             .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
             .then(text => {
                 const rows = parseCSV(text);
-                allRows = rows.slice(1);
+                allRows = rows.slice(1).filter(row => v(row, COL.ARTICLE_ID) !== '');
                 buildDropdown(true);
                 document.getElementById('sb-total').textContent = allRows.length;
                 setSbMsg('✓ ' + allRows.length + '개 항목 로드 완료');
