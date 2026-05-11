@@ -192,7 +192,7 @@
 
 <div class="tab-bar" id="tab-bar">
     <button class="tab-btn active" data-idx="0" onclick="switchTab(0)">IMTI 소개 및 운영 안내</button>
-    <button class="tab-btn" data-idx="1" onclick="switchTab(1)">분석 및 분류 연구물 목록</button>
+    <button class="tab-btn" data-idx="1" onclick="switchTab(1)">분석된 연구물 목록</button>
 </div>
 
 <div class="iframe-wrap">
@@ -273,8 +273,19 @@ function preloadAll() {
 
     let   loaded     = 0;
     let   dismissed  = false;
+    let   iframesDone = false;   // iframe load events done
+    let   sheetReady  = false;   // Main_Greeting sheet data ready
 
     countEl.textContent = `0 / ${total}`;
+
+    // Listen for sheet-ready signal from child iframe
+    function onSheetReady(e) {
+        if (e.data !== 'imti-sheet-ready') return;
+        window.removeEventListener('message', onSheetReady);
+        sheetReady = true;
+        if (iframesDone) dismiss();
+    }
+    window.addEventListener('message', onSheetReady);
 
     
     const iframes = TABS.map((tab, idx) => {
@@ -295,7 +306,15 @@ function preloadAll() {
         loaded = Math.min(loaded + 1, total);
         bar.style.width     = Math.round((loaded / total) * 100) + '%';
         countEl.textContent = `${loaded} / ${total}`;
-        if (loaded >= total) dismiss();
+        if (loaded >= total) {
+            iframesDone = true;
+            // Wait for sheet signal from tab-0 (Main_Greeting); 8s fallback
+            if (sheetReady) {
+                dismiss();
+            } else {
+                setTimeout(() => { if (!dismissed) dismiss(); }, 8000);
+            }
+        }
     }
 
     function dismiss() {

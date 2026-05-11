@@ -72,6 +72,16 @@
             height: auto;
         }
 
+        a[onclick] {
+            color: inherit;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            cursor: pointer;
+        }
+        a[onclick]:hover {
+            color: #1a6bbf;
+        }
+
         .closing {
             text-align: right;
             margin-top: 44px;
@@ -81,9 +91,7 @@
         }
     </style>
     <script>
-        // Google Sheets CSV export URL (공개 시트 기준)
-        const SHEET_ID = '1WSIAKzyKnGD-5hjBUWCsOOQME9M3Ig7qyAVRRzLKftY';
-        const GID = '0';
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRxi28M9azVIO7Nyp3wpr5PUuCUSDNXMwuIbPZ-KaZxuPUVVF15zFlfAao0QttcGN4BJJcZQLikqv_/pub?gid=557422957&single=true&output=csv&range=J3:L3';
 
         function getTodayFormatted() {
             const now = new Date();
@@ -96,22 +104,45 @@
             return `${yyyy}/${mm}/${dd} ${HH}:${min}:${ss}`;
         }
 
+        // RFC 4180-compliant CSV row parser
+        function parseCSVRow(row) {
+            const result = [];
+            let cur = '';
+            let inQuotes = false;
+            for (let i = 0; i < row.length; i++) {
+                const ch = row[i];
+                if (inQuotes) {
+                    if (ch === '"' && row[i + 1] === '"') { cur += '"'; i++; }
+                    else if (ch === '"') { inQuotes = false; }
+                    else { cur += ch; }
+                } else {
+                    if (ch === '"') { inQuotes = true; }
+                    else if (ch === ',') { result.push(cur.trim()); cur = ''; }
+                    else { cur += ch; }
+                }
+            }
+            result.push(cur.trim());
+            return result;
+        }
+
         async function loadSheetData() {
-            const url = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=${GID}&single=true&output=csv`;
+            // range=J3:L3 maps to index 0=J3, 1=K3, 2=L3
             try {
-                const res = await fetch(url);
+                const res = await fetch(CSV_URL);
                 const text = await res.text();
-                // 첫 번째 행만 파싱 (헤더 행이 있을 경우 두 번째 행 사용)
-                const rows = text.trim().split('\n');
-                const firstRow = rows[0].split(',').map(v => v.replace(/^"|"$/g, '').trim());
-                // N열=index13, Q열=index16 (0-based)
-                const n1 = firstRow[13] || '?';
-                const q1 = firstRow[16] || '?';
-                document.getElementById('sheet-q1').textContent = q1;
-                document.getElementById('sheet-n1').textContent = n1;
+                const firstLine = text.trim().split('\n')[0];
+                const cols = parseCSVRow(firstLine);
+                // J3=index0 (MTI count), L3=index2 (teaching model count)
+                const j3 = cols[0] || '?';
+                const l3 = cols[2] || '?';
+                document.getElementById('sheet-q1').textContent = l3;  // 총 분석 건수
+                document.getElementById('sheet-n1').textContent = j3;  // MTI 건수
             } catch (e) {
                 document.getElementById('sheet-q1').textContent = '(데이터 로딩 실패)';
                 document.getElementById('sheet-n1').textContent = '(데이터 로딩 실패)';
+            } finally {
+                // Notify parent page that sheet data is ready
+                try { window.parent.postMessage('imti-sheet-ready', '*'); } catch(_) {}
             }
         }
 
@@ -129,7 +160,7 @@
             <h2>IMTI 는?</h2>
         </div>
         <p>
-            IMTI는 Inventory of Models of Teaching for Informatics의 줄임말로써, 정보 및 컴퓨터 관련 교수-학습의 활성화를 위해 컴퓨터 및 정보 교과에서 지금까지 연구된 다양한 수업 모형(MTI: Models of Teaching for Informatics)을 분석 및 분류하여 이에 대한 정보를 공유하는 저장소(Inventory)입니다. <span id="today-date"></span> 현재 총 <span id="sheet-q1">…</span>건의 정보교과에서 연구된 수업 모형을 분석하여 <span id="sheet-n1">…</span>건의 MTI를 정리하여 서비스하고 있습니다. IMTI의 서비스를 위해 분석된 연구물의 목록은 "분석 및 분류 연구물 목록"에서 확인하실 수 있으며, 분석 및 분류에 오류가 있는 경우에 <Contact-Us>를 통해 언제든지 오류 정정을 신청하실 수 있습니다. IMTI는 구성 자료의 현재성 및 운영의 효율성을 위해 Google Docs, Google Sheet, Google Locker Studio를 기반으로 개발 및 서비스 되고 있습니다(화면이 부분적으로 선명하지 않거나 자료 로딩 지연이 발생할 수 있습니다).
+            IMTI는 Inventory of Models of Teaching for Informatics의 줄임말로써, 정보 및 컴퓨터 관련 교수-학습의 활성화를 위해 컴퓨터 및 정보 교과에서 지금까지 연구된 다양한 수업 모형(MTI: Models of Teaching for Informatics) 관련 연구물을 분석 및 정리하여 이에 대한 정보를 공유하는 저장소(Inventory)입니다. <span id="today-date"></span> 현재, 수업 모형과 관련하여 정보 교과에서 연구된 총 <span id="sheet-q1">000</span>건의 연구물을 분석하여 총 <span id="sheet-n1">000</span>건의 MTI를 정리하여 서비스하고 있습니다. IMTI의 서비스를 위해 분석된 연구물의 목록은 "분석 연구물 목록" 탭에서 확인하실 수 있으며, 분석 및 분류에 오류가 있는 경우에 [Contact-Us]를 통해 언제든지 오류 정정을 신청하실 수 있습니다. IMTI는 구성 자료의 현재성 및 운영의 효율성을 위해 Google Docs, Google Sheet, Google Locker Studio를 기반으로 개발 및 서비스 되고 있습니다(화면이 부분적으로 선명하지 않거나 자료 로딩 지연이 발생할 수 있습니다).
         </p>
     </section>
 
@@ -169,7 +200,7 @@
     <br>
 
     <div class="closing">
-        부디 IMTI가 회원 여러분 모두에게 도움이 되길 기원하며….
+        부디 IMTI가 회원 여러분 모두에게 도움이 되길 기원합니다.
     </div>
 <br>
 </body>

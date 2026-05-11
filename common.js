@@ -1,10 +1,10 @@
-/* --- API URLs --- */
+/* API endpoint URLs */
 var IMTI_APPS_SCRIPT_URL    = 'https://script.google.com/macros/s/AKfycbx4SXbyr-NoPYgs0xB5wWHiPb2qbn_DEiRbfMUSgMST_d7HnFmSCeBEXTlz3xNsz3wsFg/exec';
 var IMTI_LOG_SHEET_URL      = 'https://script.google.com/macros/s/AKfycbyEUW4PVXAUaug9iC5iWp7ANatksYrhpSM6zBc5IrBeuxVpSIMpJXqT1QyaZeZAy2FO9A/exec';
 var IMTI_CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBInDqEoLUfRUKmAGEdvgJhFy6FHsp0uqv0HnhgVfh4Lb5F-NeeSACdMAJdT9DYaBZlA/exec';
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbyLTQ-1r9n-3weRUtRL9Cqo5H4GeRDYnKzlGXL60Tk3geSF86OwXJ0RvJQxZ4ucXRkJ/exec';
+var IMTI_ADMIN_GAS_URL      = 'https://script.google.com/macros/s/AKfycbyLTQ-1r9n-3weRUtRL9Cqo5H4GeRDYnKzlGXL60Tk3geSF86OwXJ0RvJQxZ4ucXRkJ/exec';
 
-/* --- Session Guard --- */
+/* Redirect to login if session is missing */
 function imtiRequireAuth() {
     if (!sessionStorage.getItem('imti_user_email')) {
         sessionStorage.clear();
@@ -19,13 +19,12 @@ function imtiRequireAdminAuth() {
     }
 }
 
-/* --- Common Modal CSS --- */
+/* Inject shared modal styles once */
 (function injectCommonStyles() {
     if (document.getElementById('imti-common-style')) return;
     var s = document.createElement('style');
     s.id = 'imti-common-style';
     s.textContent = [
-        /* Modal base */
         '.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;}',
         '.modal-bg.open{display:flex;}',
         '.modal-box{background:#fff;padding:30px;border-radius:12px;width:90%;max-width:400px;text-align:center;}',
@@ -34,11 +33,9 @@ function imtiRequireAdminAuth() {
         '.btn-confirm{background:#212529;color:#fff;}',
         '.btn-confirm:disabled{background:#adb5bd;cursor:not-allowed;}',
         '.btn-cancel{background:#e9ecef;color:#495057;}',
-        /* Alert modal */
         '.alert-modal-box{background:#fff;padding:28px 30px 22px;border-radius:12px;width:90%;max-width:480px;text-align:center;}',
         '.alert-modal-box p{font-size:0.85rem;line-height:1.8;margin-bottom:20px;color:#343a40;}',
         '.alert-modal-box p .en{font-size:0.78rem;color:#868e96;display:block;margin-top:6px;}',
-        /* Password modal */
         '#modal-pw .modal-box{max-width:460px;}',
         '#modal-pw h3{font-family:"DM Mono";font-size:1rem;margin-bottom:4px;}',
         '.modal-subtitle{font-size:0.75rem;color:#868e96;margin-bottom:18px;line-height:1.6;}',
@@ -50,7 +47,6 @@ function imtiRequireAdminAuth() {
         '.pw-hint{font-size:0.72rem;color:#868e96;text-align:left;margin-top:-6px;margin-bottom:6px;line-height:1.5;}',
         '#pw-error{font-size:0.78rem;color:#e03131;min-height:1.2em;margin-top:4px;text-align:left;}',
         '#modal-pw-errinput-id,#modal-pw-errinput-email,#modal-pw-errinput-pw,#modal-pw-errpasscheck,#modal-pw-errinpassput,#modal-pw-success{z-index:1100;}',
-        /* Contact modal */
         '#modal-contact{z-index:1000;}',
         '#modal-contact .modal-box{max-width:520px;text-align:left;padding:36px 36px 28px;}',
         '#modal-contact-success{z-index:1100;}',
@@ -67,19 +63,17 @@ function imtiRequireAdminAuth() {
         '#contact-send-btn{width:100%;background:#343a40;color:#fff;border:none;border-radius:8px;padding:13.8px 12px;font-family:"DM Mono",monospace;font-size:0.8rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background 0.2s;margin-top:20px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:51px;}',
         '#contact-send-btn:hover:not(:disabled){background:#1a56db;}',
         '#contact-send-btn:disabled{background:#adb5bd;cursor:not-allowed;}',
-        /* PW progress overlay */
         '#pw-progress{display:none;position:fixed;inset:0;background:rgba(255,255,255,0.88);backdrop-filter:blur(6px);z-index:1200;align-items:center;justify-content:center;flex-direction:column;gap:16px;}',
     ].join('');
     document.head.appendChild(s);
 })();
 
-/* --- Common Modal HTM --- */
+/* Inject shared modal HTML once */
 function imtiInjectModals() {
     if (document.getElementById('imti-common-modals')) return;
     var wrap = document.createElement('div');
     wrap.id = 'imti-common-modals';
     wrap.innerHTML = [
-        /* Contact */
         '<div id="modal-contact" class="modal-bg" onclick="imtiOutsideCloseContact(event)">',
         '  <div class="modal-box" onclick="event.stopPropagation()">',
         '    <div class="modal-title">✉ Contact-Us</div>',
@@ -100,7 +94,6 @@ function imtiInjectModals() {
         '    <div class="btn-row" style="justify-content:center;"><button class="btn-confirm" style="max-width:160px;" onclick="imtiCloseModal(\'modal-contact-success\')">확인 (Confirm)</button></div>',
         '  </div>',
         '</div>',
-        /* Logout */
         '<div id="modal-logout" class="modal-bg">',
         '  <div class="modal-box">',
         '    <h3 style="font-family:\'DM Mono\'">Log-out</h3>',
@@ -111,7 +104,6 @@ function imtiInjectModals() {
         '    </div>',
         '  </div>',
         '</div>',
-        /* Withdraw */
         '<div id="modal-withdraw" class="modal-bg">',
         '  <div class="modal-box" style="max-width:520px;text-align:left;">',
         '    <p style="font-size:0.92rem;line-height:1.8;margin-bottom:24px;">본 웹사이트(IMTI)의 회원에서 탈퇴하시겠습니까?<br>탈퇴 후 모든 데이터는 복구할 수 없습니다.<br><span style="font-size:0.82rem;color:#868e96;">Would you like to withdraw your membership?</span></p>',
@@ -135,7 +127,6 @@ function imtiInjectModals() {
         '    <div class="btn-row" style="justify-content:center;"><button class="btn-confirm" style="max-width:200px;" onclick="imtiDoWithdrawSuccess()">확인 (Confirm)</button></div>',
         '  </div>',
         '</div>',
-        /* Password change */
         '<div id="modal-pw" class="modal-bg">',
         '  <div class="modal-box">',
         '    <h3>비밀번호 변경</h3>',
@@ -154,14 +145,12 @@ function imtiInjectModals() {
         '    </div>',
         '  </div>',
         '</div>',
-        /* Password error / success modals */
         '<div id="modal-pw-errinput-id" class="modal-bg"><div class="alert-modal-box"><p>입력하신 ID가 존재하지 않습니다.<span class="en">The ID you entered does not exist.</span></p><div class="btn-row" style="justify-content:center;"><button class="btn-confirm" style="max-width:160px;" onclick="imtiCloseModal(\'modal-pw-errinput-id\')">확인</button></div></div></div>',
         '<div id="modal-pw-errinput-email" class="modal-bg"><div class="alert-modal-box"><p>입력된 e-mail이 정보와 일치하지 않습니다.<span class="en">The e-mail does not match.</span></p><div class="btn-row" style="justify-content:center;"><button class="btn-confirm" style="max-width:160px;" onclick="imtiCloseModal(\'modal-pw-errinput-email\')">확인</button></div></div></div>',
         '<div id="modal-pw-errinput-pw" class="modal-bg"><div class="alert-modal-box"><p>입력하신 현재 패스워드가 올바르지 않습니다.<span class="en">The current password is incorrect.</span></p><div class="btn-row" style="justify-content:center;"><button class="btn-confirm" style="max-width:160px;" onclick="imtiCloseModal(\'modal-pw-errinput-pw\')">확인</button></div></div></div>',
         '<div id="modal-pw-errpasscheck" class="modal-bg"><div class="alert-modal-box"><p>비밀번호는 영문, 숫자, 특수문자를 포함하여 13자리 이상으로 설정해 주세요.<span class="en">Password must be 13+ chars with letters, numbers, and special chars.</span></p><div class="btn-row" style="justify-content:center;"><button class="btn-confirm" style="max-width:160px;" onclick="imtiCloseModal(\'modal-pw-errpasscheck\')">확인</button></div></div></div>',
         '<div id="modal-pw-errinpassput" class="modal-bg"><div class="alert-modal-box"><p>입력된 두 개의 새로운 패스워드가 일치하지 않습니다.<span class="en">The two passwords do not match.</span></p><div class="btn-row" style="justify-content:center;"><button class="btn-confirm" style="max-width:160px;" onclick="imtiCloseModal(\'modal-pw-errinpassput\')">확인</button></div></div></div>',
         '<div id="modal-pw-success" class="modal-bg"><div class="alert-modal-box"><p>패스워드가 정상적으로 변경되었습니다.<span class="en">Your password has been successfully changed.</span></p><div class="btn-row" style="justify-content:center;"><button class="btn-confirm" style="max-width:160px;" onclick="imtiCloseModal(\'modal-pw-success\')">확인</button></div></div></div>',
-        /* PW progress overlay */
         '<div id="pw-progress" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.88);backdrop-filter:blur(6px);z-index:1200;align-items:center;justify-content:center;flex-direction:column;gap:16px;">',
         '  <svg viewBox="0 0 56 56" style="width:48px;height:48px;animation:spin 1s linear infinite;">',
         '    <circle cx="28" cy="28" r="22" fill="none" stroke="#e9ecef" stroke-width="4"/>',
@@ -173,7 +162,7 @@ function imtiInjectModals() {
     document.body.appendChild(wrap);
 }
 
-/* --- Modal control --- */
+/* Modal open / close helpers */
 function imtiOpenModal(id) {
     if (id === 'modal-withdraw') {
         document.getElementById('withdraw-email').textContent = sessionStorage.getItem('imti_user_email') || '';
@@ -190,11 +179,11 @@ function imtiOpenModal(id) {
     }
     document.getElementById(id).classList.add('open');
 }
-function imtiCloseModal(id) { document.getElementById(id).classList.remove('open'); }
-function imtiOutsideClose(e, id) { if (e.target === document.getElementById(id)) imtiCloseModal(id); }
-function imtiOutsideCloseContact(e) { if (e.target === document.getElementById('modal-contact')) imtiCloseModal('modal-contact'); }
+function imtiCloseModal(id)              { document.getElementById(id).classList.remove('open'); }
+function imtiOutsideClose(e, id)         { if (e.target === document.getElementById(id)) imtiCloseModal(id); }
+function imtiOutsideCloseContact(e)      { if (e.target === document.getElementById('modal-contact')) imtiCloseModal('modal-contact'); }
 
-/* --- Contact --- */
+/* Enable send button only when all contact fields are filled */
 function imtiValidateContactForm() {
     var f   = (document.getElementById('contact-from')    || {}).value || '';
     var s   = (document.getElementById('contact-subject') || {}).value || '';
@@ -208,11 +197,10 @@ async function imtiSendContactMail() {
     var subject = document.getElementById('contact-subject').value.trim();
     var body    = document.getElementById('contact-body').value.trim();
     var btn     = document.getElementById('contact-send-btn');
-    btn.disabled = true; btn.textContent = '전송 중...';
+    btn.disabled = true;
+    btn.textContent = '전송 중...';
 
-    function resetBtn() {
-        btn.disabled = false; btn.textContent = '✈ Send E-mail';
-    }
+    function resetBtn() { btn.disabled = false; btn.textContent = '✈ Send E-mail'; }
 
     try {
         var res = await fetch(IMTI_CONTACT_SCRIPT_URL, {
@@ -232,8 +220,7 @@ async function imtiSendContactMail() {
             alert('메일 전송에 실패했습니다. (' + (res && res.status || 'ERROR') + ')');
         }
     } catch (err) {
-        console.warn('POST failed, trying no-cors:', err);
-        /* CORS 차단 환경 fallback — 응답 확인 불가이지만 GAS는 실행됨 */
+        /* Fallback for CORS-blocked environments; GAS still executes but response is unreadable */
         try {
             await fetch(IMTI_CONTACT_SCRIPT_URL, {
                 method:  'POST',
@@ -255,12 +242,13 @@ async function imtiSendContactMail() {
     }
 }
 
-/* --- Authorization Util  --- */
+/* SHA-256 hash utility */
 async function imtiSha256(str) {
     var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
 }
 
+/* JSONP request with 10 s timeout; calls tcb (or cb(null)) on timeout */
 function imtiJsonpCall(url, cb, tcb) {
     var n = 'jsonp_cb_' + Date.now();
     var s = document.createElement('script');
@@ -278,6 +266,7 @@ function imtiJsonpCall(url, cb, tcb) {
     document.body.appendChild(s);
 }
 
+/* Fire-and-forget login/logout log to the log sheet */
 function imtiSendLog(type, id, email) {
     try {
         fetch(IMTI_LOG_SHEET_URL + '?' + new URLSearchParams({ type: type, id: id, email: email }),
@@ -285,39 +274,36 @@ function imtiSendLog(type, id, email) {
     } catch (e) {}
 }
 
-/* --- Admin log  --- */
+/* Fire-and-forget admin activity log */
 function imtiSendAdminLog(type, email, ip) {
     try {
         var params = { action: 'adminLog', type: type, email: email };
         if (ip) params.ip = ip;
-        fetch(GAS_URL + '?' + new URLSearchParams(params),
+        fetch(IMTI_ADMIN_GAS_URL + '?' + new URLSearchParams(params),
             { method: 'GET', mode: 'no-cors', keepalive: true }).catch(function() {});
     } catch (e) {}
 }
+
+/* Resolve client IP then log admin login */
 async function imtiSendAdminLoginLog(email) {
     var ip = 'unknown';
     try {
         var res  = await fetch('https://api.ipify.org?format=json');
         var data = await res.json();
         ip = data.ip || 'unknown';
-    } catch (e) { /* IP 조회 실패 시 unknown 유지 */ }
+    } catch (e) {}
     imtiSendAdminLog('login', email, ip);
 }
 
-/* --- log out  --- */
 function imtiDoLogout() {
-    /* 일반 유저 로그아웃 */
     if (sessionStorage.getItem('imti_user_email')) {
-        /* imti_log_key: 로그인 시 시트에 기록된 id와 동일한 값 (없으면 imti_user_id → email 순 fallback) */
+        /* Use imti_log_key if available; fall back to user id then email */
         var logKey = sessionStorage.getItem('imti_log_key')
                   || sessionStorage.getItem('imti_user_id')
                   || sessionStorage.getItem('imti_user_email')
                   || '';
-        imtiSendLog('logout',
-            logKey,
-            sessionStorage.getItem('imti_user_email') || '');
+        imtiSendLog('logout', logKey, sessionStorage.getItem('imti_user_email') || '');
     }
-    /* Admin 로그아웃 → Admin-log 탭에 logout-time 기록 */
     if (sessionStorage.getItem('admin_email')) {
         imtiSendAdminLog('logout', sessionStorage.getItem('admin_email') || '');
     }
@@ -325,7 +311,6 @@ function imtiDoLogout() {
     location.href = 'index.html';
 }
 
-/* --- member withdraw  --- */
 async function imtiDoWithdraw() {
     var email = sessionStorage.getItem('imti_user_email') || '';
     var pw    = document.getElementById('withdraw-pw').value.trim();
@@ -355,7 +340,7 @@ function imtiDoWithdrawSuccess() {
     location.href = 'index.html';
 }
 
-/* --- p/w change  --- */
+/* Password validation: 13+ chars, must include letter, digit, and special char */
 function imtiIsValidPassword(pw) {
     return pw.length >= 13 &&
         /[a-zA-Z]/.test(pw) &&
@@ -364,8 +349,11 @@ function imtiIsValidPassword(pw) {
 }
 
 function imtiValidatePwForm() {
-    var ids = ['pw-id', 'pw-email', 'pw-current', 'pw-new', 'pw-confirm'];
-    var filled = ids.every(function(i) { return (document.getElementById(i) || {}).value && document.getElementById(i).value.trim(); });
+    var ids    = ['pw-id', 'pw-email', 'pw-current', 'pw-new', 'pw-confirm'];
+    var filled = ids.every(function(i) {
+        var el = document.getElementById(i);
+        return el && el.value && el.value.trim();
+    });
     var btn = document.getElementById('pw-submit-btn');
     if (btn) btn.disabled = !filled;
 }
@@ -402,13 +390,11 @@ async function imtiDoChangePassword() {
 
     function isOK(r) { return r && (r === 'OK' || r.status === 'OK'); }
 
+    /* Run all three field checks in parallel */
     var results = await new Promise(function(resolve) {
         var done = 0, out = [null, null, null];
         function check(i, url) {
-            imtiJsonpCall(url, function(r) {
-                out[i] = r;
-                if (++done === 3) resolve(out);
-            });
+            imtiJsonpCall(url, function(r) { out[i] = r; if (++done === 3) resolve(out); });
         }
         check(0, base + '?action=checkField&field=id&id=' + encodeURIComponent(id));
         check(1, base + '?action=checkField&field=email&id=' + encodeURIComponent(id) + '&email=' + encodeURIComponent(email));
@@ -433,7 +419,7 @@ async function imtiDoChangePassword() {
     );
 }
 
-/* --- navbar loader  --- */
+/* Fetch navbar.html, inject it, and mark the current page as active */
 function imtiLoadNavbar(currentPage) {
     function _run() {
         imtiInjectModals();
@@ -459,9 +445,6 @@ function imtiLoadNavbar(currentPage) {
                 console.error('[IMTI] navbar load error:', err);
             });
     }
-    if (document.body) {
-        _run();
-    } else {
-        document.addEventListener('DOMContentLoaded', _run);
-    }
+    if (document.body) { _run(); }
+    else { document.addEventListener('DOMContentLoaded', _run); }
 }
