@@ -83,7 +83,7 @@
     <script>
         // Google Sheets CSV export URL (공개 시트 기준)
         const SHEET_ID = '1WSIAKzyKnGD-5hjBUWCsOOQME9M3Ig7qyAVRRzLKftY';
-        const SHEET_NAME = 'dash_board_Data';
+        const GID = '0';
 
         function getTodayFormatted() {
             const now = new Date();
@@ -97,15 +97,16 @@
         }
 
         async function loadSheetData() {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&range=N1:Q1`;
+            const url = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=${GID}&single=true&output=csv`;
             try {
                 const res = await fetch(url);
                 const text = await res.text();
-                // CSV 파싱: 값들이 따옴표로 감싸여 있을 수 있음
-                const values = text.trim().split(',').map(v => v.replace(/^"|"$/g, '').trim());
-                // N1=index0, O1=index1, P1=index2, Q1=index3
-                const n1 = values[0] || '?';
-                const q1 = values[3] || '?';
+                // 첫 번째 행만 파싱 (헤더 행이 있을 경우 두 번째 행 사용)
+                const rows = text.trim().split('\n');
+                const firstRow = rows[0].split(',').map(v => v.replace(/^"|"$/g, '').trim());
+                // N열=index13, Q열=index16 (0-based)
+                const n1 = firstRow[13] || '?';
+                const q1 = firstRow[16] || '?';
                 document.getElementById('sheet-q1').textContent = q1;
                 document.getElementById('sheet-n1').textContent = n1;
             } catch (e) {
