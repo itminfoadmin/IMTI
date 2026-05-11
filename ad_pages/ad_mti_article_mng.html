@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMTI - Article Analyser</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link href="https://googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="ad_common.css">
     <style>
         body { height: 100vh; overflow: hidden; }
@@ -32,11 +32,11 @@
 
         .article-id-wrap { display: flex; align-items: center; gap: 8px; }
 
-        /* Article ID 배지 — APA 위 오른쪽 정렬 */
+        
         .article-id-above {
             display: flex;
-            justify-content: flex-end;         /* 오른쪽 정렬 */
-            padding-left: 140px;               /* form-label 너비만큼 들여쓰기 */
+            justify-content: flex-end;         
+            padding-left: 140px;               
             margin-bottom: 2px;
         }
         .current-id-badge {
@@ -100,7 +100,7 @@
         .btn-nav:hover:not(:disabled)     { border-color: #868e96; color: #212529; background: #A4C5D3; }
         .btn-nav:disabled { opacity: 0.25; cursor: not-allowed; }
 
-        /* ── Last-Saved ID chip (Prev 버튼 왼쪽) ── */
+        
         .last-saved-wrap {
             display: flex; align-items: center; gap: 5px;
             opacity: 0; pointer-events: none;
@@ -136,14 +136,14 @@
         }
         .empty-state-icon { font-size: 2.2rem; opacity: 0.2; margin-bottom: 4px; }
 
-        /* ── Form Layout (max-width 1440px = 기존 960px +50%) ── */
+        
         .editor-body {
             padding: 16px 40px 40px;
             max-width: 1440px;
             margin: 0 auto;
         }
 
-        /* 단일 행 */
+        
         .form-row {
             display: flex; align-items: flex-start;
             border-bottom: 1px solid #f1f3f5; padding: 4px 0;
@@ -164,7 +164,7 @@
         }
         .form-field { flex: 1; min-width: 0; }
 
-        /* 2컬럼 구간 */
+        
         .form-row-2col {
             display: flex; align-items: stretch;
             border-bottom: 1px solid #f1f3f5; padding: 0;
@@ -183,7 +183,7 @@
         }
         .sub-row:last-child { border-bottom: none; }
 
-        /* 필드 공통 */
+        
         .f-input, .f-select, .f-textarea {
             font-family: 'Gowun Batang', serif; font-size: 0.91rem; color: #000;
             background: #f8f9fa; border: 0.5px solid #e9ecef; border-radius: 1px;
@@ -191,7 +191,7 @@
             transition: border-color 0.2s, background 0.2s;
         }
         .f-input:focus, .f-select:focus, .f-textarea:focus { border-color: #adb5bd; background: #fff; }
-        /* input: 긴 내용 전체 표시 */
+        
         .f-input {
             white-space: normal;
             word-break: break-all;
@@ -202,12 +202,12 @@
             resize: none;
             min-height: 36px;
             line-height: 1.65;
-            overflow: hidden;   /* auto-resize 트리거용 */
+            overflow: hidden;   
             word-break: break-word;
             white-space: pre-wrap;
         }
         .f-textarea.tall { min-height: 80px; }
-        /* 단일행처럼 보이는 textarea (내용 길면 자동 확장) */
+        
         .f-textarea.f-single {
             min-height: 36px;
             line-height: 1.5;
@@ -270,15 +270,15 @@
 
             .editor-body { padding: 0 !important; max-width: 100% !important; display: block !important; }
 
-            /* 기존 화면 요소 모두 숨김 */
+            
             .article-id-above,
             .form-row,
             .form-row-2col { display: none !important; }
 
-            /* 인쇄 전용 레이아웃 표시 */
+            
             #print-layout { display: block !important; }
 
-            /* 배지 */
+            
             #print-layout .p-badge-wrap {
                 display: flex; justify-content: flex-end; margin-bottom: 10pt;
             }
@@ -288,13 +288,13 @@
                 border: 0.1pt solid #adb5bd; border-radius: 1px; padding: 3pt 10pt;
             }
 
-            /* APA: 테두리 없이 일반 텍스트 */
+            
             #print-layout .p-apa {
                 font-size: 9pt; line-height: 1.65; color: #212529;
                 margin-bottom: 10pt; word-break: break-word;
             }
 
-            /* 공통 테이블 */
+            
             #print-layout table {
                 width: 100%; border-collapse: collapse; margin-bottom: 6pt; font-size: 8.5pt;
             }
@@ -338,7 +338,7 @@
             <span class="toolbar-title">Article Analyser</span>
             <div class="toolbar-divider"></div>
 
-            <!-- Article ID 드롭다운 (A열) -->
+            
             <div class="article-id-wrap">
                 <span class="article-id-label">Article ID</span>
                 <select class="article-id-select" id="article-id-select">
@@ -348,7 +348,7 @@
 
             <div class="toolbar-divider"></div>
 
-            <!-- Latest Update (U열 표시) -->
+            
             <div class="latest-update-wrap">
                 <span class="latest-update-label">Latest Update</span>
                 <span class="latest-update-val" id="latest-update-val">—</span>
@@ -361,7 +361,7 @@
         <div class="toolbar-right">
             <div class="last-saved-wrap" id="last-saved-wrap">
                 <span class="last-saved-label">Previous: </span>
-                <span class="last-saved-id" id="last-saved-id" title="클릭하면 해당 Article로 이동"></span>
+                <span class="last-saved-id" id="last-saved-id" title="Click to jump to this article"></span>
             </div>
             <button class="btn btn-nav" id="btn-prev" disabled>‹ Prev_Article</button>
             <button class="btn btn-nav" id="btn-next" disabled>Next_Article ›</button>
@@ -377,12 +377,12 @@
 
         <div class="empty-state" id="empty-state">
             <div class="empty-state-icon">◫</div>
-            <span>위 드롭다운에서 Article ID를 선택하세요.</span>
+            <span>Select an Article ID from the dropdown above.</span>
         </div>
 
         <div class="editor-body" id="editor-body" style="display:none;">
 
-            <!-- Print 헤더 -->
+            
             <div class="print-header">
                 <div class="print-header-left">
                     <span class="print-header-title">IMTI — Article Analyser</span>
@@ -391,12 +391,12 @@
                 <span class="print-header-id" id="print-id"></span>
             </div>
 
-            <!-- Article ID 표시 (APA 위, 오른쪽 정렬) -->
+            
             <div class="article-id-above" id="article-id-above" style="display:none;">
                 <span class="current-id-badge" id="current-id-badge"></span>
             </div>
 
-            <!-- APA (V열) -->
+            
             <div class="form-row">
                 <div class="form-label">APA <span class="col-tag">col V</span></div>
                 <div class="form-field">
@@ -406,7 +406,7 @@
 
             <hr class="section-sep">
 
-            <!-- 2컬럼: 왼쪽 Setting/Treatment/Outcome/Unit | 오른쪽 Domain/Orientation/Participant/Competency -->
+            
             <div class="form-row-2col">
 
                 <div class="col-half">
@@ -451,7 +451,7 @@
 
             <hr class="section-sep">
 
-            <!-- T_Procedure (R열) -->
+            
             <div class="form-row">
                 <div class="form-label">T_Procedure <span class="col-tag">col R</span></div>
                 <div class="form-field">
@@ -459,7 +459,7 @@
                 </div>
             </div>
 
-            <!-- Article_Sum. (S열) -->
+            
             <div class="form-row">
                 <div class="form-label">Article_Sum. <span class="col-tag">col S</span></div>
                 <div class="form-field">
@@ -467,7 +467,7 @@
                 </div>
             </div>
 
-            <!-- Main_Ref. (T열) — Article_Sum. 아래 -->
+            
             <div class="form-row">
                 <div class="form-label">Main_Ref. <span class="col-tag">col T</span></div>
                 <div class="form-field">
@@ -475,8 +475,7 @@
                 </div>
             </div>
 
-
-            <!-- ══ 인쇄 전용 레이아웃 (화면에서는 숨김) ══ -->
+            
             <div id="print-layout" style="display:none;">
 
                 <div class="p-badge-wrap">
@@ -564,10 +563,10 @@
 <div class="confirm-overlay" id="confirm-overlay">
     <div class="confirm-box">
         <div class="confirm-title">⚠ DELETE ARTICLE</div>
-        <div class="confirm-msg" id="confirm-msg">이 항목을 삭제하시겠습니까?<br>삭제 후에는 복구할 수 없습니다.</div>
+        <div class="confirm-msg" id="confirm-msg">Delete this article?<br>This action cannot be undone.</div>
         <div class="confirm-btns">
-            <button class="btn btn-outline" id="confirm-cancel-btn">취소</button>
-            <button class="btn btn-danger"  id="confirm-ok-btn">삭제</button>
+            <button class="btn btn-outline" id="confirm-cancel-btn">Cancel</button>
+            <button class="btn btn-danger"  id="confirm-ok-btn">Delete</button>
         </div>
     </div>
 </div>
@@ -582,7 +581,7 @@ window.__pageInit = function () {
         : 'https://script.google.com/macros/s/AKfycbwXGsZFdsVcn-uzuItYmd1ijp4vnOKYY1ynVndqysGJMuKU2Zdwwk9ACPNPfDFSzlMs/exec';
 
     const COL = {
-        ARTICLE_ID:  0,   // A  ← 드롭다운
+        ARTICLE_ID:  0,
         DOMAIN:      8,   // I
         ORIENTATION: 9,   // J
         COMPETENCY:  10,  // K
@@ -594,14 +593,14 @@ window.__pageInit = function () {
         T_PROCEDURE: 17,  // R
         SUMMARY:     18,  // S
         MAIN_REF:    19,  // T
-        LATEST_UPD:  20,  // U  ← Latest Update 표시 (읽기 전용)
+        LATEST_UPD:  20,
         APA:         21,  // V
     };
 
     let allRows    = [];
     let currentRow = null;
     let currentIdx = -1;
-    let lastSavedId = null;   // 가장 최근 저장 처리된 Article ID
+    let lastSavedId = null;
 
     const v = (row, idx) => (row[idx] || '').replace(/^"|"$/g, '').trim();
 
@@ -623,14 +622,14 @@ window.__pageInit = function () {
         updateNavButtons();
     }
 
-    /* Prev / Next 버튼 활성화 상태 갱신 */
+    /* Update Prev/Next button states */
     function updateNavButtons() {
         const hasList = allRows.length > 0;
         document.getElementById('btn-prev').disabled = !hasList || currentIdx <= 0;
         document.getElementById('btn-next').disabled = !hasList || currentIdx < 0 || currentIdx >= allRows.length - 1;
     }
 
-    /* textarea 내용에 맞게 높이 자동 조절 */
+    /* Auto-resize textarea to fit content */
     function autoResize(el) {
         el.style.height = '0px';
         const sh = el.scrollHeight;
@@ -640,12 +639,7 @@ window.__pageInit = function () {
         document.querySelectorAll('.f-textarea').forEach(el => autoResize(el));
     }
 
-    /* CSV 파싱
-     * [FIX 1] "" 이스케이프 처리 추가
-     *   구글 시트 CSV는 셀 내부의 큰따옴표를 ""로 이스케이프함.
-     *   기존 코드는 이를 처리하지 못해 inQ 플래그가 잘못 토글되고,
-     *   결과적으로 그 행의 뒤따르는 셀들이 앞으로 밀려 읽히는 버그가 있었음.
-     */
+    /* CSV parsing — handles "" escape sequences from Google Sheets */
     function parseCSV(text) {
         const rows = [];
         for (const line of text.split('\n')) {
@@ -656,9 +650,9 @@ window.__pageInit = function () {
                 const ch = line[i];
                 if (ch === '"') {
                     if (inQ && line[i + 1] === '"') {
-                        cur += '"'; i++;        // "" → 리터럴 " 한 개
+                        cur += '"'; i++;
                     } else {
-                        inQ = !inQ;             // 인용 구간 시작/종료
+                        inQ = !inQ;
                     }
                 } else if (ch === ',' && !inQ) {
                     cells.push(cur.trim()); cur = '';
@@ -672,22 +666,20 @@ window.__pageInit = function () {
         return rows;
     }
 
-    /* 데이터 로드 */
     function loadData() {
-        // 현재 선택된 Article ID 기억 (reload 후 복원용)
+        // Remember current Article ID for restoration after reload
         const preservedId = document.getElementById('article-id-select').value || null;
 
-        setSbMsg('불러오는 중...');
+        setSbMsg('Loading...');
         setButtons(false);
 
-        // article이 선택된 상태라면 editor를 유지하고 로딩 표시만,
-        // 아무것도 선택 안 된 상태라면 empty-state로 전환
+        // If an article is selected, keep editor visible while loading; otherwise show empty state
         if (!preservedId) {
             document.getElementById('editor-body').style.display = 'none';
             document.getElementById('empty-state').style.display = 'flex';
         }
 
-        // 로드 시작 시 allRows를 초기화해 이전 데이터가 잔류하지 않도록 함
+        // Clear allRows before load to avoid stale data
         allRows = [];
         buildDropdown(true);
 
@@ -699,18 +691,18 @@ window.__pageInit = function () {
                 buildDropdown(true);
                 document.getElementById('sb-total').textContent = allRows.length;
                 updateAnalyzedCount();
-                setSbMsg('✓ ' + allRows.length + '개 항목 로드 완료');
+                setSbMsg('✓ ' + allRows.length + ' articles loaded');
 
-                // reload 전에 article이 선택돼 있었으면 해당 항목 즉시 복원
+                // Restore previously selected article after reload
                 if (preservedId) {
                     const sel = document.getElementById('article-id-select');
                     const opt = sel.querySelector(`option[value="${preservedId.replace(/"/g,'&quot;')}"]`);
                     if (opt) {
                         sel.value = preservedId;
                         fillForm(parseInt(opt.dataset.idx));
-                        setSbMsg('✓ ' + allRows.length + '개 항목 로드 완료  —  ' + preservedId + ' 복원됨');
+                        setSbMsg('✓ ' + allRows.length + ' articles loaded — ' + preservedId + ' restored');
                     } else {
-                        // 해당 ID가 사라진 경우(삭제 등) → empty state로
+                        // Article was deleted — show empty state
                         document.getElementById('editor-body').style.display = 'none';
                         document.getElementById('empty-state').style.display = 'flex';
                     }
@@ -718,13 +710,10 @@ window.__pageInit = function () {
 
                 updateNavButtons();
             })
-            .catch(err => setSbMsg('⚠ 데이터 로드 실패: ' + err.message));
+            .catch(err => setSbMsg('⚠ Data load failed: ' + err.message));
     }
 
-    /* 드롭다운 빌드
-     * skipAutoFill=true 이면 prevVal 복원 시 fillForm() 호출을 건너뜀.
-     * (loadData() 에서는 fetch 완료 후 명시적으로 복원하므로 중복 방지)
-     */
+    /* Build dropdown. skipAutoFill=true skips fillForm() on prevVal restore (loadData handles it explicitly) */
     function buildDropdown(skipAutoFill) {
         const sel     = document.getElementById('article-id-select');
         const prevVal = sel.value;
@@ -734,8 +723,7 @@ window.__pageInit = function () {
             if (!id) return;
             const opt = document.createElement('option');
             opt.value = id; opt.dataset.idx = i; opt.textContent = id;
-            // U열(LATEST_UPD) 값이 "Just-Analyzed"인 경우만 분석 완료로 간주.
-            // 그 외(빈 값이거나 다른 값)인 경우 미분석 항목으로 이탤릭 표시.
+            // Only 'Just-Analyzed' in col U counts as analyzed; others show italic in dropdown.
             const latestUpd = v(row, COL.LATEST_UPD);
             const isAnalyzed = latestUpd === 'Just-Analyzed';
             if (!isAnalyzed) {
@@ -751,7 +739,7 @@ window.__pageInit = function () {
         }
     }
 
-    /* 폼 채우기 */
+    /* Fill form */
     function fillForm(idx) {
         currentIdx = idx;
         currentRow = allRows[idx];
@@ -770,7 +758,7 @@ window.__pageInit = function () {
         document.getElementById('f-summary').value     = v(row, COL.SUMMARY);
         document.getElementById('f-mainref').value     = v(row, COL.MAIN_REF);
 
-        // Latest Update: U열 값 표시 (읽기 전용)
+        // Latest Update: col U value (read-only)
         const latestUpd = v(row, COL.LATEST_UPD);
         document.getElementById('latest-update-val').textContent = latestUpd || '—';
 
@@ -782,7 +770,7 @@ window.__pageInit = function () {
         document.getElementById('editor-body').style.display = '';
         setButtons(true);
 
-        // APA 위 Article ID 표시
+        // Show Article ID above APA field
         const badge = document.getElementById('current-id-badge');
         const now = new Date();
         const todayDD = String(now.getDate()).padStart(2, '0');
@@ -790,7 +778,7 @@ window.__pageInit = function () {
         badge.textContent = aid;
         document.getElementById('article-id-above').style.display = 'flex';
 
-        // ── 인쇄 전용 레이아웃 채우기 ──
+        // Populate print-only layout
         const setText = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.textContent = val;
@@ -809,7 +797,7 @@ window.__pageInit = function () {
         setText('pl-summary',     v(row, COL.SUMMARY));
         setText('pl-mainref',     v(row, COL.MAIN_REF));
 
-        // textarea 자동 높이 조절 (두 번 rAF으로 레이아웃 확정 후 측정)
+        // Auto-resize textareas after layout settles
         requestAnimationFrame(() => requestAnimationFrame(autoResizeAll));
 
         document.getElementById('editor-wrap').scrollTop = 0;
@@ -827,7 +815,7 @@ window.__pageInit = function () {
         document.getElementById('article-id-above').style.display = 'none';
     }
 
-    /* 폼 값 수집 */
+    /* Collect form values */
     function collectFormData() {
         return {
             articleId:   document.getElementById('article-id-select').value.trim(),
@@ -846,11 +834,11 @@ window.__pageInit = function () {
         };
     }
 
-    /* SAVE */
+    
     function handleSave() {
         const data = collectFormData();
-        if (!data.articleId) { setSbMsg('⚠ Article ID가 선택되지 않았습니다.'); return; }
-        setBadge('saving', '저장 중...'); setSbMsg('');
+        if (!data.articleId) { setSbMsg('⚠ No Article ID selected.'); return; }
+        setBadge('saving', 'Saving...'); setSbMsg('');
         fetch(GAS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -859,10 +847,9 @@ window.__pageInit = function () {
         .then(r => r.json())
         .then(res => {
             if (res.status === 'ok') {
-                setBadge('ok', '✓ 저장 완료');
-                setSbMsg('✓ ' + data.articleId + ' 저장됨');
+                setBadge('ok', '✓ Saved');
+                setSbMsg('✓ ' + data.articleId + ' saved');
 
-                // 최근 저장 ID 기록 & 칩 표시
                 lastSavedId = data.articleId;
                 document.getElementById('last-saved-id').textContent = lastSavedId;
                 document.getElementById('last-saved-wrap').classList.add('visible');
@@ -887,16 +874,16 @@ window.__pageInit = function () {
                     }
                     updateAnalyzedCount();
                 }
-            } else { throw new Error(res.message || '알 수 없는 오류'); }
+            } else { throw new Error(res.message || 'Unknown error'); }
         })
-        .catch(err => { setBadge('err', '✗ 저장 실패'); setSbMsg('⚠ 오류: ' + err.message); });
+        .catch(err => { setBadge('err', '✗ Save failed'); setSbMsg('⚠ Error: ' + err.message); });
     }
 
-    /* DELETE */
+    
     function handleDeleteConfirmed() {
         const data = collectFormData();
         document.getElementById('confirm-overlay').classList.remove('open');
-        setBadge('deleting', '삭제 중...');
+        setBadge('deleting', 'Deleting...');
         fetch(GAS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -905,20 +892,17 @@ window.__pageInit = function () {
         .then(r => r.json())
         .then(res => {
             if (res.status === 'ok') {
-                setBadge('ok', '✓ 삭제 완료');
-                setSbMsg('✓ ' + data.articleId + ' 삭제됨');
-                // [FIX 3] 기존 코드는 allRows.splice()로 클라이언트 배열만 수정했으나,
-                // GAS가 시트에서 행을 삭제하면 행 번호가 당겨지므로
-                // 서버 상태와 클라이언트 상태가 불일치할 수 있음.
-                // 삭제 성공 후 clearForm() → loadData()로 전체 재동기화.
+                setBadge('ok', '✓ Deleted');
+                setSbMsg('✓ ' + data.articleId + ' deleted');
+                // After delete, re-sync fully from server (row numbers shift on the sheet)
                 clearForm();
                 loadData();
-            } else { throw new Error(res.message || '알 수 없는 오류'); }
+            } else { throw new Error(res.message || 'Unknown error'); }
         })
-        .catch(err => { setBadge('err', '✗ 삭제 실패'); setSbMsg('⚠ 오류: ' + err.message); });
+        .catch(err => { setBadge('err', '✗ Delete failed'); setSbMsg('⚠ Error: ' + err.message); });
     }
 
-    /* 이벤트 */
+    /* Event listeners */
     document.getElementById('article-id-select').addEventListener('change', function () {
         const opt = this.selectedOptions[0];
         if (!opt || opt.value === '') { clearForm(); return; }
@@ -948,7 +932,7 @@ window.__pageInit = function () {
         if (!currentRow) return;
         const id = document.getElementById('article-id-select').value;
         document.getElementById('confirm-msg').innerHTML =
-            '<strong>' + id + '</strong> 항목을 삭제하시겠습니까?<br>삭제 후에는 복구할 수 없습니다.';
+            'Delete article <strong>' + id + '</strong>?<br>This action cannot be undone.';
         document.getElementById('confirm-overlay').classList.add('open');
     });
     document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
@@ -959,7 +943,7 @@ window.__pageInit = function () {
         if (e.target === this) this.classList.remove('open');
     });
 
-    // Last-Saved ID 칩 클릭 → 해당 Article로 이동
+    // Last-saved chip click → jump to that article
     document.getElementById('last-saved-id').addEventListener('click', function () {
         if (!lastSavedId) return;
         const sel = document.getElementById('article-id-select');
@@ -970,7 +954,7 @@ window.__pageInit = function () {
         }
     });
 
-    // textarea 입력 시 실시간 높이 조절
+    // Auto-resize textarea on input
     document.querySelectorAll('.f-textarea').forEach(el => {
         el.addEventListener('input', () => autoResize(el));
     });

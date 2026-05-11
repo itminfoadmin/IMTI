@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMTI - MTI Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link href="https://googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="ad_common.css">
     <style>
-        /* ── 전체 레이아웃 ── */
-        /* padding만 override — 나머지는 ad_common.css의 .page-body 그대로 사용 */
+        
+        /* padding override only — rest from ad_common.css .page-body */
         .page-body { padding: 20px 36px; gap: 0; }
         .align-bar, .list-area { width: 72%; margin-left: auto; margin-right: auto; }
 
-        /* ── 공통 카드 ── */
+        
         .card {
             background: #fff;
             border: 1px solid #dee2e6;
@@ -55,7 +55,7 @@
             flex-wrap: wrap;
         }
 
-        /* Name 행 */
+        /* Name row */
         .name-row .field-content {
             display: grid;
             grid-template-columns: 1fr auto;
@@ -82,7 +82,7 @@
         }
         input::placeholder { color: #adb5bd; font-size: 0.82rem; }
 
-        /* Orientation - 드롭다운 */
+        /* Orientation dropdown */
         .orientation-wrap {
             display: flex;
             align-items: center;
@@ -103,7 +103,7 @@
         }
         select.orientation-select:focus { border-color: #868e96; border-style: solid; }
 
-        /* Competency */
+        
         .competency-wrap {
             display: flex;
             align-items: center;
@@ -135,7 +135,7 @@
             accent-color: #495057;
         }
 
-        /* Participants */
+        
         .participants-wrap {
             display: flex;
             align-items: center;
@@ -144,7 +144,7 @@
             row-gap: 8px;
         }
 
-        /* 버튼 그룹 (Name 행 우측) */
+        /* Button group (right of Name row) */
         .btn-group {
             display: flex;
             gap: 4px;
@@ -171,7 +171,7 @@
         .btn-modify { border-color: #868e96; color: #868e96; }
         .btn-modify:hover { background: #868e96; color: #fff; border-color: #868e96; }
 
-        /* ── Align / Align-Apply 버튼 행 ── */
+        /* Align button bar */
         .align-bar {
             display: flex;
             justify-content: flex-end;
@@ -195,7 +195,7 @@
         .btn-add-new { border-color: #343a40; background: #343a40; color: #fff; font-weight: 900; letter-spacing: 0.06em; }
         .btn-add-new:hover { background: #212529; color: #fff; border-color: #212529; }
 
-        /* ── 목록 영역 (하단 스크롤) ── */
+        /* List area (scrollable) */
         .list-area {
             flex: 1;
             overflow-y: auto;
@@ -211,7 +211,7 @@
         .list-area::-webkit-scrollbar { display: none; }
         .list-area { scrollbar-width: none; -ms-overflow-style: none; }
 
-        /* ── Add-New-MTI 모달 ── */
+        /* Add-New-MTI modal */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -232,12 +232,12 @@
             min-width: 480px;
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-            position: absolute;   /* 드래그를 위해 absolute */
+            position: absolute;   /* absolute for dragging */
             cursor: default;
             user-select: none;
         }
         .modal-header {
-            cursor: grab;         /* 헤더 드래그 커서 */
+            cursor: grab;         
         }
         .modal-header:active {
             cursor: grabbing;
@@ -308,17 +308,17 @@
             flex-shrink: 0;
             padding: 13px 18px !important;
         }
-        /* 모달 Name/Address 입력 높이 강조 */
+        
         #add-modal input[type="text"],
         #add-modal input[type="url"] {
             padding: 14px 12px;
             font-size: 0.86rem;
         }
-        /* Add 모달 Competency/Participants 항목 간격 확대 */
+        
         #add-modal .check-item {
             min-width: 240px;
         }
-        /* 모달 내 버튼 높이 — Add(+) 기준 13px에 맞춤 */
+        
         #add-modal .btn,
         #add-modal .btn-apply {
             padding: 13px 18px;
@@ -332,7 +332,7 @@
             border-top: 1px solid #dee2e6;
         }
 
-        /* 목록 카드 */
+        
         .item-card {
             background: #f0f4e8;
             border: 1px solid #ced4da;
@@ -386,7 +386,7 @@
             gap: 6px;
             flex-wrap: wrap;
         }
-        /* Name행 값만 MTI ID와 동일하게 */
+        
         .item-name-value {
             font-family: 'Gowun Batang', serif;
             font-size: 0.88rem;
@@ -408,7 +408,7 @@
             flex-shrink: 0;
         }
 
-        /* 체크박스 표시용 (읽기 전용) */
+        
         .check-readonly {
             display: inline-flex;
             align-items: center;
@@ -420,7 +420,7 @@
             white-space: nowrap;
         }
 
-        /* 상세 행 접힘/펼침 */
+        
         .item-detail { display: none; }
         .item-detail.open { display: block; }
         .btn-open  { border-color: #868e96; color: #868e96; }
@@ -428,11 +428,11 @@
         .btn-close { border-color: #868e96; color: #868e96; }
         .btn-close:hover { background: #868e96; color: #fff; border-color: #868e96; }
 
-        /* ── 인라인 편집 모드 ── */
-        /* 편집 중 카드 테두리 강조 */
+        
+        
         .item-card.editing { border-color: #495057; border-width: 2px; }
 
-        /* 편집 모드 헤더 (Name행 우측에 Apply/Cancel 표시) */
+        
         .item-edit-bar {
             display: none;
             align-items: center;
@@ -442,13 +442,13 @@
         .item-card.editing .item-edit-bar { display: flex; }
         .item-card.editing .item-modify-bar { display: none; }
 
-        /* 읽기 값 ↔ 편집 인풋 전환 */
+        
         .view-val { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; width: 100%; }
         .edit-val { display: none; width: 100%; }
         .item-card.editing .view-val { display: none; }
         .item-card.editing .edit-val { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
-        /* 편집 모드 input 스타일 — 카드 배경(연두)에 어울리게 */
+        
         .edit-val input[type="text"],
         .edit-val input[type="url"],
         .edit-val select {
@@ -469,7 +469,7 @@
         .edit-val input[type="url"]  { flex: 1; min-width: 0; }
         .edit-val select { min-width: 150px; cursor: pointer; }
 
-        /* 편집 모드 체크박스 */
+        
         .edit-val .check-item {
             display: inline-flex;
             align-items: center;
@@ -484,8 +484,7 @@
         }
         .edit-val .check-item input[type="checkbox"] { width: auto; cursor: pointer; accent-color: #495057; }
 
-
-        /* ── Google Docs 뷰어 모달 ── */
+        /* Google Docs Viewer Modal */
         .docs-overlay {
             display: none;
             position: fixed;
@@ -548,7 +547,7 @@
             transform-origin: top left;
         }
 
-        /* 빈 목록 안내 */
+        
         .empty-msg {
             text-align: center;
             font-family: 'Gowun Batang', serif;
@@ -561,21 +560,16 @@
 </head>
 <body>
 
-<!-- ※ 네비바 + 로그아웃 팝업은 ad_common.js 가 자동 삽입합니다 -->
-
-<!-- ── Main ── -->
 <div class="page-body">
 
-
-
-    <!-- ② Align 버튼 -->
+    
     <div class="align-bar">
         <button class="btn-align" id="btn-align-name" onclick="alignByName()">Align by MTI-NAME(ASC)</button>
         <button class="btn-align" id="btn-align-id"   onclick="alignById()">Align by MTI-ID(ASC)</button>
         <button class="btn-align btn-add-new" onclick="openAddModal()">Add-New-MTI</button>
     </div>
 
-    <!-- ── Add-New-MTI 모달 ── -->
+    
     <div class="modal-overlay" id="add-modal" onclick="onModalOverlayClick(event)">
         <div class="modal-box">
             <div class="modal-header">
@@ -597,7 +591,7 @@
                                placeholder="Please enter the name of the MTI(Models of Teaching for Informatics).">
                     </div>
                 </div>
-                <!-- Domain + Orientation 한 행 -->
+                
                 <div class="modal-field-row" style="grid-template-columns:130px 1fr 20px 130px 1fr;">
                     <div class="modal-field-label">Domain</div>
                     <div class="modal-field-content" style="display:flex;gap:8px;align-items:center;flex-wrap:nowrap;">
@@ -606,7 +600,7 @@
                         </select>
                         <button class="btn btn-add-orient" onclick="openAddDomainModal()" style="flex-shrink:0;">Add(+)</button>
                     </div>
-                    <!-- 세로 구분선 (흰색 처리) -->
+                    
                     <div style="width:1px;background:#fff;height:100%;align-self:stretch;"></div>
                     <div class="modal-field-label" style="background:#f8f9fa;border-left:none;border-right:1px solid #dee2e6;">Orientation</div>
                     <div class="modal-field-content" style="display:flex;gap:8px;align-items:center;flex-wrap:nowrap;">
@@ -623,7 +617,12 @@
                         <label class="check-item"><input type="checkbox" id="modal-comp-ct" value="Computational_Thinking"> Computational_Thinking</label>
                         <label class="check-item"><input type="checkbox" id="modal-comp-dcl" value="Digital_Cultural_Literacy"> Digital_Cultural_Literacy</label>
                         <label class="check-item"><input type="checkbox" id="modal-comp-ai" value="AI_Literacy"> AI_Literacy</label>
-                        <label class="check-item"><input type="checkbox" id="modal-comp-etc" value="etc."> etc.</label>
+                        <div style="width:100%;height:0;flex-basis:100%;"></div>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-psa" value="Problem_Solving_Ability"> Problem_Solving_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-cta" value="Creative_Thinking_Ability"> Creative_Thinking_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-aa" value="Academic_Achivement"> Academic_Achivement</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-is" value="Instruction_Satisfy"> Instruction_Satisfy</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-etc" value="Etc."> Etc.</label>
                     </div>
                 </div>
                 <!-- Participants -->
@@ -632,10 +631,11 @@
                     <div class="modal-field-content">
                         <label class="check-item"><input type="checkbox" value="Pre_Schooler"> Pre_Schooler</label>
                         <label class="check-item"><input type="checkbox" value="Elementary_Schooler(L)"> Elementary_Schooler(L)</label>
+                        <label class="check-item"><input type="checkbox" value="Elementary_Schooler(M)"> Elementary_Schooler(M)</label>
                         <label class="check-item"><input type="checkbox" value="Elementary_Schooler(H)"> Elementary_Schooler(H)</label>
+                        <div style="width:100%;height:0;flex-basis:100%;"></div>
                         <label class="check-item"><input type="checkbox" value="Middle_Schooler"> Middle_Schooler</label>
                         <label class="check-item"><input type="checkbox" value="High_Schooler"> High_Schooler</label>
-                        <div style="width:100%;height:0;flex-basis:100%;"></div>
                         <label class="check-item"><input type="checkbox" value="Special_Learner"> Special_Learner</label>
                         <label class="check-item"><input type="checkbox" value="Gifted_Learner"> Gifted_Learner</label>
                         <label class="check-item"><input type="checkbox" value="Post_Schooler"> Post_Schooler</label>
@@ -657,7 +657,7 @@
         </div>
     </div>
 
-    <!-- ③ 목록 영역 (스크롤) -->
+    
     <div class="list-area" id="mti-list">
         <div class="empty-msg" id="list-empty">Loading MTI data...</div>
 
@@ -665,33 +665,29 @@
 
 </div><!-- /page-body -->
 
-<!-- ── 공통 스크립트 (네비바·로그아웃·타이머 자동 처리) ── -->
-<script src="ad_common.js"></script>
-
 <script>
-/* ── CSV URLs ── */
+/* CSV URLs */
 const URL_MTI_LIST    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=389975124&single=true&output=csv';
 const URL_COMPETENCY  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=0&single=true&output=csv';
 const URL_PARTICIPANTS= 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=1818365513&single=true&output=csv';
 const URL_TYPOLOGY    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=274508158&single=true&output=csv';
-/* GAS_URL 은 ad_common.js 에 선언됨 */
-/* appendOrientation용 별도 GAS 엔드포인트 */
+/* GAS_URL is declared in ad_common.js */
+/* Separate GAS endpoint for appending orientations/domains */
 const GAS_URL_MTI = 'https://script.google.com/macros/s/AKfycbzY3a3F93NUK0_CNLqQ4zxwzjY9WYdQulptb2EqCypmb4SooNWNU51Z-9oaxFxTN2rT/exec';
 
+/* Competency / Participants display order */
+const COMP_LIST = ['Computational_Thinking', 'Digital_Cultural_Literacy', 'AI_Literacy', 'Problem_Solving_Ability', 'Creative_Thinking_Ability',
+                   'Academic_Achivement', 'Instruction_Satisfy', 'Etc.'];
+const PART_LIST = ['Pre_Schooler', 'Elementary_Schooler(L)', 'Elementary_Schooler(M)', 'Elementary_Schooler(H)', 'Middle_Schooler',
+                   'High_Schooler', 'Special_Learner', 'Gifted_Learner', 'Post_Schooler'];
 
+/* Korean → English label maps (populated after mti-typology load) */
+let COMP_KO2EN = {};  
+let PART_KO2EN = {};  
+let gDomainList = []; 
+let gDomainSet  = new Set(); /* for dedup */
 
-/* Competency / Participants 영문 표시 순서 */
-const COMP_LIST = ['Computational_Thinking', 'Digital_Cultural_Literacy', 'AI_Literacy', 'etc.'];
-const PART_LIST = ['Pre_Schooler', 'Elementary_Schooler(L)', 'Elementary_Schooler(H)', 'Middle_Schooler', 'High_Schooler',
-                   'Special_Learner', 'Gifted_Learner', 'Post_Schooler'];
-
-/* 한글 → 영문 변환 맵 (mti-typology 로드 후 채워짐) */
-let COMP_KO2EN = {};  /* { '컴퓨팅 사고력': 'Computational_Thinking', ... } */
-let PART_KO2EN = {};  /* { '초등학생 대상': 'Elementary_Schooler', ... } */
-let gDomainList = []; /* Domain 목록 (순서 유지) */
-let gDomainSet  = new Set(); /* 중복 체크용 */
-
-/* ── CSV 파싱 ── */
+/* CSV parsing */
 function parseCSV(text) {
     const rows = [];
     for (const line of text.split('\n')) {
@@ -709,7 +705,7 @@ function parseCSV(text) {
     return rows;
 }
 
-/* ── 데이터 로드 및 렌더링 ── */
+/* Data load and render */
 let gMtiList = [], gCompMap = {}, gPartMap = {};
 
 async function loadAll() {
@@ -722,8 +718,7 @@ async function loadAll() {
             fetch(URL_TYPOLOGY).then(r => r.text()),
         ]);
 
-        /* mti-typology: A=domains, B=participants(한글), C=orientations, D=competencies(한글),
-                         E=participants-eng,  F=competencies-eng      */
+        
         COMP_KO2EN = {};
         PART_KO2EN = {};
         gDomainList = [];
@@ -741,7 +736,7 @@ async function loadAll() {
             if (compKo && compEng) COMP_KO2EN[compKo] = compEng;
             if (orientKo) orientationSet.add(orientKo);
         });
-        /* 모달 Domain select 채우기 */
+        /* Populate modal Domain select */
         const modalDomainSel = document.getElementById('modal-domain');
         if (modalDomainSel) {
             modalDomainSel.innerHTML = '<option value="">Select Domain</option>';
@@ -751,7 +746,7 @@ async function loadAll() {
                 modalDomainSel.appendChild(opt);
             });
         }
-        /* 모달 Orientation select 채우기 */
+        /* Populate modal Orientation select */
         const modalOrientSel = document.getElementById('modal-orientation');
         modalOrientSel.innerHTML = '<option value="">Select Orientation</option>';
         [...orientationSet].sort((a, b) => a.localeCompare(b, 'ko')).forEach(o => {
@@ -761,39 +756,39 @@ async function loadAll() {
             modalOrientSel.appendChild(opt);
         });
 
-        /* mti-list: A=leg_timestamp, B=mit_num, C=mti_id, D=domain, E=orientation, F=mti_leg_name(input), G=mti_docs_url, H=mti_leg_name(app_function), I=mti_docs_url(app_function) */
+        /* mti-list cols: A=timestamp, B=mti_num, C=mti_id, D=domain, E=orientation, F=name(input), G=docs_url(input), H=name(app), I=docs_url(app) */
         gMtiList = parseCSV(r1).slice(1).filter(r => r[2]);
 
-        /* competency map: { mti_id: [영문val, ...] } */
+        /* competency map: { mti_id: [en_val, ...] } */
         gCompMap = {};
         parseCSV(r2).slice(1).forEach(r => {
             const id  = (r[0]||'').trim();
             const raw = (r[1]||'').trim();
             if (!id) return;
-            const val = COMP_KO2EN[raw] || raw; /* 한글이면 영문으로 변환 */
+            const val = COMP_KO2EN[raw] || raw; /* convert Korean label to English if mapped */
             if (!gCompMap[id]) gCompMap[id] = [];
             gCompMap[id].push(val);
         });
 
-        /* participants map: { mti_id: [영문val, ...] } */
+        /* participants map: { mti_id: [en_val, ...] } */
         gPartMap = {};
         parseCSV(r3).slice(1).forEach(r => {
             const id  = (r[0]||'').trim();
             const raw = (r[1]||'').trim();
             if (!id) return;
-            const val = PART_KO2EN[raw] || raw; /* 한글이면 영문으로 변환 */
+            const val = PART_KO2EN[raw] || raw; /* convert Korean label to English if mapped */
             if (!gPartMap[id]) gPartMap[id] = [];
             gPartMap[id].push(val);
         });
 
-        /* 초기 로드: mti_num 기준 내림차순 정렬 */
+        /* Initial sort: mti_num descending */
         gMtiList.sort((a, b) => {
             const na = parseInt((a[1]||'').replace(/\D/g,''), 10) || 0;
             const nb = parseInt((b[1]||'').replace(/\D/g,''), 10) || 0;
             return nb - na;
         });
 
-        /* ── 삭제된 MTI: 캐시 여부 무관하게 gMtiList에서 즉시 제거 ── */
+        
         const deletedId = sessionStorage.getItem('imti_deleted_id');
         if (deletedId) {
             sessionStorage.removeItem('imti_deleted_id');
@@ -802,7 +797,7 @@ async function loadAll() {
             delete gPartMap[deletedId];
         }
 
-        /* ── 수정된 MTI: 캐시 여부 무관하게 직접 패치 ── */
+        /* Patch modified MTI data directly regardless of cache */
         const reopenId   = sessionStorage.getItem('imti_reopen_id');
         const modDataRaw = sessionStorage.getItem('imti_modified_data');
         if (reopenId && modDataRaw) {
@@ -823,40 +818,41 @@ async function loadAll() {
             }
         }
 
-        /* ── 새로 추가된 MTI: CSV 캐시 확인 → 없으면 2초 후 재로드 (1회) ── */
+        /* New MTI: if not in CSV cache yet, reload once after 2s */
         const newId = sessionStorage.getItem('imti_new_id');
         if (newId) {
             const found = gMtiList.some(r => (r[2]||'').trim() === newId);
             if (!found && !sessionStorage.getItem('imti_new_retry')) {
                 sessionStorage.setItem('imti_new_retry', '1');
-                document.getElementById('list-empty').textContent = '새 MTI를 불러오는 중...';
+                document.getElementById('list-empty').textContent = 'Loading new MTI...';
                 setTimeout(() => location.reload(), 2000);
                 return;
             }
             sessionStorage.removeItem('imti_new_retry');
         }
 
-        /* ── 렌더링 ── */
+        /* Render */
         renderList(gMtiList);
 
-        /* ── 렌더링 후 카드 포커스 처리 ── */
+        /* Focus newly added/modified card after render */
         const container = document.getElementById('mti-list');
 
-        /* 수정된 카드: 맨 위로 + Open */
+        
         if (reopenId) {
             _focusCard(container, reopenId);
         }
-        /* 신규 추가된 카드: 맨 위로 + Open */
+        
         if (newId) {
             sessionStorage.removeItem('imti_new_id');
             _focusCard(container, newId);
         }
     } catch(e) {
-        document.getElementById('list-empty').textContent = '데이터를 불러오는 데 실패했습니다.';
+        document.getElementById('list-empty').textContent = 'Failed to load data. — ' + e.message;
+        console.error('[loadAll error]', e);
     }
 }
 
-/* ── 카드 맨 위로 이동 + Open 헬퍼 ── */
+/* Helper: scroll card to top and open it */
 function _focusCard(container, id) {
     const card = container.querySelector(`.item-card[data-id="${id}"]`);
     if (!card) return;
@@ -871,13 +867,13 @@ function _focusCard(container, id) {
     setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
 }
 
-/* ── 카드 렌더링 ── */
+/* Card rendering */
 function renderList(list) {
     const container = document.getElementById('mti-list');
     container.innerHTML = '';
 
     if (!list.length) {
-        container.innerHTML = '<div class="empty-msg">등록된 수업 모형이 없습니다.</div>';
+        container.innerHTML = '<div class="empty-msg">No teaching models registered.</div>';
         return;
     }
 
@@ -886,30 +882,32 @@ function renderList(list) {
         const id          = (row[2]||'').trim();
         const domain      = (row[3]||'').trim();
         const orientation = (row[4]||'').trim();
-        const name        = (row[5]||'').trim(); /* F열 = mti_leg_name(input) */
-        const address     = (row[6]||'').trim(); /* G열 = mti_docs_url(input) */
+        const name        = (row[5]||'').trim(); 
+        const address     = (row[6]||'').trim(); 
         const comps       = gCompMap[id] || [];
         const parts       = gPartMap[id] || [];
 
-        const eid = id.replace(/[^a-zA-Z0-9]/g, '_'); /* ID를 DOM-safe하게 변환 */
+        const eid = id.replace(/[^a-zA-Z0-9]/g, '_'); /* make ID DOM-safe */
 
-        /* Competency 읽기용 */
+        /* Competency read-only view */
         const compHTML = COMP_LIST.map(c =>
+            (c === 'Problem_Solving_Ability' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
             `<span class="check-readonly"><input type="checkbox" ${comps.includes(c)?'checked ':''} disabled> ${c}</span>`
         ).join('');
-        /* Competency 편집용 */
+        /* Competency edit view */
         const compEditHTML = COMP_LIST.map(c =>
+            (c === 'Problem_Solving_Ability' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
             `<label class="check-item"><input type="checkbox" id="ie-comp-${eid}-${c.replace(/[^a-zA-Z0-9]/g,'_')}" value="${c}"${comps.includes(c)?' checked':''}> ${c}</label>`
         ).join('');
 
-        /* Participants 읽기용 */
+        /* Participants read-only view */
         const partHTML = PART_LIST.map(p =>
-            (p === 'Special_Learner' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
+            (p === 'Middle_Schooler' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
             `<span class="check-readonly"><input type="checkbox" ${parts.includes(p)?'checked ':''} disabled> ${p}</span>`
         ).join('');
-        /* Participants 편집용 */
+        /* Participants edit view */
         const partEditHTML = PART_LIST.map(p =>
-            (p === 'Special_Learner' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
+            (p === 'Middle_Schooler' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
             `<label class="check-item"><input type="checkbox" id="ie-part-${eid}-${p.replace(/[^a-zA-Z0-9]/g,'_')}" value="${p}"${parts.includes(p)?' checked':''}> ${p}</label>`
         ).join('');
 
@@ -922,7 +920,7 @@ function renderList(list) {
                 <div class="item-value" style="padding:0;">
                     <div class="view-val item-name-value" style="padding:7px 12px;">${name}</div>
                     <div class="edit-val" style="padding:4px 8px;">
-                        <input type="text" id="ie-name-${eid}" value="${name.replace(/"/g,'&quot;')}" placeholder="MTI 이름을 입력하세요." style="width:100%;">
+                        <input type="text" id="ie-name-${eid}" value="${name.replace(/"/g,'&quot;')}" placeholder="Enter the MTI name." style="width:100%;">
                     </div>
                 </div>
                 <div style="display:flex;align-items:center;">
@@ -978,7 +976,7 @@ function renderList(list) {
                     <div class="item-value" style="padding:0;">
                         <div class="view-val" style="padding:7px 12px;"><a href="${address}" target="_blank" style="font-size:0.82rem;color:#1971c2;word-break:break-all;">${address}</a></div>
                         <div class="edit-val" style="padding:4px 8px;">
-                            <input type="url" id="ie-addr-${eid}" value="${address.replace(/"/g,'&quot;')}" placeholder="Google Docs URL을 입력하세요.">
+                            <input type="url" id="ie-addr-${eid}" value="${address.replace(/"/g,'&quot;')}" placeholder="Enter the Google Docs URL.">
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;flex-shrink:0;">
@@ -996,7 +994,7 @@ function renderList(list) {
     });
 }
 
-/* ── Open/Close 토글 ── */
+/* Open/Close toggle */
 function toggleCard(id) {
     const eid    = id.replace(/[^a-zA-Z0-9]/g, '_');
     const detail = document.getElementById('detail-' + eid);
@@ -1013,10 +1011,10 @@ function toggleCard(id) {
     }
 }
 
-/* ── 버튼 함수 ── */
+/* Button handlers */
 function openDocsPreview(url, title) {
     if (!url) return;
-    /* Google Docs URL → /preview?rm=minimal 으로 완전 정규화 */
+    
     let embedUrl = url;
     if (url.includes('docs.google.com')) {
         const base = url.split('?')[0].split('#')[0]
@@ -1036,19 +1034,19 @@ function closeDocsModal(e) {
 }
 function previewMTI(id, url) {
     if (url) openDocsPreview(url, id);
-    else showNotice('적절한 MTI Google Docs 주소가 입력되지 않았습니다.');
+    else showNotice('Please enter a valid MTI Google Docs URL.');
 }
 function modifyMTI(id) {
     const eid = id.replace(/[^a-zA-Z0-9]/g, '_');
     const row = gMtiList.find(r => (r[2]||'').trim() === id);
-    if (!row) { showNotice('해당 MTI 데이터를 찾을 수 없습니다.'); return; }
+    if (!row) { showNotice('Could not find MTI data.'); return; }
 
     const domain      = (row[3]||'').trim();
     const orientation = (row[4]||'').trim();
     const comps       = gCompMap[id] || [];
     const parts       = gPartMap[id] || [];
 
-    /* 카드 Open */
+    /* Open card */
     const detail    = document.getElementById('detail-' + eid);
     const toggleBtn = document.getElementById('toggle-' + eid);
     if (detail && !detail.classList.contains('open')) {
@@ -1056,7 +1054,7 @@ function modifyMTI(id) {
         if (toggleBtn) { toggleBtn.textContent = 'Close'; toggleBtn.className = 'btn btn-close'; }
     }
 
-    /* Domain select 채우기 */
+    /* Populate Domain select */
     const domSel = document.getElementById('ie-domain-' + eid);
     if (domSel) {
         domSel.innerHTML = '<option value="">Select Domain</option>';
@@ -1068,7 +1066,7 @@ function modifyMTI(id) {
         });
     }
 
-    /* Orientation select 채우기 */
+    /* Populate Orientation select */
     const oriSel = document.getElementById('ie-orient-' + eid);
     if (oriSel) {
         oriSel.innerHTML = '<option value="">Select Orientation</option>';
@@ -1086,19 +1084,19 @@ function modifyMTI(id) {
         }
     }
 
-    /* Competency 체크박스 값 세팅 */
+    /* Set Competency checkbox values */
     COMP_LIST.forEach(c => {
         const cb = document.getElementById('ie-comp-' + eid + '-' + c.replace(/[^a-zA-Z0-9]/g,'_'));
         if (cb) cb.checked = comps.includes(c);
     });
 
-    /* Participants 체크박스 값 세팅 */
+    /* Set Participants checkbox values */
     PART_LIST.forEach(p => {
         const cb = document.getElementById('ie-part-' + eid + '-' + p.replace(/[^a-zA-Z0-9]/g,'_'));
         if (cb) cb.checked = parts.includes(p);
     });
 
-    /* 카드에 editing 클래스 적용 → CSS가 view-val 숨기고 edit-val 표시 */
+    /* Apply 'editing' class — CSS hides view-val, shows edit-val */
     const card = detail ? detail.closest('.item-card') : null;
     if (card) {
         card.classList.add('editing');
@@ -1118,7 +1116,7 @@ function previewInlineAddress(id) {
     const url = (document.getElementById('ie-addr-' + eid)||{}).value || '';
     const isGoogleDocs = url && /https?:\/\/(docs|drive)\.google\.com\//.test(url);
     if (isGoogleDocs) openDocsPreview(url, 'Preview');
-    else showNotice('적절한 MTI Google Docs 주소가 입력되지 않았습니다.');
+    else showNotice('Please enter a valid MTI Google Docs URL.');
 }
 
 function submitInlineEdit(id) {
@@ -1133,7 +1131,7 @@ function submitInlineEdit(id) {
     const oriEl  = document.getElementById('ie-orient-' + eid);
     const addrEl = document.getElementById('ie-addr-'   + eid);
 
-    if (!nameEl) { _notice('[오류] 편집 필드를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); return; }
+    if (!nameEl) { _notice('[Error] Edit field not found. Please refresh the page.'); return; }
 
     const name    = nameEl.value.trim();
     const domain  = domEl  ? domEl.value         : '';
@@ -1150,22 +1148,22 @@ function submitInlineEdit(id) {
         return cb && cb.checked;
     });
 
-    /* ── 필수 항목 검증 ── */
+    /* Required field validation */
     const missing = [];
     if (!name)         missing.push('Name');
     if (!domain)       missing.push('Domain');
     if (!orient)       missing.push('Orientation');
     if (!comps.length) missing.push('Competency');
     if (!parts.length) missing.push('Participants');
-    if (!isGoogleDocs) missing.push('Address (Google Docs URL 필요)');
+    if (!isGoogleDocs) missing.push('Address (Google Docs URL required)');
     if (missing.length > 0) {
-        _notice(missing.join(', ') + '이(가) 입력되지 않거나 적절하지 않습니다.');
+        _notice(missing.join(', ') + ' field(s) are missing or invalid.');
         return;
     }
 
-    /* ── 원본 데이터 (F=5, G=6열) ── */
+    /* Original data (col F=5, G=6) */
     const row = gMtiList.find(r => (r[2]||'').trim() === id);
-    if (!row) { _notice('해당 MTI 데이터를 찾을 수 없습니다.'); return; }
+    if (!row) { _notice('Could not find MTI data.'); return; }
     const mtiNum = (row[1]||'').trim();
 
     const origName    = (row[5]||'').trim();
@@ -1177,18 +1175,18 @@ function submitInlineEdit(id) {
     const newComps    = comps.slice().sort().join(',');
     const newParts    = parts.slice().sort().join(',');
 
-    /* ── 변경사항 없으면 early return ── */
+    
     if (name === origName && domain === origDomain && orient === origOrient &&
         address === origAddress && newComps === origComps && newParts === origParts) {
-        _notice('수정된 내용이 없습니다.');
+        _notice('No changes detected.');
         return;
     }
 
-    /* ── GAS JSONP 저장 ── */
+    /* Save via GAS JSONP */
     const card = document.querySelector(`.item-card[data-id="${id}"]`);
     const applyBtn = card ? card.querySelector('.item-edit-bar .btn-apply') : null;
     const origBtnText = applyBtn ? applyBtn.textContent : 'Apply';
-    if (applyBtn) { applyBtn.textContent = '저장 중...'; applyBtn.disabled = true; }
+    if (applyBtn) { applyBtn.textContent = 'Saving...'; applyBtn.disabled = true; }
 
     const cbName = '_gasModifyCb_' + Date.now();
     const script = document.createElement('script');
@@ -1198,7 +1196,7 @@ function submitInlineEdit(id) {
             script.remove();
             delete window[cbName];
             if (applyBtn) { applyBtn.textContent = origBtnText; applyBtn.disabled = false; }
-            _notice('저장 요청이 시간 초과되었습니다. 네트워크를 확인해주세요.');
+            _notice('Request timed out. Please check your network.');
         }
     }, 15000);
 
@@ -1219,15 +1217,15 @@ function submitInlineEdit(id) {
         );
         if (ok) {
             closeInlineEdit(id);
-            /* 수정 내용을 sessionStorage에 저장 — CSV 캐시 우회용 */
+            
             sessionStorage.setItem('imti_reopen_id', id);
             sessionStorage.setItem('imti_modified_data', JSON.stringify({
                 id, name, domain, orient, address, comps, parts
             }));
             location.reload();
         } else {
-            _notice('저장에 실패했습니다.\n' +
-                (data ? (data.error || data.message || JSON.stringify(data)) : '서버 응답 없음'));
+            _notice('Save failed.\n' +
+                (data ? (data.error || data.message || JSON.stringify(data)) : 'No server response'));
         }
     };
 
@@ -1272,26 +1270,26 @@ function openModifyModal(id, mtiNum, name, domain, orientation, comps, parts, ad
         if (o === orientation) opt.selected = true;
         oriSel.appendChild(opt);
     });
-    /* 기존 orientation이 목록에 없으면 추가 */
+    /* Add current orientation if not in list */
     if (orientation && !currentOrients.includes(orientation)) {
         const opt = document.createElement('option');
         opt.value = orientation; opt.textContent = orientation; opt.selected = true;
         oriSel.appendChild(opt);
     }
 
-    /* Competency 체크박스 */
+    
     COMP_LIST.forEach(c => {
         const cb = document.getElementById('modify-comp-' + c.replace(/[^a-zA-Z0-9]/g,'_'));
         if (cb) cb.checked = comps.includes(c);
     });
 
-    /* Participants 체크박스 */
+    
     PART_LIST.forEach(p => {
         const cb = document.getElementById('modify-part-' + p.replace(/[^a-zA-Z0-9]/g,'_'));
         if (cb) cb.checked = parts.includes(p);
     });
 
-    /* 모달 표시 */
+    
     const overlay = document.getElementById('modify-modal');
     overlay.classList.add('active');
     const box = overlay.querySelector('.modal-box');
@@ -1313,7 +1311,7 @@ function previewModifyAddress() {
     const url = document.getElementById('modify-modal-address').value.trim();
     const isGoogleDocs = url && /https?:\/\/(docs|drive)\.google\.com\//.test(url);
     if (isGoogleDocs) openDocsPreview(url, 'Preview');
-    else showNotice('적절한 MTI Google Docs 주소가 입력되지 않았습니다.');
+    else showNotice('Please enter a valid MTI Google Docs URL.');
 }
 
 function submitModifyMTI() {
@@ -1341,7 +1339,7 @@ function submitModifyMTI() {
     if (!parts.length) missing.push('Participants');
     if (!isGoogleDocs) missing.push('Address');
     if (missing.length > 0) {
-        showNotice(missing.join(', ') + '이(가) 입력되지 않거나 적절하지 않습니다.');
+        showNotice(missing.join(', ') + ' field(s) are missing or invalid.');
         return;
     }
 
@@ -1350,7 +1348,7 @@ function submitModifyMTI() {
 
     const applyBtn = document.querySelector('#modify-modal .btn-apply');
     const origText = applyBtn ? applyBtn.textContent : 'Apply';
-    if (applyBtn) { applyBtn.textContent = '저장 중...'; applyBtn.disabled = true; }
+    if (applyBtn) { applyBtn.textContent = 'Saving...'; applyBtn.disabled = true; }
 
     const cbName = '_gasModifyCb_' + Date.now();
     const script = document.createElement('script');
@@ -1360,7 +1358,7 @@ function submitModifyMTI() {
             script.remove();
             delete window[cbName];
             if (applyBtn) { applyBtn.textContent = origText; applyBtn.disabled = false; }
-            showNotice('저장 요청이 시간 초과되었습니다.');
+            showNotice('Request timed out.');
         }
     }, 15000);
 
@@ -1373,7 +1371,7 @@ function submitModifyMTI() {
             closeModifyModal();
             location.reload();
         } else {
-            showNotice('저장에 실패했습니다: ' + (data && data.error ? data.error : '알 수 없는 오류'));
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
         }
     };
 
@@ -1392,7 +1390,7 @@ function submitModifyMTI() {
     document.head.appendChild(script);
 }
 
-/* ── Delete 모달 ── */
+/* Delete modal */
 function openDeleteModal(id, name) {
     document.getElementById('delete-modal-id').value = id;
     document.getElementById('delete-modal-name').textContent = name || id;
@@ -1407,7 +1405,7 @@ function confirmDeleteMTI() {
 
     const confirmBtn = document.querySelector('#delete-modal .btn-apply');
     const origText = confirmBtn ? confirmBtn.textContent : 'Confirm';
-    if (confirmBtn) { confirmBtn.textContent = '삭제 중...'; confirmBtn.disabled = true; }
+    if (confirmBtn) { confirmBtn.textContent = 'Deleting...'; confirmBtn.disabled = true; }
 
     const cbName = '_gasDeleteCb_' + Date.now();
     const script = document.createElement('script');
@@ -1417,7 +1415,7 @@ function confirmDeleteMTI() {
             script.remove();
             delete window[cbName];
             if (confirmBtn) { confirmBtn.textContent = origText; confirmBtn.disabled = false; }
-            showNotice('삭제 요청이 시간 초과되었습니다.');
+            showNotice('Delete request timed out.');
         }
     }, 15000);
 
@@ -1431,7 +1429,7 @@ function confirmDeleteMTI() {
             sessionStorage.setItem('imti_deleted_id', id);
             location.reload();
         } else {
-            showNotice('삭제에 실패했습니다: ' + (data && data.error ? data.error : '알 수 없는 오류'));
+            showNotice('Delete failed: ' + (data && data.error ? data.error : 'Unknown error'));
         }
     };
 
@@ -1444,19 +1442,19 @@ function confirmDeleteMTI() {
 }
 function deleteMTIItem(id) { openDeleteModal(id, id); }
 
-/* MTI-ID 정렬 방향 상태 (초기: ASC 버튼 표시 = 아직 ASC 정렬 안 됨) */
-let _idSortAsc = null; /* null=미정렬, true=ASC, false=DSC */
+/* MTI-ID sort direction state: null=unsorted, true=ASC, false=DESC */
+let _idSortAsc = null;
 
 function alignById() {
     const btn = document.getElementById('btn-align-id');
-    /* 현재 ASC 상태이면 → DSC로 전환, 그 외(미정렬/DSC)이면 → ASC로 전환 */
+    
     if (_idSortAsc === true) {
-        /* DSC 정렬 */
+        
         gMtiList.sort((a,b) => (b[2]||'').localeCompare(a[2]||''));
         _idSortAsc = false;
         if (btn) btn.textContent = 'Align by MTI-ID(ASC)';
     } else {
-        /* ASC 정렬 */
+        
         gMtiList.sort((a,b) => (a[2]||'').localeCompare(b[2]||''));
         _idSortAsc = true;
         if (btn) btn.textContent = 'Align by MTI-ID(DSC)';
@@ -1464,7 +1462,7 @@ function alignById() {
     renderList(gMtiList);
 }
 function alignByName() {
-    /* Name 정렬 시 MTI-ID 버튼 상태 리셋 */
+    /* Reset MTI-ID button state when sorting by name */
     _idSortAsc = null;
     const idBtn = document.getElementById('btn-align-id');
     if (idBtn) idBtn.textContent = 'Align by MTI-ID(ASC)';
@@ -1472,14 +1470,14 @@ function alignByName() {
     renderList(gMtiList);
 }
 function openAddModal() {
-    /* 폼 초기화 */
+    /* Reset form */
     document.getElementById('modal-name').value = '';
     document.getElementById('modal-domain').value = '';
     document.getElementById('modal-orientation').value = '';
     document.getElementById('modal-address').value = '';
     document.querySelectorAll('#add-modal input[type="checkbox"]').forEach(cb => cb.checked = false);
 
-    /* 다음 mti_num 계산: gMtiList에서 B열(index 1) 숫자 추출 후 최대값 +1 */
+    /* Compute next mti_num: max of B column numbers + 1 */
     const nums = gMtiList.map(r => {
         const m = (r[1]||'').match(/(\d+)$/);
         return m ? parseInt(m[1], 10) : 0;
@@ -1492,7 +1490,7 @@ function openAddModal() {
     const el = document.getElementById('modal-next-num');
     if (el) el.textContent = '{' + nextLabel + '}';
 
-    /* 모달 표시 후 초기 위치: 화면 하단에서 60px 위 */
+    /* Position modal 60px above bottom of screen */
     const overlay = document.getElementById('add-modal');
     overlay.classList.add('active');
 
@@ -1507,7 +1505,7 @@ function openAddModal() {
     });
 }
 
-/* ── 모달 드래그 로직 ── */
+/* Drag logic for Add modal */
 (function() {
     let dragging = false, startX, startY, origLeft, origTop;
 
@@ -1517,7 +1515,7 @@ function openAddModal() {
     document.addEventListener('mousedown', function(e) {
         const header = getHeader();
         if (!header || !header.contains(e.target)) return;
-        /* 버튼 클릭은 드래그 제외 */
+        /* Exclude button clicks from drag */
         if (e.target.closest('button')) return;
         dragging = true;
         const box = getBox();
@@ -1537,7 +1535,7 @@ function openAddModal() {
         const dy = e.clientY - startY;
         let newLeft = origLeft + dx;
         let newTop  = origTop  + dy;
-        /* 화면 밖으로 나가지 않도록 제한 */
+        /* Constrain within viewport */
         const bw = box.offsetWidth;
         const bh = box.offsetHeight;
         newLeft = Math.max(0, Math.min(newLeft, window.innerWidth  - bw));
@@ -1580,13 +1578,13 @@ function submitAddDomain() {
     const sel = document.getElementById('modal-domain');
     const exists = [...sel.options].some(o => o.value.trim() === val);
     if (exists) {
-        showNotice('동일한 Domain이 있습니다.');
+        showNotice('This domain already exists.');
         return;
     }
 
     const addBtn = document.querySelector('#add-domain-modal .btn-apply');
     const origText = addBtn.textContent;
-    addBtn.textContent = '저장 중...';
+    addBtn.textContent = 'Saving...';
     addBtn.disabled = true;
 
     const cbName = '_gasDomainCb_' + Date.now();
@@ -1598,7 +1596,7 @@ function submitAddDomain() {
             delete window[cbName];
             addBtn.textContent = origText;
             addBtn.disabled = false;
-            showNotice('저장 요청이 시간 초과되었습니다.');
+            showNotice('Request timed out.');
         }
     }, 10000);
 
@@ -1622,7 +1620,7 @@ function submitAddDomain() {
             document.getElementById('add-domain-modal').style.display = 'none';
         } else {
             document.getElementById('add-domain-modal').style.display = 'none';
-            showNotice('저장에 실패했습니다: ' + (data && data.error ? data.error : '알 수 없는 오류'));
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
         }
     };
 
@@ -1642,17 +1640,17 @@ function submitAddOrientation() {
     const val = input.value.trim();
     if (!val) return;
 
-    /* 기존 addNewOrientation 로직 재사용 */
+    
     const sel = document.getElementById('modal-orientation');
     const exists = [...sel.options].some(o => o.value.trim() === val);
     if (exists) {
-        showNotice('동일한 Orientation이 있습니다.');
+        showNotice('This orientation already exists.');
         return;
     }
 
     const addBtn = document.querySelector('#add-orient-modal .btn-apply');
     const origText = addBtn.textContent;
-    addBtn.textContent = '저장 중...';
+    addBtn.textContent = 'Saving...';
     addBtn.disabled = true;
 
     const cbName = '_gasOrientCb_' + Date.now();
@@ -1664,7 +1662,7 @@ function submitAddOrientation() {
             delete window[cbName];
             addBtn.textContent = origText;
             addBtn.disabled = false;
-            showNotice('저장 요청이 시간 초과되었습니다.');
+            showNotice('Request timed out.');
         }
     }, 10000);
 
@@ -1688,7 +1686,7 @@ function submitAddOrientation() {
             document.getElementById('add-orient-modal').style.display = 'none';
         } else {
             document.getElementById('add-orient-modal').style.display = 'none';
-            showNotice('저장에 실패했습니다: ' + (data && data.error ? data.error : '알 수 없는 오류'));
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
         }
     };
 
@@ -1705,31 +1703,31 @@ function addNewOrientation() {
     if (!val) return;
     const sel = document.getElementById('modal-orientation');
 
-    /* 중복 체크 */
+    /* Duplicate check */
     const exists = [...sel.options].some(o => o.value.trim() === val);
     if (exists) {
-        showNotice('동일한 Orientation이 있습니다.');
+        showNotice('This orientation already exists.');
         return;
     }
 
-    /* GAS로 mti-typology C열에 저장 — JSONP 방식 */
+    /* Save to mti-typology sheet col C via GAS JSONP */
     const addBtn = document.querySelector('.btn-add-orient');
     const origText = addBtn.textContent;
-    addBtn.textContent = '저장 중...';
+    addBtn.textContent = 'Saving...';
     addBtn.disabled = true;
 
     const cbName = '_gasOrientCb_' + Date.now();
     const script = document.createElement('script');
 
     window[cbName] = function(data) {
-        /* 스크립트 태그 정리 */
+        /* Clean up script tag */
         script.remove();
         delete window[cbName];
         addBtn.textContent = origText;
         addBtn.disabled = false;
 
         if (data && (data.result === 'success' || data.status === 'ok')) {
-            /* 드롭다운에 오름차순 위치로 삽입 */
+            /* Insert in ascending order into dropdown */
             const opt = document.createElement('option');
             opt.value = val;
             opt.textContent = val;
@@ -1740,18 +1738,18 @@ function addNewOrientation() {
             sel.value = val;
             input.value = '';
         } else {
-            showNotice('저장에 실패했습니다: ' + (data && data.error ? data.error : '알 수 없는 오류'));
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
         }
     };
 
-    /* 타임아웃: 10초 내 응답 없으면 오류 처리 */
+    /* Timeout: error if no response within 10s */
     const timer = setTimeout(function() {
         if (window[cbName]) {
             script.remove();
             delete window[cbName];
             addBtn.textContent = origText;
             addBtn.disabled = false;
-            showNotice('저장 요청이 시간 초과되었습니다.');
+            showNotice('Request timed out.');
         }
     }, 10000);
 
@@ -1773,7 +1771,7 @@ function previewModalAddress() {
     const url = document.getElementById('modal-address').value.trim();
     const isGoogleDocs = url && /https?:\/\/(docs|drive)\.google\.com\//.test(url);
     if (isGoogleDocs) openDocsPreview(url, 'Preview');
-    else showNotice('적절한 MTI Google Docs 주소가 입력되지 않았습니다.');
+    else showNotice('Please enter a valid MTI Google Docs URL.');
 }
 function closeAlertModal(e) {
     if (e.target === document.getElementById('alert-modal')) document.getElementById('alert-modal').style.display = 'none';
@@ -1785,11 +1783,11 @@ function submitNewMTI() {
     const address = document.getElementById('modal-address').value.trim();
     const isGoogleDocs = address && /https?:\/\/(docs|drive)\.google\.com\//.test(address);
 
-    /* 체크박스 값 수집 (영문) */
+    /* Collect checkbox values */
     const comps = [...document.querySelectorAll('#add-modal [id^="modal-comp-"]:checked')].map(c => c.value);
     const parts = [...document.querySelectorAll('#add-modal .modal-field-content input[type="checkbox"]:not([id^="modal-comp-"]):checked')].map(c => c.value);
 
-    /* 필수 항목 검증 */
+    /* Validate required fields */
     const missing = [];
     if (!name)         missing.push('Name');
     if (!domain)       missing.push('Domain');
@@ -1798,11 +1796,11 @@ function submitNewMTI() {
     if (!parts.length) missing.push('Participants');
     if (!isGoogleDocs) missing.push('Address');
     if (missing.length > 0) {
-        showNotice(missing.join(', ') + '이(가) 입력되지 않거나 적절하지 않습니다.');
+        showNotice(missing.join(', ') + ' field(s) are missing or invalid.');
         return;
     }
 
-    /* mtiId: yyyyMMddHHmmss 형식 (mtiNum은 GAS 서버에서 계산) */
+    /* mtiId: yyyyMMddHHmmss format (mtiNum computed server-side) */
     const _now = new Date();
     const mtiId = String(_now.getFullYear())
         + String(_now.getMonth()+1).padStart(2,'0')
@@ -1811,10 +1809,10 @@ function submitNewMTI() {
         + String(_now.getMinutes()).padStart(2,'0')
         + String(_now.getSeconds()).padStart(2,'0');
 
-    /* Apply 버튼 로딩 상태 */
+    /* Set Apply button loading state */
     const applyBtn = document.querySelector('#add-modal .btn-apply');
     const origText = applyBtn ? applyBtn.textContent : 'Apply';
-    if (applyBtn) { applyBtn.textContent = '저장 중...'; applyBtn.disabled = true; }
+    if (applyBtn) { applyBtn.textContent = 'Saving...'; applyBtn.disabled = true; }
 
     const cbName = '_gasMtiCb_' + Date.now();
     const script = document.createElement('script');
@@ -1824,7 +1822,7 @@ function submitNewMTI() {
             script.remove();
             delete window[cbName];
             if (applyBtn) { applyBtn.textContent = origText; applyBtn.disabled = false; }
-            showNotice('저장 요청이 시간 초과되었습니다.');
+            showNotice('Request timed out.');
         }
     }, 15000);
 
@@ -1839,7 +1837,7 @@ function submitNewMTI() {
             sessionStorage.setItem('imti_new_id', mtiId);
             location.reload();
         } else {
-            showNotice('저장에 실패했습니다: ' + (data && data.error ? data.error : '알 수 없는 오류'));
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
         }
     };
 
@@ -1856,10 +1854,10 @@ function submitNewMTI() {
     script.src = url;
     document.head.appendChild(script);
 }
-function applyMTI()   { alert('Apply: 준비 중입니다.'); }
-function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
+function applyMTI()   { alert('Apply: Not yet implemented.'); }
+function deleteMTI()  { alert('Delete(input): Not yet implemented.'); }
 
-/* ── Modify 모달 드래그 로직 ── */
+/* Drag logic for Modify modal */
 (function() {
     let dragging = false, startX, startY, origLeft, origTop;
     function getBox() { return document.querySelector('#modify-modal .modal-box'); }
@@ -1888,9 +1886,11 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
     });
     document.addEventListener('mouseup', function() { dragging = false; });
 })();
+
+window.__pageInit = loadAll;
 </script>
 
-    <!-- ── Google Docs 뷰어 모달 ── -->
+    
     <div class="docs-overlay" id="docs-modal" onclick="closeDocsModal(event)">
         <div class="docs-box">
             <div class="docs-header">
@@ -1903,7 +1903,7 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
         </div>
     </div>
 
-    <!-- ── Add-New-Domain 모달 ── -->
+    
     <div id="add-domain-modal" onclick="closeAddDomainModal(event)"
          style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:4000;align-items:center;justify-content:center;padding-bottom:20vh;">
         <div style="background:#fff;border:1px solid #dee2e6;border-radius:8px;width:460px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
@@ -1926,7 +1926,7 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
         </div>
     </div>
 
-    <!-- ── Add-New-Orientation 모달 ── -->
+    
     <div id="add-orient-modal" onclick="closeAddOrientModal(event)"
          style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:4000;align-items:center;justify-content:center;padding-bottom:20vh;">
         <div style="background:#fff;border:1px solid #dee2e6;border-radius:8px;width:460px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
@@ -1949,14 +1949,14 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
         </div>
     </div>
 
-    <!-- ── 주소 없음 알림 모달 ── -->
+    
     <div id="alert-modal" onclick="closeAlertModal(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:5000;align-items:center;justify-content:center;padding-bottom:20vh;">
         <div style="background:#fff;border:1px solid #dee2e6;border-radius:8px;min-width:340px;max-width:460px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
             <div style="display:flex;align-items:center;padding:12px 18px;background:#f8f9fa;border-bottom:1px solid #dee2e6;">
                 <span style="font-family:'Gowun Batang', serif;font-size:0.84rem;font-weight:700;color:#343a40;letter-spacing:0.05em;">NOTICE</span>
             </div>
             <div id="alert-msg" style="padding:28px 28px 24px;font-family:'Gowun Batang', serif;font-size:0.84rem;font-weight:700;color:#495057;line-height:1.6;text-align:center;">
-                적절한 MTI Google Docs 주소가 입력되지 않았습니다.
+                Please enter a valid MTI Google Docs URL.
             </div>
             <div style="display:flex;justify-content:center;padding:0 0 22px;">
                 <button class="btn" onclick="document.getElementById('alert-modal').style.display='none'">Close</button>
@@ -1964,7 +1964,7 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
         </div>
     </div>
 
-    <!-- ── Modify MTI 모달 ── -->
+    
     <div class="modal-overlay" id="modify-modal" onclick="if(event.target===this)closeModifyModal()">
         <div class="modal-box">
             <div class="modal-header">
@@ -1983,10 +1983,10 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
                 <div class="modal-field-row">
                     <div class="modal-field-label">Name</div>
                     <div class="modal-field-content">
-                        <input type="text" id="modify-modal-name" placeholder="MTI 이름을 입력하세요.">
+                        <input type="text" id="modify-modal-name" placeholder="Enter the MTI name.">
                     </div>
                 </div>
-                <!-- Domain + Orientation 한 행 -->
+                
                 <div class="modal-field-row" style="grid-template-columns:130px 1fr 1px 130px 1fr;">
                     <div class="modal-field-label">Domain</div>
                     <div class="modal-field-content" style="display:flex;gap:8px;align-items:center;flex-wrap:nowrap;">
@@ -2009,7 +2009,12 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
                         <label class="check-item"><input type="checkbox" id="modify-comp-Computational_Thinking" value="Computational_Thinking"> Computational_Thinking</label>
                         <label class="check-item"><input type="checkbox" id="modify-comp-Digital_Cultural_Literacy" value="Digital_Cultural_Literacy"> Digital_Cultural_Literacy</label>
                         <label class="check-item"><input type="checkbox" id="modify-comp-AI_Literacy" value="AI_Literacy"> AI_Literacy</label>
-                        <label class="check-item"><input type="checkbox" id="modify-comp-etc_" value="etc."> etc.</label>
+                        <div style="width:100%;height:0;flex-basis:100%;"></div>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Problem_Solving_Ability" value="Problem_Solving_Ability"> Problem_Solving_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Creative_Thinking_Ability" value="Creative_Thinking_Ability"> Creative_Thinking_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Academic_Achivement" value="Academic_Achivement"> Academic_Achivement</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Instruction_Satisfy" value="Instruction_Satisfy"> Instruction_Satisfy</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Etc_" value="Etc."> Etc.</label>
                     </div>
                 </div>
                 <!-- Participants -->
@@ -2017,11 +2022,12 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
                     <div class="modal-field-label">Participants</div>
                     <div class="modal-field-content">
                         <label class="check-item"><input type="checkbox" id="modify-part-Pre_Schooler" value="Pre_Schooler"> Pre_Schooler</label>
-                        <label class="check-item"><input type="checkbox" id="modify-part-Elementary_Schooler" value="Elementary_Schooler(L)"> Elementary_Schooler(L)</label>
-                        <label class="check-item"><input type="checkbox" id="modify-part-Middle_Schooler_L" value="Elementary_Schooler(H)"> Elementary_Schooler(H)</label>
-                        <label class="check-item"><input type="checkbox" id="modify-part-Middle_Schooler_H" value="Middle_Schooler"> Middle_Schooler</label>
-                        <label class="check-item"><input type="checkbox" id="modify-part-High_Schooler" value="High_Schooler"> High_Schooler</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Elementary_Schooler_L" value="Elementary_Schooler(L)"> Elementary_Schooler(L)</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Elementary_Schooler_M" value="Elementary_Schooler(M)"> Elementary_Schooler(M)</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Elementary_Schooler_H" value="Elementary_Schooler(H)"> Elementary_Schooler(H)</label>
                         <div style="width:100%;height:0;flex-basis:100%;"></div>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Middle_Schooler" value="Middle_Schooler"> Middle_Schooler</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-High_Schooler" value="High_Schooler"> High_Schooler</label>
                         <label class="check-item"><input type="checkbox" id="modify-part-Special_Learner" value="Special_Learner"> Special_Learner</label>
                         <label class="check-item"><input type="checkbox" id="modify-part-Gifted_Learner" value="Gifted_Learner"> Gifted_Learner</label>
                         <label class="check-item"><input type="checkbox" id="modify-part-Post_Schooler" value="Post_Schooler"> Post_Schooler</label>
@@ -2031,7 +2037,7 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
                 <div class="modal-field-row modal-has-btn">
                     <div class="modal-field-label">Address</div>
                     <div class="modal-field-content">
-                        <input type="url" id="modify-modal-address" placeholder="Google Docs URL을 입력하세요.">
+                        <input type="url" id="modify-modal-address" placeholder="Enter the Google Docs URL.">
                     </div>
                     <div style="display:flex;align-items:center;flex-shrink:0;padding:6px 16px 6px 8px;">
                         <button class="btn" onclick="previewModifyAddress()">Preview</button>
@@ -2041,7 +2047,7 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
         </div>
     </div>
 
-    <!-- ── Delete 확인 모달 ── -->
+    
     <div id="delete-modal" onclick="if(event.target===this)closeDeleteModal()"
          style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:4500;align-items:center;justify-content:center;">
         <div style="background:#fff;border:1px solid #dee2e6;border-radius:8px;width:420px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.22);">
@@ -2051,9 +2057,9 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
             <input type="hidden" id="delete-modal-id">
             <div style="padding:28px 28px 18px;text-align:center;">
                 <p style="font-family:'Gowun Batang', serif;font-size:0.82rem;color:#495057;line-height:1.8;">
-                    아래 MTI를 삭제하시겠습니까?<br>
+                    Delete the following MTI?<br>
                     <strong id="delete-modal-name" style="color:#e03131;font-size:0.9rem;"></strong><br>
-                    <span style="font-size:0.76rem;color:#adb5bd;">이 작업은 되돌릴 수 없습니다.</span>
+                    <span style="font-size:0.76rem;color:#adb5bd;">This action cannot be undone.</span>
                 </p>
             </div>
             <div style="display:flex;justify-content:center;gap:10px;padding:0 28px 24px;">
@@ -2063,10 +2069,6 @@ function deleteMTI()  { alert('Delete(입력): 준비 중입니다.'); }
         </div>
     </div>
 
-<script>
-/* ── 초기 로드 ── */
-/* ad_common.js DOMContentLoaded 완료 후 window.__pageInit() 호출됨 */
-window.__pageInit = loadAll;
-</script>
+<script src="ad_common.js"></script>
 </body>
 </html>
