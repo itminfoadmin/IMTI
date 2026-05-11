@@ -80,6 +80,45 @@
             color: #444;
         }
     </style>
+    <script>
+        // Google Sheets CSV export URL (공개 시트 기준)
+        const SHEET_ID = '1WSIAKzyKnGD-5hjBUWCsOOQME9M3Ig7qyAVRRzLKftY';
+        const SHEET_NAME = 'dash_board_Data';
+
+        function getTodayFormatted() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const HH = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd} ${HH}:${min}:${ss}`;
+        }
+
+        async function loadSheetData() {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&range=N1:Q1`;
+            try {
+                const res = await fetch(url);
+                const text = await res.text();
+                // CSV 파싱: 값들이 따옴표로 감싸여 있을 수 있음
+                const values = text.trim().split(',').map(v => v.replace(/^"|"$/g, '').trim());
+                // N1=index0, O1=index1, P1=index2, Q1=index3
+                const n1 = values[0] || '?';
+                const q1 = values[3] || '?';
+                document.getElementById('sheet-q1').textContent = q1;
+                document.getElementById('sheet-n1').textContent = n1;
+            } catch (e) {
+                document.getElementById('sheet-q1').textContent = '(데이터 로딩 실패)';
+                document.getElementById('sheet-n1').textContent = '(데이터 로딩 실패)';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('today-date').textContent = getTodayFormatted();
+            loadSheetData();
+        });
+    </script>
 </head>
 <body>
 <br>
@@ -89,7 +128,7 @@
             <h2>IMTI 는?</h2>
         </div>
         <p>
-            IMTI는 Inventory of Models of Teaching for Informatics의 줄임말로써, 정보 및 컴퓨터 관련 교수-학습의 활성화를 위해 컴퓨터 및 정보 교과에서 지금까지 연구된 다양한 수업 모형(MTI: Models of Teaching for Informatics)을 분석 및 분류하여 이에 대한 정보를 공유하는 저장소(Inventory)입니다. IMTI의 서비스를 위해 분석된 연구물의 목록은 "분석 및 분류 연구물 목록"에서 확인하실 수 있으며, 분석 및 분류에 오류가 있는 경우에 <Contact-Us>를 통해 언제든지 오류 정정을 신청하실 수 있습니다. IMTI는 구성 자료의 현재성 및 운영의 효율성을 위해 Google Docs, Google Sheet, Google Locker Studio를 기반으로 개발 및 서비스 되고 있습니다(화면이 부분적으로 선명하지 않거나 자료 로딩 지연이 발생할 수 있습니다).
+            IMTI는 Inventory of Models of Teaching for Informatics의 줄임말로써, 정보 및 컴퓨터 관련 교수-학습의 활성화를 위해 컴퓨터 및 정보 교과에서 지금까지 연구된 다양한 수업 모형(MTI: Models of Teaching for Informatics)을 분석 및 분류하여 이에 대한 정보를 공유하는 저장소(Inventory)입니다. <span id="today-date"></span> 현재 총 <span id="sheet-q1">…</span>건의 정보교과에서 연구된 수업 모형을 분석하여 <span id="sheet-n1">…</span>건의 MTI를 정리하여 서비스하고 있습니다. IMTI의 서비스를 위해 분석된 연구물의 목록은 "분석 및 분류 연구물 목록"에서 확인하실 수 있으며, 분석 및 분류에 오류가 있는 경우에 <Contact-Us>를 통해 언제든지 오류 정정을 신청하실 수 있습니다. IMTI는 구성 자료의 현재성 및 운영의 효율성을 위해 Google Docs, Google Sheet, Google Locker Studio를 기반으로 개발 및 서비스 되고 있습니다(화면이 부분적으로 선명하지 않거나 자료 로딩 지연이 발생할 수 있습니다).
         </p>
     </section>
 
