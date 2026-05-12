@@ -617,12 +617,13 @@
                         <label class="check-item"><input type="checkbox" id="modal-comp-ct" value="Computational_Thinking"> Computational_Thinking</label>
                         <label class="check-item"><input type="checkbox" id="modal-comp-dcl" value="Digital_Cultural_Literacy"> Digital_Cultural_Literacy</label>
                         <label class="check-item"><input type="checkbox" id="modal-comp-ai" value="AI_Literacy"> AI_Literacy</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-etc" value="Etc."> Etc.</label>
                         <div style="width:100%;height:0;flex-basis:100%;"></div>
                         <label class="check-item"><input type="checkbox" id="modal-comp-psa" value="Problem_Solving_Ability"> Problem_Solving_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-lta" value="Logical_Thinking_Ability"> Logical_Thinking_Ability</label>
                         <label class="check-item"><input type="checkbox" id="modal-comp-cta" value="Creative_Thinking_Ability"> Creative_Thinking_Ability</label>
                         <label class="check-item"><input type="checkbox" id="modal-comp-aa" value="Academic_Achivement"> Academic_Achivement</label>
                         <label class="check-item"><input type="checkbox" id="modal-comp-is" value="Instruction_Satisfy"> Instruction_Satisfy</label>
-                        <label class="check-item"><input type="checkbox" id="modal-comp-etc" value="Etc."> Etc.</label>
                     </div>
                 </div>
                 <!-- Participants -->
@@ -676,8 +677,8 @@ const URL_TYPOLOGY    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8
 const GAS_URL_MTI = 'https://script.google.com/macros/s/AKfycbzY3a3F93NUK0_CNLqQ4zxwzjY9WYdQulptb2EqCypmb4SooNWNU51Z-9oaxFxTN2rT/exec';
 
 /* Competency / Participants display order */
-const COMP_LIST = ['Computational_Thinking', 'Digital_Cultural_Literacy', 'AI_Literacy', 'Problem_Solving_Ability', 'Creative_Thinking_Ability',
-                   'Academic_Achivement', 'Instruction_Satisfy', 'Etc.'];
+const COMP_LIST = ['Computational_Thinking', 'Digital_Cultural_Literacy', 'AI_Literacy', 'Etc.', 'Problem_Solving_Ability', 'Logical_Thinking_Ability', 'Creative_Thinking_Ability',
+                   'Academic_Achivement', 'Instruction_Satisfy'];
 const PART_LIST = ['Pre_Schooler', 'Elementary_Schooler(L)', 'Elementary_Schooler(M)', 'Elementary_Schooler(H)', 'Middle_Schooler',
                    'High_Schooler', 'Special_Learner', 'Gifted_Learner', 'Post_Schooler'];
 
@@ -2009,12 +2010,13 @@ window.__pageInit = loadAll;
                         <label class="check-item"><input type="checkbox" id="modify-comp-Computational_Thinking" value="Computational_Thinking"> Computational_Thinking</label>
                         <label class="check-item"><input type="checkbox" id="modify-comp-Digital_Cultural_Literacy" value="Digital_Cultural_Literacy"> Digital_Cultural_Literacy</label>
                         <label class="check-item"><input type="checkbox" id="modify-comp-AI_Literacy" value="AI_Literacy"> AI_Literacy</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Etc_" value="Etc."> Etc.</label>
                         <div style="width:100%;height:0;flex-basis:100%;"></div>
                         <label class="check-item"><input type="checkbox" id="modify-comp-Problem_Solving_Ability" value="Problem_Solving_Ability"> Problem_Solving_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Logical_Thinking_Ability" value="Logical_Thinking_Ability"> Logical_Thinking_Ability</label>
                         <label class="check-item"><input type="checkbox" id="modify-comp-Creative_Thinking_Ability" value="Creative_Thinking_Ability"> Creative_Thinking_Ability</label>
                         <label class="check-item"><input type="checkbox" id="modify-comp-Academic_Achivement" value="Academic_Achivement"> Academic_Achivement</label>
                         <label class="check-item"><input type="checkbox" id="modify-comp-Instruction_Satisfy" value="Instruction_Satisfy"> Instruction_Satisfy</label>
-                        <label class="check-item"><input type="checkbox" id="modify-comp-Etc_" value="Etc."> Etc.</label>
                     </div>
                 </div>
                 <!-- Participants -->
