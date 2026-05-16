@@ -96,6 +96,8 @@
         .btn-danger:hover:not(:disabled)  { background: #fff0f0; border-color: #e03131; }
         .btn-print   { background: #fff; border-color: #d0ebff; color: #1971c2; }
         .btn-print:hover:not(:disabled)   { background: #e7f5ff; border-color: #1971c2; }
+        .btn-search  { background: #fff; border-color: #d3f9d8; color: #2f9e44; }
+        .btn-search:hover:not(:disabled)  { background: #ebfbee; border-color: #2f9e44; }
         .btn-nav     { background: #D1DCE0; border-color: #dee2e6; color: #495057; }
         .btn-nav:hover:not(:disabled)     { border-color: #868e96; color: #212529; background: #A4C5D3; }
         .btn-nav:disabled { opacity: 0.25; cursor: not-allowed; }
@@ -368,6 +370,7 @@
             <button class="btn btn-outline" id="btn-reload">↺ RELOAD</button>
             <button class="btn btn-primary" id="btn-save"   disabled>✓ SAVE</button>
             <button class="btn btn-danger"  id="btn-delete" disabled>✕ DELETE</button>
+            <button class="btn btn-search"  id="btn-search">⌕ SEARCHING</button>
             <button class="btn btn-print"   id="btn-print"  disabled>⎙ PRINT</button>
         </div>
     </div>
@@ -928,6 +931,14 @@ window.__pageInit = function () {
     });
     document.getElementById('btn-save').addEventListener('click', handleSave);
     document.getElementById('btn-print').addEventListener('click', () => window.print());
+    document.getElementById('btn-search').addEventListener('click', function () {
+        const popup = window.open(
+            'ad_mti_article_searching.html',
+            'ArticleSearching',
+            'width=1650,height=720,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no'
+        );
+        if (popup) popup.focus();
+    });
     document.getElementById('btn-delete').addEventListener('click', function () {
         if (!currentRow) return;
         const id = document.getElementById('article-id-select').value;

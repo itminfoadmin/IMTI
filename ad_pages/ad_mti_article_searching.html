@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI — Article Searching</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Gowun Batang', serif;
+            background: #f8f9fa;
+            color: #343a40;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+        .header-title {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 0.1em; color: #adb5bd;
+            text-transform: uppercase;
+        }
+        .header-count {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.68rem; color: #adb5bd;
+            letter-spacing: 0.05em;
+        }
+        .header-count span { color: #2f9e44; font-weight: 700; }
+
+        /* ── Search Bar ── */
+        .search-bar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+        .search-label {
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+            color: #adb5bd; text-transform: uppercase; white-space: nowrap;
+        }
+        .search-input {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.82rem; color: #343a40;
+            background: #f8f9fa; border: 1.5px solid #dee2e6;
+            border-radius: 2px; padding: 6px 12px;
+            outline: none; flex: 1; max-width: 400px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .search-input:focus { border-color: #2f9e44; background: #fff; }
+        .search-select {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.75rem; color: #343a40;
+            background: #fff; border: 1.5px solid #dee2e6;
+            border-radius: 2px; padding: 6px 12px;
+            outline: none; cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .search-select:focus { border-color: #2f9e44; }
+        .search-divider { width: 1px; height: 14px; background: #e9ecef; flex-shrink: 0; }
+
+        /* ── Table Area ── */
+        .table-wrap {
+            flex: 1; overflow: auto;
+            scrollbar-width: thin; scrollbar-color: #dee2e6 transparent;
+        }
+        .table-wrap::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-wrap::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 3px; }
+
+        table {
+            width: 100%; border-collapse: collapse;
+            font-family: 'Gowun Batang', serif;
+        }
+        thead tr {
+            background: #fff;
+            position: sticky; top: 0; z-index: 10;
+            border-bottom: 2px solid #343a40;
+        }
+        thead th {
+            font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 0.08em; color: #868e96;
+            text-transform: uppercase; text-align: left;
+            padding: 10px 14px;
+            white-space: nowrap;
+            border-right: 1px solid #f1f3f5;
+            user-select: none; cursor: pointer;
+        }
+        thead th:last-child { border-right: none; }
+        thead th:hover { color: #343a40; background: #f8f9fa; }
+        thead th.sorted-asc::after  { content: ' ▲'; font-size: 0.55rem; color: #2f9e44; }
+        thead th.sorted-desc::after { content: ' ▼'; font-size: 0.55rem; color: #2f9e44; }
+
+        tbody tr {
+            border-bottom: 1px solid #f1f3f5;
+            transition: background 0.1s;
+        }
+        tbody tr:hover { background: #f3faf3; }
+        tbody tr:last-child { border-bottom: none; }
+
+        tbody td {
+            font-size: 0.82rem; color: #343a40;
+            padding: 9px 14px; vertical-align: top;
+            line-height: 1.55; border-right: 1px solid #f8f9fa;
+            word-break: break-word;
+        }
+        tbody td:last-child { border-right: none; }
+
+        /* Column widths */
+        .col-a  { width: 165px; min-width: 135px; }
+        .col-n  { width: 540px; min-width: 378px; }
+        .col-j  { width: 195px; min-width: 150px; }
+        .col-v  { width: auto; min-width: 490px; }
+
+        td.col-a {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem; color: #495057;
+            white-space: nowrap;
+        }
+
+        .highlight {
+            background: #fff3bf;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+
+        /* ── Empty / Loading ── */
+        .state-row td {
+            text-align: center; padding: 60px 20px;
+            font-size: 0.78rem; color: #adb5bd; letter-spacing: 0.04em;
+        }
+        .spinner {
+            display: inline-block; width: 18px; height: 18px;
+            border: 2px solid #dee2e6; border-top-color: #2f9e44;
+            border-radius: 50%; animation: spin 0.7s linear infinite;
+            vertical-align: middle; margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Status Bar ── */
+        .statusbar {
+            display: flex; align-items: center; gap: 16px;
+            padding: 7px 20px; border-top: 1px solid #e9ecef;
+            background: #fff; flex-shrink: 0;
+        }
+        .statusbar-text {
+            font-size: 0.65rem; color: #adb5bd; letter-spacing: 0.04em;
+        }
+        .statusbar-text span { color: #6c757d; font-weight: 700; }
+
+        .btn-reload {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 0.06em; border-radius: 2px;
+            padding: 5px 14px; cursor: pointer;
+            background: #fff; border: 1.5px solid #dee2e6; color: #6c757d;
+            transition: all 0.18s;
+        }
+        .btn-reload:hover { border-color: #adb5bd; color: #343a40; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <span class="header-title">Article Searching — Article_Analysis</span>
+    <span class="header-count" id="header-count">Loading…</span>
+</div>
+
+<!-- Search Bar -->
+<div class="search-bar">
+    <span class="search-label">Filter</span>
+    <select class="search-select" id="filter-col">
+        <option value="all">All Columns</option>
+        <option value="0">Article ID (col A)</option>
+        <option value="1">Treatment (col N)</option>
+        <option value="2">Orientation (col J)</option>
+        <option value="3">APA (col V)</option>
+    </select>
+    <input class="search-input" id="search-input" type="text" placeholder="Type to filter…" autocomplete="off">
+    <div class="search-divider"></div>
+    <button class="btn-reload" id="btn-reload">↺ Reload</button>
+</div>
+
+<!-- Table -->
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th class="col-a"  data-col="0">Article ID <span style="font-weight:400;color:#ced4da">col A</span></th>
+                <th class="col-n"  data-col="1">Treatment <span style="font-weight:400;color:#ced4da">col N</span></th>
+                <th class="col-j"  data-col="2">Orientation <span style="font-weight:400;color:#ced4da">col J</span></th>
+                <th class="col-v"  data-col="3">APA <span style="font-weight:400;color:#ced4da">col V</span></th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            <tr class="state-row">
+                <td colspan="4"><span class="spinner"></span>Loading data…</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Status Bar -->
+<div class="statusbar">
+    <span class="statusbar-text" id="sb-text">Fetching from Google Sheets…</span>
+</div>
+
+<script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vReDdJqNzhR0M-GLK0d5fvyALhSllo1vbFGrB3FRFcU7gpdYbriPrx-Sb6FN1eiAUHrBlvdOY4Y5Y9E/pub?gid=0&single=true&output=csv';
+
+    // Column indices in the CSV (0-based): A=0, J=9, N=13, V=21
+    // These are defaults; actual indices are confirmed from the header row at load time.
+    let COL_A = 0;   // Article ID
+    let COL_N = 13;  // Treatment
+    let COL_J = 9;   // Orientation
+    let COL_V = 21;  // APA
+
+    let allRows = [];      // all data rows (excluding header)
+    let filteredRows = []; // after filter
+    let sortCol = -1;
+    let sortDir = 1;       // 1 = asc, -1 = desc
+
+    /* ── CSV Parser (handles quoted fields) ── */
+    function parseCSV(text) {
+        const rows = [];
+        const lines = text.split(/\r?\n/);
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            const cols = [];
+            let inQ = false, cur = '';
+            for (let i = 0; i < line.length; i++) {
+                const c = line[i];
+                if (c === '"') {
+                    if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+                    else { inQ = !inQ; }
+                } else if (c === ',' && !inQ) {
+                    cols.push(cur); cur = '';
+                } else {
+                    cur += c;
+                }
+            }
+            cols.push(cur);
+            rows.push(cols);
+        }
+        return rows;
+    }
+
+    /* ── Fetch & Parse ── */
+    async function loadData() {
+        setSb('Fetching from Google Sheets…');
+        setBody('<tr class="state-row"><td colspan="4"><span class="spinner"></span>Loading data…</td></tr>');
+        document.getElementById('header-count').textContent = 'Loading…';
+
+        try {
+            const res = await fetch(CSV_URL + '&t=' + Date.now());
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const text = await res.text();
+            const rows = parseCSV(text);
+            if (rows.length < 2) throw new Error('No data rows found.');
+
+            // Resolve column indices from header row (letter-based: A=0, J=9, N=13, V=21)
+            // Spreadsheet columns are positional — use 0-based letter index directly.
+            // Confirm by checking actual header row length.
+            const header = rows[0];
+            COL_A = 0;
+            COL_J = 9;
+            COL_N = 13;
+            COL_V = 21;
+            // Log header for debugging
+            console.log('Header cols:', header.length, '| col 21:', header[21]);
+
+            // Skip header row; keep only rows where col V exists AND is non-empty
+            allRows = rows.slice(1).filter(r => {
+                const vVal = (r.length > COL_V) ? (r[COL_V] || '').trim() : '';
+                return vVal !== '';
+            });
+
+            setSb('Loaded ' + allRows.length + ' rows.');
+            applyFilter();
+        } catch (err) {
+            setSb('⚠ Load failed: ' + err.message);
+            setBody('<tr class="state-row"><td colspan="4">Failed to load data. Please check the connection and reload.</td></tr>');
+            document.getElementById('header-count').textContent = 'Error';
+        }
+    }
+
+    /* ── Filter ── */
+    function applyFilter() {
+        const q   = document.getElementById('search-input').value.toLowerCase().trim();
+        const col = document.getElementById('filter-col').value;
+
+        if (!q) {
+            filteredRows = allRows.slice();
+        } else {
+            filteredRows = allRows.filter(r => {
+                if (col === 'all') {
+                    return [r[COL_A], r[COL_N], r[COL_J], r[COL_V]].some(v => (v||'').toLowerCase().includes(q));
+                }
+                const srcCol = [COL_A, COL_N, COL_J, COL_V][parseInt(col)];
+                return (r[srcCol]||'').toLowerCase().includes(q);
+            });
+        }
+
+        if (sortCol >= 0) doSort(false);
+        renderTable(q);
+        updateCounts();
+    }
+
+    /* ── Sort ── */
+    function doSort(toggleDir, col) {
+        if (col !== undefined && col !== sortCol) { sortCol = col; sortDir = 1; }
+        else if (toggleDir) { sortDir = -sortDir; }
+        const srcCols = [COL_A, COL_N, COL_J, COL_V];
+        const sc = srcCols[sortCol];
+        filteredRows.sort((a, b) => {
+            const av = (a[sc]||'').toLowerCase();
+            const bv = (b[sc]||'').toLowerCase();
+            return av < bv ? -sortDir : av > bv ? sortDir : 0;
+        });
+        // Update header classes
+        document.querySelectorAll('thead th').forEach((th, i) => {
+            th.classList.remove('sorted-asc', 'sorted-desc');
+            if (i === sortCol) th.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
+        });
+    }
+
+    /* ── Highlight match ── */
+    function hl(text, q) {
+        if (!q) return esc(text);
+        const idx = text.toLowerCase().indexOf(q.toLowerCase());
+        if (idx < 0) return esc(text);
+        return esc(text.slice(0, idx)) +
+               '<mark class="highlight">' + esc(text.slice(idx, idx + q.length)) + '</mark>' +
+               esc(text.slice(idx + q.length));
+    }
+    function esc(s) {
+        return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    /* ── Render ── */
+    function renderTable(q) {
+        const tbody = document.getElementById('table-body');
+        if (!filteredRows.length) {
+            tbody.innerHTML = '<tr class="state-row"><td colspan="4">No results found.</td></tr>';
+            return;
+        }
+        const frag = document.createDocumentFragment();
+        filteredRows.forEach(r => {
+            const tr = document.createElement('tr');
+            const cells = [
+                { cls: 'col-a', val: r[COL_A] },
+                { cls: 'col-n', val: r[COL_N] },
+                { cls: 'col-j', val: r[COL_J] },
+                { cls: 'col-v', val: r[COL_V] },
+            ];
+            cells.forEach(c => {
+                const td = document.createElement('td');
+                td.className = c.cls;
+                td.innerHTML = hl(c.val || '', q || '');
+                tr.appendChild(td);
+            });
+            frag.appendChild(tr);
+        });
+        tbody.innerHTML = '';
+        tbody.appendChild(frag);
+    }
+
+    function setBody(html) { document.getElementById('table-body').innerHTML = html; }
+    function setSb(msg)    { document.getElementById('sb-text').textContent = msg; }
+
+    function updateCounts() {
+        const total = allRows.length;
+        const shown = filteredRows.length;
+        const q = document.getElementById('search-input').value.trim();
+        document.getElementById('header-count').innerHTML =
+            q ? '<span>' + shown + '</span> / ' + total + ' rows' : '<span>' + total + '</span> rows';
+        setSb('Showing ' + shown + ' of ' + total + ' rows.');
+    }
+
+    /* ── Events ── */
+    document.getElementById('search-input').addEventListener('input', applyFilter);
+    document.getElementById('filter-col').addEventListener('change', applyFilter);
+    document.getElementById('btn-reload').addEventListener('click', loadData);
+
+    document.querySelectorAll('thead th').forEach((th, i) => {
+        th.addEventListener('click', () => {
+            if (sortCol === i) { sortDir = -sortDir; }
+            else { sortCol = i; sortDir = 1; }
+            document.querySelectorAll('thead th').forEach((t, j) => {
+                t.classList.remove('sorted-asc', 'sorted-desc');
+                if (j === sortCol) t.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
+            });
+            const srcCols = [COL_A, COL_N, COL_J, COL_V];
+            const sc = srcCols[sortCol];
+            filteredRows.sort((a, b) => {
+                const av = (a[sc]||'').toLowerCase();
+                const bv = (b[sc]||'').toLowerCase();
+                return av < bv ? -sortDir : av > bv ? sortDir : 0;
+            });
+            const q = document.getElementById('search-input').value.trim();
+            renderTable(q);
+        });
+    });
+
+    // Start
+    loadData();
+</script>
+</body>
+</html>
