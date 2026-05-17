@@ -224,7 +224,7 @@
             background: #f8f9fa; flex-shrink: 0;
         }
         .statusbar-text {
-            font-family: 'Gowun Batang', serif; font-size: 0.65rem; color: #adb5bd; letter-spacing: 0.04em;
+            font-family: 'Gowun Batang', serif; font-size: 0.75rem; font-weight: 700; color: #5d5d7d; letter-spacing: 0.04em;
         }
         .statusbar-text span { color: #6c757d; font-weight: 700; }
         #sb-analyzed { color: #2f9e44 !important; font-weight: 700; }
@@ -556,7 +556,7 @@
         <div class="toolbar-divider"></div>
         <span class="statusbar-text"><span id="sb-analyzed">0</span> Just-Analyzed!!</span>
         <div class="toolbar-divider"></div>
-        <span class="statusbar-text" id="sb-msg"></span>
+        <span class="statusbar-text">Now => &nbsp<span id="sb-msg">0</span></span>
     </div>
 
 </div>
@@ -694,7 +694,7 @@ window.__pageInit = function () {
                 buildDropdown(true);
                 document.getElementById('sb-total').textContent = allRows.length;
                 updateAnalyzedCount();
-                setSbMsg('✓ ' + allRows.length + ' articles loaded');
+                setSbMsg('✓ ' + allRows.length + ' Articles Loaded');
 
                 // Restore previously selected article after reload
                 if (preservedId) {
