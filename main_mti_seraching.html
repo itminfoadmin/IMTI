@@ -595,7 +595,7 @@ to search for a teaching model.</span></p>
                     if (data && data.error) throw new Error(data.error);
                     DOMAIN_LIST       = data.domains       || [];
                     PARTICIPANTS_LIST = data.participants   || [];
-                    ORIENTATION_LIST     = data.orientations    || [];
+                    ORIENTATION_LIST = data.orientations || data.orientation || [];
                     COMPETENCY_LIST   = data.competencies  || [];
                     COMPETENCY_MAP    = data.competencyMap || {};
                     PARTICIPANTS_MAP  = data.participantsMap || {};
