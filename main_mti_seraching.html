@@ -725,7 +725,7 @@ to search for a teaching model.</span></p>
             
             var numTag = '';
             if (MODEL_NUM[name]) {
-                numTag = '<span style="font-family:\'DM Mono\',monospace;font-size:0.78rem;font-weight:700;color:inherit;margin-right:6px;flex-shrink:0;">[' + MODEL_NUM[name] + ']</span>';
+                numTag = '<span style="display:none;font-family:\'DM Mono\',monospace;font-size:0.78rem;font-weight:700;color:inherit;margin-right:6px;flex-shrink:0;">[' + MODEL_NUM[name] + ']</span>';
             }
             item.innerHTML = numTag + '<span>' + displayName + '</span>';
             item.onclick = function() { selectResult(name); };
@@ -749,7 +749,7 @@ to search for a teaching model.</span></p>
         
         var nameEl = document.getElementById('result-model-name');
         if (MODEL_NUM[name]) {
-            nameEl.innerHTML = '✔ &nbsp <span style="font-family:\'Noto Sans KR\',sans-serif;font-size:0.88rem;font-weight:700;color:#6a6868;margin-right:4px;">[' + MODEL_NUM[name] + ']</span>' + displayName;
+            nameEl.innerHTML = '✔ &nbsp <span style="display:none;font-family:\'Noto Sans KR\',sans-serif;font-size:0.88rem;font-weight:700;color:#6a6868;margin-right:4px;">[' + MODEL_NUM[name] + ']</span>' + displayName;
         } else {
             nameEl.textContent = displayName;
         }
