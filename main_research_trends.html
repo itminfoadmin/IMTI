@@ -26,7 +26,7 @@
         }
         body.has-subtab { grid-template-rows: auto auto 2.8rem 1fr; }
 
-        
+        /* ── topnav ── */
         .topnav { background: #fff; padding: 4vh 5% 1vh 5%; display: flex; justify-content: space-between; align-items: flex-end; }
         .logo-area { padding-left: 5%; flex-shrink: 0; }
         .logo-img { height: 4rem; width: auto; transition: transform 0.3s; cursor: pointer; }
@@ -40,7 +40,7 @@
         .nav-menu-item { font-family: 'Noto Sans KR'; font-size: 0.85rem; color: #495057; text-decoration: none; transition: 0.2s; cursor: pointer; background: none; border: none; padding: 0; }
         .nav-menu-item:hover, .nav-menu-item.active { color: #212529; font-weight: 700; border-bottom: 2px solid #212529; }
 
-        
+        /* ── tab bar ── */
         .tab-bar { display: flex; padding: 0 15%; gap: 4px; margin-top: 3vh; }
         .tab-btn {
             flex: 1; padding: 10px 5px; font-size: 0.8rem; border: 1px solid #eee; border-bottom: none;
@@ -51,21 +51,29 @@
         .tab-btn.active[data-idx="1"] { background: #7392D5; color: #fff; }
         .tab-btn.active[data-idx="2"] { background: #c0b840; color: #fff; }
 
-        
-        .subtab-bar { display: flex; margin: 0 15%; background: #f1f3f5; overflow: hidden; height: 0; transition: 0.2s; border-radius: 0 0 8px 8px; }
+        /* ── subtab bar ── */
+        .subtab-bar {
+            display: flex; margin: 0 15%; background: #f1f3f5;
+            overflow: hidden; height: 0; transition: height 0.2s ease;
+            border-radius: 0 0 8px 8px;
+        }
         body.has-subtab .subtab-bar { height: 2.4rem; }
-        .subtab-btn { flex: 1; border: none; background: none; cursor: pointer; font-size: 0.78rem; transition: 0.2s; font-family: 'Noto Sans KR'; }
-        .subtab-btn.active { background: #fff; font-weight: 800; font-size: 0.89rem; color: #676565; box-shadow: inset 0 -33px 0 #ffffff; }
-        .subtab-divider { display: flex; align-items: center; justify-content: center; padding: 0 54px; color: #495057; font-weight: 300; font-size: 0.9rem; background: #fff; user-select: none; transition: color 0.15s ease; cursor: pointer; }
-        .subtab-divider:hover { font-weight: 700; color: #212529; }
 
-        
+        .subtab-btn {
+            flex: 1; border: none; background: none; cursor: pointer;
+            font-size: 0.72rem; transition: 0.2s; font-family: 'Noto Sans KR';
+            white-space: nowrap; padding: 0 4px;
+        }
+        .subtab-btn.active {
+            background: #fff; font-weight: 800;
+            color: #676565; box-shadow: inset 0 -33px 0 #ffffff;
+        }
+
+        /* ── iframe area ── */
         .iframe-wrap { padding: 20px 20%; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         .iframe-inner { width: 100%; flex: 1; background: #fff; position: relative; min-height: 600px; height: 600px; }
 
-        
-
-        
+        /* ── preload overlay ── */
         #preload-overlay {
             position: fixed; inset: 0; background: #fff; z-index: 2000;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
@@ -83,7 +91,7 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        
+        /* ── tab loading overlay ── */
         #tab-loading-overlay {
             position: absolute; inset: 0; background: #fff;
             display: none; flex-direction: column;
@@ -106,7 +114,7 @@
             border-radius: 99px; transition: width 0.28s ease;
         }
 
-        
+        /* ── iframes ── */
         iframe {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -147,16 +155,10 @@
     <button class="tab-btn" data-idx="1" onclick="switchTab(1)">연구 현황 트리맵</button>
 </div>
 
-<div class="subtab-bar" id="subtab-bar">
-    <button class="subtab-btn active" id="subtab-0" onclick="switchSubtab(0)"></button>
-    <span class="subtab-divider" onclick="switchSubtab(currentSubIdx === 0 ? 1 : 0)">⇠ switch ⇢</span>
-    <button class="subtab-btn" id="subtab-1" onclick="switchSubtab(1)"></button>
-</div>
+<div class="subtab-bar" id="subtab-bar"></div>
 
 <div class="iframe-wrap">
     <div class="iframe-inner" id="iframe-container">
-        
-        
         <div id="tab-loading-overlay">
             <div class="tab-loading-label" id="tab-loading-label">Data를 불러오는 중...</div>
             <div class="tab-progress-track">
@@ -168,31 +170,83 @@
 
 <script>
 
+/* ═══════════════════════════════════════════════
+   TAB / SUBTAB 구성
+   ═══════════════════════════════════════════════ */
 const TABS = [
     {
+        label: '연도별 연구 추이',
         hasSub: false,
-        src: "https://datastudio.google.com/embed/reporting/de270d05-8f95-4e63-8a69-0b9c1191fcef/page/JfDwF"
+        src: "https://datastudio.google.com/embed/reporting/de270d05-8f95-4e63-8a69-0b9c1191fcef/page/JfDwF",
+        priority: true   // ← 초기 로딩 대상
     },
     {
-        hasSub: false,
-        src: "https://datastudio.google.com/embed/reporting/03549855-8e2d-4e3f-95ed-7f823d65d336/page/jluvF"
+        label: '연구 현황 트리맵',
+        hasSub: true,
+        priority: false,
+        sub: [
+            {
+                label: '전체 영역 트리맵',
+                src: "https://datastudio.google.com/embed/reporting/03549855-8e2d-4e3f-95ed-7f823d65d336/page/jluvF",
+                priority: false
+            },
+            {
+                label: '컴퓨팅 시스템 영역 트리맵',
+                src: "https://datastudio.google.com/embed/reporting/86edf0c4-d073-41eb-acd6-023f7a57e7a6/page/jluvF",
+                priority: false
+            },
+            {
+                label: '데이터 영역 트리맵',
+                src: "https://datastudio.google.com/embed/reporting/cf893fdd-3649-4997-95d7-20d9380db822/page/jluvF",
+                priority: false
+            },
+            {
+                label: '알고리즘 영역 트리맵',
+                src: "https://datastudio.google.com/embed/reporting/ac3c549a-66f8-4a2d-bbd6-265c81e2578b/page/jluvF",
+                priority: false
+            },
+            {
+                label: '프로그래밍 영역 트리맵',
+                src: "https://datastudio.google.com/embed/reporting/6a9f1801-9335-4868-be24-a4f229f66e6a/page/jluvF",
+                priority: false
+            },
+            {
+                label: '인공지능 영역 트리맵',
+                src: "https://datastudio.google.com/embed/reporting/394de2bd-f639-4f78-ae83-e5cb241caa36/page/jluvF",
+                priority: false
+            },
+            {
+                label: '디지털 문화 영역 트리맵',
+                src: "https://datastudio.google.com/embed/reporting/75c1d714-d9dd-41dc-983a-84b04afb11f6/page/jluvF",
+                priority: false
+            }
+        ]
     },
     {
+        label: '차원별 연구 현황',
         hasSub: false,
-        src: "https://datastudio.google.com/embed/reporting/6eaefea0-492f-464d-a864-87abd6c05112/page/YpqxF"
+        src: "https://datastudio.google.com/embed/reporting/6eaefea0-492f-464d-a864-87abd6c05112/page/YpqxF",
+        priority: true   // ← 초기 로딩 대상
     },
 ];
 
-const LOOKER_RENDER_DELAY = 4000;   
-const PER_TIMEOUT         = 20000;  
+/* ═══════════════════════════════════════════════
+   상수 및 상태
+   ═══════════════════════════════════════════════ */
+const LOOKER_RENDER_DELAY  = 4000;
+const PER_TIMEOUT          = 20000;
 
-let currentTabIdx = 0;
-let currentSubIdx = 0;
+let currentTabIdx  = 0;
+let currentSubIdx  = 0;
+let treemapSubsLoaded = false;   // 트리맵 하위 탭 lazy-load 시작 여부
 
-const iframeState = {};
+const iframeState  = {};         // src → { iframe, loaded, ready, slotIdx }
 
 var _tabProgressTimer = null, _tabProgressPct = 0;
 
+/* ═══════════════════════════════════════════════
+   탭 전환 로딩 오버레이
+   ═══════════════════════════════════════════════ */
 function showTabOverlay() {
     var ov  = document.getElementById('tab-loading-overlay');
     var bar = document.getElementById('tab-progress-bar');
@@ -225,41 +279,70 @@ function hideTabOverlay() {
     }, 300);
 }
 
-function getAllSrcs() {
-    const srcs = [];
-    TABS.forEach(tab => {
-        if (!tab.hasSub) srcs.push(tab.src);
-        else tab.sub.forEach(s => srcs.push(s.src));
-    });
-    return srcs;
+/* ═══════════════════════════════════════════════
+   iframe 생성 + 로드 추적
+   ═══════════════════════════════════════════════ */
+function createIframe(src, isActive, slotIdx, onReady) {
+    const container = document.getElementById('iframe-container');
+    const iframe = document.createElement('iframe');
+    iframe.dataset.src     = src;
+    iframe.allow           = 'fullscreen';
+    iframe.allowFullscreen = true;
+    if (isActive) iframe.classList.add('active');
+    container.appendChild(iframe);
+
+    iframeState[src] = { iframe, loaded: false, ready: false, slotIdx };
+
+    let loadDone = false;
+    function onLoaded() {
+        if (loadDone) return;
+        loadDone = true;
+        iframeState[src].loaded = true;
+        setTimeout(() => {
+            if (iframeState[src].ready) return;
+            iframeState[src].ready = true;
+            if (onReady) onReady(src);
+        }, LOOKER_RENDER_DELAY);
+    }
+
+    iframe.addEventListener('load',  onLoaded);
+    iframe.addEventListener('error', onLoaded);
+    setTimeout(onLoaded, PER_TIMEOUT);
+    iframe.src = src;
+
+    return iframe;
 }
 
-function preloadAll() {
-    const container = document.getElementById('iframe-container');
-    const bar       = document.getElementById('preload-bar');
-    const countEl   = document.getElementById('preload-count');
-    const overlay   = document.getElementById('preload-overlay');
-    const allSrcs   = getAllSrcs();
-    const total     = allSrcs.length;
-    let   readyCnt  = 0;
-    let   dismissed = false;
+/* ═══════════════════════════════════════════════
+   초기 preload: priority === true 인 3개만 로드
+   ═══════════════════════════════════════════════ */
+function preloadPriority() {
+    const bar     = document.getElementById('preload-bar');
+    const countEl = document.getElementById('preload-count');
+    const overlay = document.getElementById('preload-overlay');
 
-    
+    // priority src 목록 수집
+    const prioritySrcs = [];
+    TABS.forEach(tab => {
+        if (!tab.hasSub && tab.priority) prioritySrcs.push(tab.src);
+        if (tab.hasSub) tab.sub.forEach(s => { if (s.priority) prioritySrcs.push(s.src); });
+    });
 
-    const SLOT = 100 / total;          
+    const total   = prioritySrcs.length;
+    let readyCnt  = 0;
+    let dismissed = false;
 
-    
-    const slotPct   = new Array(total).fill(0);
-    const slotTimer = new Array(total).fill(null);
+    countEl.textContent = `0 / ${total}`;
 
-    
+    const SLOT     = 100 / total;
+    const slotPct  = new Array(total).fill(0);
+    const slotTimer= new Array(total).fill(null);
+
     function renderBar() {
         if (dismissed) return;
         const v = slotPct.reduce((s, p) => s + p * SLOT / 100, 0);
         bar.style.width = Math.min(v, 99.9).toFixed(1) + '%';
     }
-
-    
     function slotFill(i, target, stepMs) {
         if (slotTimer[i]) { clearInterval(slotTimer[i]); slotTimer[i] = null; }
         if (dismissed) return;
@@ -270,37 +353,11 @@ function preloadAll() {
             if (slotPct[i] >= target) { clearInterval(slotTimer[i]); slotTimer[i] = null; }
         }, stepMs);
     }
-
-    
     function slotAdvance(i, target) {
         if (slotTimer[i]) { clearInterval(slotTimer[i]); slotTimer[i] = null; }
         slotPct[i] = Math.max(slotPct[i], target);
         renderBar();
     }
-
-    const firstSrc = TABS[0].hasSub ? TABS[0].sub[0].src : TABS[0].src;
-
-    
-    allSrcs.forEach((src, i) => {
-        const iframe = document.createElement('iframe');
-        iframe.dataset.src     = src;
-        iframe.allow           = 'fullscreen';
-        iframe.allowFullscreen = true;
-        if (src === firstSrc) iframe.classList.add('active');
-        container.appendChild(iframe);
-        iframeState[src] = { iframe, loaded: false, ready: false, slotIdx: i };
-    });
-
-    function onOneReady(src) {
-        if (iframeState[src].ready) return;
-        iframeState[src].ready = true;
-        readyCnt++;
-        const i = iframeState[src].slotIdx;
-        slotAdvance(i, 100);                          
-        countEl.textContent = `${readyCnt} / ${total}`;
-        if (readyCnt >= total) dismiss();
-    }
-
     function dismiss() {
         if (dismissed) return;
         dismissed = true;
@@ -315,73 +372,79 @@ function preloadAll() {
         }, 300);
     }
 
-    
-    allSrcs.forEach((src) => {
-        const state  = iframeState[src];
-        const iframe = state.iframe;
-        const i      = state.slotIdx;
+    // 첫 번째 priority src는 active 상태로
+    const firstActiveSrc = prioritySrcs[0];
 
-        
+    prioritySrcs.forEach((src, i) => {
         slotAdvance(i, 15);
-        slotFill(i, 70, 80);         
+        slotFill(i, 70, 80);
 
-        let loadDone = false;
-        function onLoaded() {
-            if (loadDone) return;
-            loadDone = true;
-            state.loaded = true;
-            slotAdvance(i, 75);      
-            slotFill(i, 91, 100);    
-            setTimeout(() => onOneReady(src), LOOKER_RENDER_DELAY);
-        }
-
-        iframe.addEventListener('load',  onLoaded);
-        iframe.addEventListener('error', onLoaded);
-        setTimeout(onLoaded, PER_TIMEOUT);
-        iframe.src = src;
+        createIframe(src, src === firstActiveSrc, i, (doneSrc) => {
+            const idx = prioritySrcs.indexOf(doneSrc);
+            slotAdvance(idx, 100);
+            readyCnt++;
+            countEl.textContent = `${readyCnt} / ${total}`;
+            if (readyCnt >= total) dismiss();
+        });
     });
 
-    
-    allSrcs.forEach((_, i) => slotFill(i, 5, 60));
+    prioritySrcs.forEach((_, i) => slotFill(i, 5, 60));
     setTimeout(dismiss, 90000);
 }
 
-function showIframe(src) {
-    
-    document.querySelectorAll('#iframe-container iframe').forEach(f => {
-        f.classList.remove('active');
+/* ═══════════════════════════════════════════════
+   트리맵 하위 탭 전체 로드 (탭 클릭 시 즉시)
+   ═══════════════════════════════════════════════ */
+function lazyLoadTreemapSubs() {
+    if (treemapSubsLoaded) return;
+    treemapSubsLoaded = true;
+
+    const treemapTab = TABS[1]; // '연구 현황 트리맵'
+    treemapTab.sub.forEach((sub, i) => {
+        if (iframeState[sub.src]) return;   // 이미 생성된 iframe은 스킵
+        createIframe(sub.src, false, 100 + i, null);
     });
+}
+
+/* ═══════════════════════════════════════════════
+   iframe 보이기
+   ═══════════════════════════════════════════════ */
+function showIframe(src) {
+    document.querySelectorAll('#iframe-container iframe').forEach(f => f.classList.remove('active'));
+
+    // 아직 iframe이 생성되지 않은 경우 (lazy-load 전 접근 등) 대비
+    if (!iframeState[src]) {
+        createIframe(src, true, 999, null);
+    }
 
     const state = iframeState[src];
-    if (!state) return;
-
     if (state.ready) {
-        
         state.iframe.classList.add('active');
         hideTabOverlay();
     } else {
-        
         showTabOverlay();
-        
         var poll = setInterval(() => {
             if (iframeState[src] && iframeState[src].ready) {
                 clearInterval(poll);
-                state.iframe.classList.add('active');
+                iframeState[src].iframe.classList.add('active');
                 hideTabOverlay();
             }
         }, 200);
-        
         setTimeout(() => {
             clearInterval(poll);
-            state.iframe.classList.add('active');
+            if (iframeState[src]) iframeState[src].iframe.classList.add('active');
             hideTabOverlay();
         }, 30000);
     }
 }
 
+/* ═══════════════════════════════════════════════
+   탭 전환
+   ═══════════════════════════════════════════════ */
 function switchTab(idx) {
     currentTabIdx = idx;
     currentSubIdx = 0;
+
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`.tab-btn[data-idx="${idx}"]`).classList.add('active');
 
@@ -390,37 +453,55 @@ function switchTab(idx) {
 
     if (tabData.hasSub) {
         body.classList.add('has-subtab');
-        updateSubtabLabels(idx, 0);
+        renderSubtabBar(idx, 0);
+
+        // 트리맵 탭 클릭 즉시 → 모든 트리맵 iframe 로딩 시작
+        lazyLoadTreemapSubs();
+
         showIframe(tabData.sub[0].src);
     } else {
         body.classList.remove('has-subtab');
+        clearSubtabBar();
         showIframe(tabData.src);
     }
 }
 
-function switchSubtab(sIdx) {
-    currentSubIdx = sIdx;
-    const tabData = TABS[currentTabIdx];
-    updateSubtabLabels(currentTabIdx, sIdx);
-    showIframe(tabData.sub[sIdx].src);
-}
-
-function updateSubtabLabels(tabIdx, activeSubIdx) {
+/* ═══════════════════════════════════════════════
+   서브탭 바 렌더
+   ═══════════════════════════════════════════════ */
+function renderSubtabBar(tabIdx, activeSubIdx) {
+    const bar     = document.getElementById('subtab-bar');
     const tabData = TABS[tabIdx];
-    document.querySelectorAll('.subtab-btn').forEach((btn, i) => {
-        const isActive = i === activeSubIdx;
-        btn.classList.toggle('active', isActive);
-        btn.textContent = (isActive ? '➯ ' : '') + tabData.sub[i].label;
+    bar.innerHTML = '';
+
+    tabData.sub.forEach((sub, i) => {
+        const btn = document.createElement('button');
+        btn.className  = 'subtab-btn' + (i === activeSubIdx ? ' active' : '');
+        btn.textContent = sub.label;
+        btn.onclick = () => switchSubtab(i);
+        bar.appendChild(btn);
     });
 }
 
+function clearSubtabBar() {
+    document.getElementById('subtab-bar').innerHTML = '';
+}
+
+/* ═══════════════════════════════════════════════
+   서브탭 전환
+   ═══════════════════════════════════════════════ */
+function switchSubtab(sIdx) {
+    currentSubIdx = sIdx;
+    const tabData = TABS[currentTabIdx];
+    renderSubtabBar(currentTabIdx, sIdx);
+    showIframe(tabData.sub[sIdx].src);
+}
+
+/* ═══════════════════════════════════════════════
+   초기화
+   ═══════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
-    const firstTab = TABS[0];
-    if (firstTab.hasSub) {
-        document.getElementById('main-body').classList.add('has-subtab');
-        updateSubtabLabels(0, 0);
-    }
-    preloadAll();
+    preloadPriority();
 });
 </script>
 <script src="common.js"></script>
