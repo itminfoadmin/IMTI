@@ -194,6 +194,8 @@
         .btn-align:hover { background: #495057; color: #fff; border-color: #495057; }
         .btn-add-new { border-color: #343a40; background: #343a40; color: #fff; font-weight: 900; letter-spacing: 0.06em; }
         .btn-add-new:hover { background: #212529; color: #fff; border-color: #212529; }
+        .btn-searching-mti { border-color: #495057; background: #495057; color: #fff; font-weight: 900; letter-spacing: 0.06em; }
+        .btn-searching-mti:hover { background: #343a40; color: #fff; border-color: #343a40; }
 
         /* List area (scrollable) */
         .list-area {
@@ -566,6 +568,7 @@
     <div class="align-bar">
         <button class="btn-align" id="btn-align-name" onclick="alignByName()">Align by MTI-NAME(ASC)</button>
         <button class="btn-align" id="btn-align-id"   onclick="alignById()">Align by MTI-ID(ASC)</button>
+        <button class="btn-align" onclick="window.open('ad_mti-searching.html','SearchingMTI','width=1100,height=780,left='+Math.round((screen.width-1100)/2)+',top='+Math.round((screen.height-780)/2)+',resizable=yes,scrollbars=yes')">Searching_MTI</button>
         <button class="btn-align btn-add-new" onclick="openAddModal()">Add-New-MTI</button>
     </div>
 
