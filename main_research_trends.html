@@ -233,12 +233,13 @@ const TABS = [
 /* ═══════════════════════════════════════════════
    상수 및 상태
    ═══════════════════════════════════════════════ */
-const LOOKER_RENDER_DELAY  = 4000;
-const PER_TIMEOUT          = 20000;
+const LOOKER_RENDER_DELAY          = 4000;  // 일반 iframe 렌더 대기
+const LOOKER_RENDER_DELAY_TREEMAP  = 1500;  // 트리맵 서브탭 렌더 대기 (단축)
+const PER_TIMEOUT                  = 20000;
 
 let currentTabIdx  = 0;
 let currentSubIdx  = 0;
-let treemapSubsLoaded = false;   // 트리맵 하위 탭 lazy-load 시작 여부
+let treemapSubsLoaded = false;   // 트리맵 첫 번째 서브탭 lazy-load 시작 여부
 
 const iframeState  = {};         // src → { iframe, loaded, ready, slotIdx }
 
@@ -282,7 +283,7 @@ function hideTabOverlay() {
 /* ═══════════════════════════════════════════════
    iframe 생성 + 로드 추적
    ═══════════════════════════════════════════════ */
-function createIframe(src, isActive, slotIdx, onReady) {
+function createIframe(src, isActive, slotIdx, onReady, renderDelay) {
     const container = document.getElementById('iframe-container');
     const iframe = document.createElement('iframe');
     iframe.dataset.src     = src;
@@ -302,7 +303,7 @@ function createIframe(src, isActive, slotIdx, onReady) {
             if (iframeState[src].ready) return;
             iframeState[src].ready = true;
             if (onReady) onReady(src);
-        }, LOOKER_RENDER_DELAY);
+        }, renderDelay !== undefined ? renderDelay : LOOKER_RENDER_DELAY);
     }
 
     iframe.addEventListener('load',  onLoaded);
@@ -372,7 +373,7 @@ function preloadPriority() {
         }, 300);
     }
 
-    // 첫 번째 priority src는 active 상태로
+    // 첫 번째 priority src는 active 상태로 → 완료되는 순간 overlay 닫기
     const firstActiveSrc = prioritySrcs[0];
 
     prioritySrcs.forEach((src, i) => {
@@ -384,7 +385,13 @@ function preloadPriority() {
             slotAdvance(idx, 100);
             readyCnt++;
             countEl.textContent = `${readyCnt} / ${total}`;
-            if (readyCnt >= total) dismiss();
+            // 첫 번째(현재 보여줄) 탭만 완료되면 즉시 overlay 닫기
+            // 나머지는 백그라운드에서 계속 로드
+            if (doneSrc === firstActiveSrc) {
+                dismiss();
+                // overlay가 닫히자마자 트리맵 전체 백그라운드 로딩 시작
+                lazyLoadTreemapSubs();
+            }
         });
     });
 
@@ -393,17 +400,52 @@ function preloadPriority() {
 }
 
 /* ═══════════════════════════════════════════════
-   트리맵 하위 탭 전체 로드 (탭 클릭 시 즉시)
+   트리맵 첫 번째 서브탭(전체 영역 트리맵)만 로드 (탭 클릭 시)
+   나머지는 각 서브탭 클릭 시 lazy-load
    ═══════════════════════════════════════════════ */
 function lazyLoadTreemapSubs() {
     if (treemapSubsLoaded) return;
     treemapSubsLoaded = true;
 
     const treemapTab = TABS[1]; // '연구 현황 트리맵'
-    treemapTab.sub.forEach((sub, i) => {
-        if (iframeState[sub.src]) return;   // 이미 생성된 iframe은 스킵
-        createIframe(sub.src, false, 100 + i, null);
-    });
+
+    // 첫 번째(전체 영역) 즉시 로드
+    const firstSub = treemapTab.sub[0];
+    if (!iframeState[firstSub.src]) {
+        createIframe(firstSub.src, false, 100, null, LOOKER_RENDER_DELAY_TREEMAP);
+    }
+
+    // 나머지는 첫 번째가 ready 된 후 백그라운드에서 순차 로드 (UX 방해 없이)
+    const restSubs = treemapTab.sub.slice(1);
+    let restIdx = 0;
+    function loadNext() {
+        if (restIdx >= restSubs.length) return;
+        const sub = restSubs[restIdx++];
+        if (!iframeState[sub.src]) {
+            createIframe(sub.src, false, 100 + restIdx, null, LOOKER_RENDER_DELAY_TREEMAP);
+        }
+        // 500ms 간격으로 순차 로드 (네트워크 부하 분산)
+        setTimeout(loadNext, 500);
+    }
+
+    // 전체 영역 트리맵이 ready 되면 나머지 순차 로드 시작
+    const pollReady = setInterval(() => {
+        if (iframeState[firstSub.src] && iframeState[firstSub.src].ready) {
+            clearInterval(pollReady);
+            setTimeout(loadNext, 300);
+        }
+    }, 300);
+    // 최대 15초 후에는 강제로 시작
+    setTimeout(() => { clearInterval(pollReady); loadNext(); }, 15000);
+}
+
+/* ═══════════════════════════════════════════════
+   서브탭 클릭 시 해당 iframe을 그때 생성 (lazy-load)
+   ═══════════════════════════════════════════════ */
+function ensureIframe(src, slotIdx, renderDelay) {
+    if (!iframeState[src]) {
+        createIframe(src, false, slotIdx, null, renderDelay);
+    }
 }
 
 /* ═══════════════════════════════════════════════
@@ -455,7 +497,7 @@ function switchTab(idx) {
         body.classList.add('has-subtab');
         renderSubtabBar(idx, 0);
 
-        // 트리맵 탭 클릭 즉시 → 모든 트리맵 iframe 로딩 시작
+        // 트리맵 탭 클릭 즉시 → 첫 번째 서브탭(전체 영역 트리맵)만 로딩 시작
         lazyLoadTreemapSubs();
 
         showIframe(tabData.sub[0].src);
@@ -494,7 +536,12 @@ function switchSubtab(sIdx) {
     currentSubIdx = sIdx;
     const tabData = TABS[currentTabIdx];
     renderSubtabBar(currentTabIdx, sIdx);
-    showIframe(tabData.sub[sIdx].src);
+
+    const sub = tabData.sub[sIdx];
+    // 아직 생성되지 않은 서브탭 iframe은 클릭 시점에 lazy-load
+    ensureIframe(sub.src, 100 + sIdx, LOOKER_RENDER_DELAY_TREEMAP);
+
+    showIframe(sub.src);
 }
 
 /* ═══════════════════════════════════════════════
