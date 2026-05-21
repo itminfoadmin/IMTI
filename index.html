@@ -121,10 +121,11 @@
             gap            : 0;
             margin-bottom  : 14px;
             justify-content: center;
+            margin-right   : 14%;
         }
         .join-lbl {
             font-family    : 'Noto Sans KR', sans-serif;
-            font-size      : 0.9rem;
+            font-size      : 0.7rem;
             font-weight    : 100;
             color          : #343a40;
             width          : 110px;
@@ -136,7 +137,7 @@
             white-space    : nowrap;
             box-sizing     : border-box;
         }
-        .join-input-wrap { flex: 1; position: relative; max-width: 60%; }
+        .join-input-wrap { flex: 1; position: relative; max-width: 53.5%; }
         .join-inp {
             width        : 100%;
             border       : 1px solid #dee2e6;
@@ -519,20 +520,20 @@
             Contact-Us
         </div>
         <p style="font-size:0.78rem; color:#868e96; line-height:1.7; margin-bottom:22px;">
-            IMTI 운영팀에 문의 사항을 남겨주세요.<br>
+            IMTI 운영팀에게 문의 사항을 남겨주세요.<br>
             <span style="font-size:0.72rem;">Please leave your inquiry for the IMTI team.</span>
         </p>
         <div class="contact-field">
             <label>Your e-mail</label>
-            <input type="email" id="contact-from" placeholder="회신받으실 이메일 주소를 입력해주세요." oninput="validateContactForm()">
+            <input type="email" id="contact-from" placeholder="회신받으실 이메일 주소를 입력하세요." oninput="validateContactForm()">
         </div>
         <div class="contact-field">
             <label>Subject</label>
-            <input type="text" id="contact-subject" placeholder="문의 제목을 입력해주세요." oninput="validateContactForm()">
+            <input type="text" id="contact-subject" placeholder="문의 제목을 입력하세요." oninput="validateContactForm()">
         </div>
         <div class="contact-field">
             <label>Message</label>
-            <textarea id="contact-body" rows="5" placeholder="문의 내용을 입력해주세요. (비밀번호 분실 신고 시 ID도 함께 기입해 주세요.)" oninput="validateContactForm()"></textarea>
+            <textarea id="contact-body" rows="5" placeholder="문의 내용(비밀번호 분실시에는 회원 ID 포함)을 입력하세요." oninput="validateContactForm()"></textarea>
         </div>
         <button id="contact-send-btn" onclick="sendContactMail()" disabled>
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -580,28 +581,47 @@
 
         <div style="background:#f8f9fa; border:1px solid #e9ecef; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-family:'Noto Sans KR',sans-serif; font-size:0.78rem; line-height:1.7; color:#495057; word-break:keep-all;">
             <p style="margin:0 0 10px;">『Inventory of Models of Teaching for Informatics』는 지금까지 연구되고 적용된 정보 교과의 수업 모형을 공유하기 위한 웹 사이트로, 본 웹 사이트를 정상적으로 이용하기 위해서는 회원 가입이 필요합니다. 회원 가입을 위해서는 아래의 정보(e-mail 주소)를 제공하여야 합니다. 제공된 정보는 본 웹 사이트 이용에만 이용되며 다른 목적으로 이용되지 않습니다. (비밀번호는 암호화되어 저장됩니다.)</p>
-            <p style="margin:0; color:#6c757d; font-family:'DM Mono',monospace; font-size:0.78rem; line-height:1.7;">The 『Inventory of Models of Teaching for Informatics』 is a website designed to share instructional models for informatics education. To access this website, user registration is required. The information you provide will be used solely for the purpose of accessing this website.</p>
+            <p style="margin:0; color:#6c757d; font-family:'Noto Sans KR',sans-serif; font-size:0.75rem; line-height:1.7;">The 『Inventory of Models of Teaching for Informatics』 is a website designed to share instructional models for informatics education. To access this website, user registration is required. The information you provide will be used solely for the purpose of accessing this website.</p>
         </div>
 
         <div style="margin-bottom:4px;">
+            <!-- e-mail row -->
+            <div class="join-row">
+                <span class="join-lbl">e-mail :</span>
+                <div class="join-input-wrap" style="position:relative;">
+                    <input type="email" id="join-email" placeholder="이메일 주소를 입력하세요." class="join-inp" oninput="checkJoinForm()">
+                    <button id="join-send-code-btn" onclick="sendVerificationCode()"
+                            style="position:absolute; right:-137px; top:0; bottom:0; width:129px; background:#343a40; color:#fff; border:none; border-radius:6px; padding:0 6px; font-family:'Noto Sans KR',sans-serif; font-size:0.7rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:background 0.2s; line-height:1; text-align:center;"
+                            onmouseover="if(!this.disabled) this.style.background='#1a56db'"
+                            onmouseout="if(!this.disabled) this.style.background='#343a40'">인증코드 발송</button>
+                </div>
+            </div>
+            <!-- verification code row (hidden until code sent) -->
+            <div class="join-row" id="join-verify-row" style="display:none;">
+                <span class="join-lbl">verification :</span>
+                <div class="join-input-wrap" style="position:relative;">
+                    <input type="text" id="join-verify-code" placeholder="e-mail로 발송된 인증코드를 입력하세요." class="join-inp" maxlength="6" oninput="checkJoinForm()">
+                    <button onclick="verifyCode()"
+                            style="position:absolute; right:-137px; top:0; bottom:0; width:129px; background:#495057; color:#fff; border:none; border-radius:6px; padding:0 6px; font-family:'Noto Sans KR',sans-serif; font-size:0.7rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:background 0.2s; line-height:1; text-align:center;"
+                            onmouseover="this.style.background='#1a56db'"
+                            onmouseout="this.style.background='#495057'">확인</button>
+                    <div id="join-verify-msg" style="position:absolute; left:0; top:calc(100% + 3px); font-family:'Noto Sans KR',sans-serif; font-size:0.61rem; color:#868e96;"></div>
+                </div>
+            </div>
+            <!-- ID row -->
             <div class="join-row">
                 <span class="join-lbl">ID :</span>
                 <div class="join-input-wrap">
-                    <input type="text" id="join-id" placeholder="사용하실 ID를 입력해주세요." class="join-inp" oninput="checkJoinForm()">
+                    <input type="text" id="join-id" placeholder="사용하실 ID를 입력해주세요." class="join-inp" oninput="checkJoinForm()" disabled style="background:#f1f3f5; color:#adb5bd; cursor:not-allowed;">
                 </div>
             </div>
-            <div class="join-row">
-                <span class="join-lbl">e-mail :</span>
-                <div class="join-input-wrap">
-                    <input type="email" id="join-email" placeholder="이메일 주소를 입력해주세요." class="join-inp" oninput="checkJoinForm()">
-                </div>
-            </div>
+            <!-- password row -->
             <div class="join-row" style="align-items:flex-start;">
                 <span class="join-lbl">password :</span>
-                <div class="join-input-wrap">
-                    <input type="password" id="join-pw" placeholder="사용하실 패스워드를 입력해주세요." class="join-inp" oninput="checkJoinForm()">
-                    <div style="margin-top:5px; font-family:'Noto Sans KR',sans-serif; font-size:0.61rem; color:#e03131;">
-                        비밀번호는 영문, 숫자, 특수문자(!@#$% 등)를 포함하여 13자리 이상으로 설정해 주세요.
+                <div class="join-input-wrap" style="position:relative;">
+                    <input type="password" id="join-pw" placeholder="사용하실 패스워드를 입력해주세요." class="join-inp" oninput="checkJoinForm()" disabled style="background:#f1f3f5; color:#adb5bd; cursor:not-allowed;">
+                    <div style="position:absolute; right:-137px; top:0; width:129px; font-family:'Noto Sans KR',sans-serif; font-size:0.61rem; color:#e03131; line-height:1.5; word-break:keep-all;">
+                        13자리 이상 설정<br>(영문자+숫자+특수문자)
                     </div>
                 </div>
             </div>
@@ -609,10 +629,65 @@
 
         <div style="margin-top:22px; text-align:center;">
             <button id="join-confirm-btn" onclick="handleJoinConfirm()" disabled
-                    style="background:#e9ecef; color:#adb5bd; border:none; border-radius:8px; padding:12px 60px; font-family:'Noto Sans KR',sans-serif; font-size:0.95rem; font-weight:700; cursor:not-allowed; transition:all 0.2s; letter-spacing:0.05em;">
+                    style="background:#e9ecef; color:#adb5bd; border:none; border-radius:7px; padding:10px 51px; font-family:'Noto Sans KR',sans-serif; font-size:0.808rem; font-weight:700; cursor:not-allowed; transition:all 0.2s; letter-spacing:0.05em;">
                 확인 (Confirm)
             </button>
         </div>
+    </div>
+</div>
+
+<div id="modal-join-noEmail" class="modal-overlay" style="z-index:300;" onclick="outsideClose(event,'modal-join-noEmail')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:48px 40px 36px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; color:#222; margin:0 0 10px; font-weight:400; line-height:1.8; word-break:keep-all;">이메일 주소를 먼저 입력해주세요.</p>
+        <p style="font-family:'DM Mono',monospace; font-size:0.75rem; color:#444; margin:0 0 36px; line-height:1.8;">Please enter your e-mail address first.</p>
+        <button onclick="closeModal('modal-join-noEmail')"
+                style="background:#f8f8f8; color:#222; border:1.5px solid #bbb; border-radius:6px; padding:9px 39px; font-family:'Noto Sans KR',sans-serif; font-size:0.765rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+                onmouseout="this.style.background='#f8f8f8'; this.style.color='#222'; this.style.borderColor='#bbb'">확인 (Confirm)</button>
+    </div>
+</div>
+
+<div id="modal-join-codeSent" class="modal-overlay" style="z-index:300;" onclick="outsideClose(event,'modal-join-codeSent')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:48px 40px 36px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; color:#222; margin:0 0 10px; font-weight:400; line-height:1.8; word-break:keep-all;">인증코드가 발송되었습니다.<br>이메일을 확인해주세요.</p>
+        <p style="font-family:'DM Mono',monospace; font-size:0.75rem; color:#444; margin:0 0 36px; line-height:1.8;">Verification code has been sent.<br>Please check your e-mail.</p>
+        <button onclick="closeModal('modal-join-codeSent')"
+                style="background:#f8f8f8; color:#222; border:1.5px solid #bbb; border-radius:6px; padding:9px 39px; font-family:'Noto Sans KR',sans-serif; font-size:0.765rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+                onmouseout="this.style.background='#f8f8f8'; this.style.color='#222'; this.style.borderColor='#bbb'">확인 (Confirm)</button>
+    </div>
+</div>
+
+<div id="modal-join-verified" class="modal-overlay" style="z-index:300;" onclick="outsideClose(event,'modal-join-verified')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:48px 40px 36px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; color:#222; margin:0 0 10px; font-weight:400; line-height:1.8; word-break:keep-all;">이메일이 인증되었습니다.</p>
+        <p style="font-family:'DM Mono',monospace; font-size:0.75rem; color:#444; margin:0 0 36px; line-height:1.8;">Your e-mail has been verified.</p>
+        <button onclick="closeModal('modal-join-verified')"
+                style="background:#f8f8f8; color:#222; border:1.5px solid #bbb; border-radius:6px; padding:9px 39px; font-family:'Noto Sans KR',sans-serif; font-size:0.765rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+                onmouseout="this.style.background='#f8f8f8'; this.style.color='#222'; this.style.borderColor='#bbb'">확인 (Confirm)</button>
+    </div>
+</div>
+
+<div id="modal-join-serverErr" class="modal-overlay" style="z-index:300;" onclick="outsideClose(event,'modal-join-serverErr')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:48px 40px 36px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; color:#222; margin:0 0 10px; font-weight:400; line-height:1.8; word-break:keep-all;">서버 연결에 실패했습니다.<br>잠시 후 다시 시도해주세요.</p>
+        <p style="font-family:'DM Mono',monospace; font-size:0.75rem; color:#444; margin:0 0 36px; line-height:1.8;">Failed to connect to server.<br>Please try again later.</p>
+        <button onclick="closeModal('modal-join-serverErr')"
+                style="background:#f8f8f8; color:#222; border:1.5px solid #bbb; border-radius:6px; padding:9px 39px; font-family:'Noto Sans KR',sans-serif; font-size:0.765rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+                onmouseout="this.style.background='#f8f8f8'; this.style.color='#222'; this.style.borderColor='#bbb'">확인 (Confirm)</button>
+    </div>
+</div>
+
+<div id="modal-join-errVerify" class="modal-overlay" style="z-index:300;" onclick="outsideClose(event,'modal-join-errVerify')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:48px 40px 36px; text-align:center; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; color:#222; margin:0 0 10px; font-weight:400; line-height:1.8; word-break:keep-all;">인증코드가 잘못 입력되었습니다.</p>
+        <p style="font-family:'DM Mono',monospace; font-size:0.75rem; color:#444; margin:0 0 36px; line-height:1.8;">The verification code is incorrect.<br>Please try again.</p>
+        <button onclick="closeModal('modal-join-errVerify')"
+                style="background:#f8f8f8; color:#222; border:1.5px solid #bbb; border-radius:6px; padding:9px 39px; font-family:'Noto Sans KR',sans-serif; font-size:0.765rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+                onmouseout="this.style.background='#f8f8f8'; this.style.color='#222'; this.style.borderColor='#bbb'">확인 (Confirm)</button>
     </div>
 </div>
 
@@ -717,7 +792,7 @@
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.77rem; color:#222; margin:0 0 18px; font-weight:400; line-height:2; word-break:keep-all;">
             사용자 인증에 실패하였습니다. 회원인 경우에는 e-mail 주소와 패스워드를 확인하고 입력해주시고, 회원가입을 하지 않은 경우에는 회원가입 후에 이용해주세요. 비밀번호 분실시 LOG-IN 버튼 하단의 [Contact-Us]를 통해 비밀번호 분실 사실을 알리고 임시 비밀번호를 발급받으세요.
         </p>
-        <p style="font-family:'DM Mono',monospace; font-size:0.7rem; color:#444; margin:0 0 32px; line-height:1.85;">
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.7rem; color:#444; margin:0 0 32px; line-height:1.85;">
             User authentication failed. If you are a registered member, please verify and re-enter your email address and password; if you have not yet signed up, please register before proceeding. If you have forgotten your password, please use the [Contact Us] link located below the LOG-IN button to report the issue and request a temporary password.
         </p>
         <div style="text-align:center;">
@@ -1217,13 +1292,130 @@ async function handleLogin() {
     }
 }
 
+/* ── Verification code state ── */
+const VERIFY_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbza3A5nRk1I90rBpv5a_sW1iFhAYfkWTiECTfXUMxXont2u3lOmyxivpUBulq1NAZgPaA/exec';
+let _verifyEmail   = null;
+let _emailVerified = false;
+let _sendCodeTimer = null;
+
+async function sendVerificationCode() {
+    const email = (document.getElementById('join-email')?.value || '').trim();
+    if (!email) { openModal('modal-join-noEmail'); return; }
+
+    _verifyEmail   = email;
+    _emailVerified = false;
+
+    /* 버튼 로딩 상태 */
+    const btn = document.getElementById('join-send-code-btn');
+    if (btn) { btn.disabled = true; btn.style.background = '#adb5bd'; btn.style.cursor = 'not-allowed'; btn.innerHTML = '발송 중...'; }
+
+    try {
+        const ctrl = new AbortController();
+        const _t   = setTimeout(() => ctrl.abort(), 15000);
+        const res  = await fetch(
+            VERIFY_SCRIPT_URL + '?action=sendVerify&email=' + encodeURIComponent(email),
+            { method: 'GET', redirect: 'follow', cache: 'no-cache', signal: ctrl.signal }
+        ).then(r => { clearTimeout(_t); return r.json(); });
+
+        if (res.status === 'OK') {
+            /* 발송 성공 모달 */
+            openModal('modal-join-codeSent');
+
+            /* verification 행 표시 */
+            const row = document.getElementById('join-verify-row');
+            if (row) row.style.display = 'flex';
+            const msgEl = document.getElementById('join-verify-msg');
+            if (msgEl) { msgEl.textContent = ''; }
+
+            /* 60초 카운트다운 */
+            if (btn) {
+                let sec = 60;
+                const tick = () => {
+                    btn.innerHTML = sec + 's';
+                    if (--sec < 0) {
+                        clearInterval(_sendCodeTimer);
+                        btn.disabled = false;
+                        btn.style.background = '#343a40';
+                        btn.style.cursor = 'pointer';
+                        btn.innerHTML = '인증코드 발송';
+                    }
+                };
+                tick();
+                clearInterval(_sendCodeTimer);
+                _sendCodeTimer = setInterval(tick, 1000);
+            }
+        } else {
+            openModal('modal-join-serverErr');
+            if (btn) { btn.disabled = false; btn.style.background = '#343a40'; btn.style.cursor = 'pointer'; btn.innerHTML = '인증코드 발송'; }
+        }
+    } catch(e) {
+        console.error('[IMTI] sendVerify error:', e);
+        openModal('modal-join-serverErr');
+        if (btn) { btn.disabled = false; btn.style.background = '#343a40'; btn.style.cursor = 'pointer'; btn.innerHTML = '인증코드 발송'; }
+    }
+    checkJoinForm();
+}
+
+async function verifyCode() {
+    const input  = (document.getElementById('join-verify-code')?.value || '').trim();
+    const msgEl  = document.getElementById('join-verify-msg');
+    if (!input) { openModal('modal-join-errVerify'); return; }
+
+    const verifyBtn = document.querySelector('#join-verify-row button');
+    if (verifyBtn) { verifyBtn.disabled = true; verifyBtn.textContent = '확인 중...'; }
+
+    try {
+        const ctrl = new AbortController();
+        const _t   = setTimeout(() => ctrl.abort(), 10000);
+        const res  = await fetch(
+            VERIFY_SCRIPT_URL + '?action=checkVerify&email=' + encodeURIComponent(_verifyEmail) + '&code=' + encodeURIComponent(input),
+            { method: 'GET', redirect: 'follow', cache: 'no-cache', signal: ctrl.signal }
+        ).then(r => { clearTimeout(_t); return r.json(); });
+
+        if (res.status === 'OK') {
+            _emailVerified = true;
+            if (msgEl) { msgEl.textContent = ''; }
+            /* 인증 완료 시 ID/PW 활성화 */
+            const idEl = document.getElementById('join-id');
+            const pwEl = document.getElementById('join-pw');
+            if (idEl) { idEl.disabled = false; idEl.style.background = ''; idEl.style.color = ''; idEl.style.cursor = ''; }
+            if (pwEl) { pwEl.disabled = false; pwEl.style.background = ''; pwEl.style.color = ''; pwEl.style.cursor = ''; }
+            if (verifyBtn) { verifyBtn.disabled = true; verifyBtn.textContent = '확인 완료'; verifyBtn.style.background = '#adb5bd'; verifyBtn.style.cursor = 'not-allowed'; }
+            /* 인증코드 발송 버튼: 타이머 중단 후 비활성화 */
+            clearInterval(_sendCodeTimer);
+            const sendBtn = document.getElementById('join-send-code-btn');
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '인증코드 발송';
+                sendBtn.style.background = '#adb5bd';
+                sendBtn.style.cursor = 'not-allowed';
+            }
+            openModal('modal-join-verified');
+        } else if (res.status === 'EXPIRED') {
+            _emailVerified = false;
+            if (msgEl) { msgEl.style.color = '#e03131'; msgEl.textContent = '인증코드가 만료되었습니다. 재발송해주세요.'; }
+            if (verifyBtn) { verifyBtn.disabled = false; verifyBtn.textContent = '확인'; }
+        } else {
+            _emailVerified = false;
+            if (msgEl) { msgEl.textContent = ''; }
+            if (verifyBtn) { verifyBtn.disabled = false; verifyBtn.textContent = '확인'; }
+            openModal('modal-join-errVerify');
+        }
+    } catch(e) {
+        console.error('[IMTI] checkVerify error:', e);
+        if (verifyBtn) { verifyBtn.disabled = false; verifyBtn.textContent = '확인'; }
+        alert('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
+    checkJoinForm();
+}
+
 function checkJoinForm() {
     const id    = document.getElementById('join-id')?.value    || '';
     const email = document.getElementById('join-email')?.value || '';
     const pw    = document.getElementById('join-pw')?.value    || '';
     const btn   = document.getElementById('join-confirm-btn');
     if (!btn) return;
-    const ok         = id.trim().length > 0 && email.trim().length > 0 && isPasswordValid(pw);
+    const ok         = id.trim().length > 0 && email.trim().length > 0 && _emailVerified && isPasswordValid(pw);
     btn.disabled         = !ok;
     btn.style.background = ok ? '#343a40' : '#e9ecef';
     btn.style.color      = ok ? '#fff'    : '#adb5bd';
