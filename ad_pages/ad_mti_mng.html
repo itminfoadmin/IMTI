@@ -1022,8 +1022,10 @@ function toggleCard(id) {
 }
 
 /* Button handlers */
+let __docsOriginalUrl = '';
 function openDocsPreview(url, title) {
     if (!url) return;
+    __docsOriginalUrl = url;
     
     let embedUrl = url;
     if (url.includes('docs.google.com')) {
@@ -1034,6 +1036,31 @@ function openDocsPreview(url, title) {
     document.getElementById('docs-iframe').src = embedUrl;
     document.getElementById('docs-modal-title').textContent = title || url;
     document.getElementById('docs-modal').classList.add('active');
+}
+function printDocsPreview() {
+    if (!__docsOriginalUrl) return;
+    let pdfUrl = __docsOriginalUrl;
+    if (__docsOriginalUrl.includes('docs.google.com')) {
+        const base = __docsOriginalUrl.split('?')[0].split('#')[0]
+            .replace(/\/(edit|view|pub|preview|copy|export)(\/.*)?$/, '');
+        pdfUrl = base + '/export?format=pdf';
+    }
+    fetch(pdfUrl)
+        .then(res => res.blob())
+        .then(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'mti-printing.pdf';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        })
+        .catch(() => {
+            // fetch 실패(CORS 등) 시 fallback: 그냥 링크 다운로드
+            const a = document.createElement('a');
+            a.href = pdfUrl;
+            a.download = 'mti-printing.pdf';
+            a.click();
+        });
 }
 function closeDocsModal(e) {
     const overlay = document.getElementById('docs-modal');
@@ -1905,7 +1932,10 @@ window.__pageInit = loadAll;
         <div class="docs-box">
             <div class="docs-header">
                 <span class="docs-title" id="docs-modal-title">Google Docs Preview</span>
-                <button class="btn" onclick="document.getElementById('docs-modal').classList.remove('active');document.getElementById('docs-iframe').src='';" style="flex-shrink:0;">Close</button>
+                <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <button class="btn" id="docs-print-btn" onclick="printDocsPreview()">Print</button>
+                    <button class="btn" onclick="document.getElementById('docs-modal').classList.remove('active');document.getElementById('docs-iframe').src='';">Close</button>
+                </div>
             </div>
             <div class="docs-iframe-wrap">
                 <iframe class="docs-iframe" id="docs-iframe" src="" allowfullscreen></iframe>
