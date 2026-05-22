@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
-        
         :root {
             --gray-light  : #ced4da;
             --gray-mid    : #adb5bd;
@@ -18,9 +17,7 @@
             --gray-text   : #343a40;
             --gray-label  : #495057;
         }
-
         * { box-sizing: border-box; }
-
         body {
             font-family     : 'DM Mono', 'Noto Sans KR', monospace;
             background-color: #ffffff;
@@ -29,7 +26,7 @@
             min-height      : 100vh;
         }
 
-        
+        /* Slide dots */
         .slide-dot {
             width       : 10px;
             height      : 10px;
@@ -44,7 +41,7 @@
             border-color: #6c757d;
         }
 
-        
+        /* Dashboard layout */
         .side-cards  { width: 38%; display: flex; flex-direction: column; gap: 8px; }
         .stat-row    { height: 28%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .stat-card   {
@@ -86,7 +83,7 @@
         .action-card.light       { background: #cacaca; color: #495057; cursor: default; }
         .action-card.light:hover { background: #cacaca; }
 
-        
+        /* Modal */
         .modal-overlay {
             position       : fixed;
             inset          : 0;
@@ -114,7 +111,7 @@
             to   { opacity: 1; transform: scale(1)    translateY(0);    }
         }
 
-        
+        /* Join form */
         .join-row {
             display        : flex;
             align-items    : flex-start;
@@ -152,7 +149,7 @@
         }
         .join-inp:focus { border-color: #1a56db; }
 
-        
+        /* Laptop screen overlay */
         .screen-area {
             position      : absolute;
             top           : 9.8%;
@@ -206,7 +203,7 @@
             overflow       : hidden;
         }
 
-        
+        /* Warmup status indicator */
         #warmup-indicator {
             position      : fixed;
             bottom        : 12px;
@@ -221,7 +218,7 @@
         }
         #warmup-indicator.ready { color: #2b8a3e; }
 
-        
+        /* Contact modal overrides */
         #modal-contact           { z-index: 300; }
         #modal-contact .modal-box {
             max-width    : 520px;
@@ -315,10 +312,7 @@
             text-align : center;
         }
 
-        
         #modal-contact-success { z-index: 400; }
-
-        
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -329,10 +323,10 @@
 <div style="position:relative; z-index:1; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px 48px; padding-top:10vh;">
     <div style="display:flex; flex-direction:row; width:100%; max-width:1500px; align-items:center; justify-content:center; gap:56px; flex-wrap:wrap;">
 
-        
+        <!-- Left panel: logo + login form -->
         <div style="flex:0 0 auto; width:min(300px,100%); display:flex; flex-direction:column; align-self:flex-start; margin-top:calc(-60px + 10vh); margin-left:160px;">
 
-            
+            <!-- Logo -->
             <div style="margin-bottom:53px;">
                 <img src="img/logo_index.png" alt="IMTI"
                      title="IMTI" 
@@ -344,7 +338,7 @@
 
             
             <div>
-                
+                <!-- Email input -->
                 <div style="margin-bottom:14px; position:relative;">
                     <label style="display:block; font-family:'DM Mono',monospace; font-size:0.82rem; font-weight:700; color:#495057; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">E-MAIL</label>
                     <div style="border-bottom:2px dotted #d0d0d0; padding-bottom:5px; position:relative;">
@@ -360,7 +354,7 @@
                     </div>
                 </div>
 
-                
+                <!-- Password input -->
                 <div style="margin-bottom:16px; position:relative;">
                     <label style="display:block; font-family:'DM Mono',monospace; font-size:0.82rem; font-weight:700; color:#495057; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">P/W</label>
                     <div style="border-bottom:2px dotted #d0d0d0; padding-bottom:5px; position:relative;">
@@ -377,7 +371,6 @@
                     </div>
                 </div>
 
-                
                 <button onclick="handleLogin()"
                         onmouseenter="_tryPrefetchLogin()"
                         style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#f1f3f5; border:1.5px solid #dee2e6; border-radius:10px; padding:11px 0; cursor:pointer; margin-bottom:8px; font-family:'DM Mono',monospace; font-size:0.8rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#343a40; transition:background 0.2s, color 0.2s, border-color 0.2s;"
@@ -386,7 +379,6 @@
                     LOG-IN
                 </button>
 
-                
                 <button onclick="openModal('modal-join')"
                         style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#f1f3f5; border:1.5px solid #dee2e6; border-radius:10px; padding:11px 0; cursor:pointer; font-family:'DM Mono',monospace; font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#343a40; transition:background 0.2s, color 0.2s, border-color 0.2s;"
                         onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
@@ -394,7 +386,6 @@
                     JOIN-US
                 </button>
 
-                
                 <p style="margin-top:16px; font-family:'DM Mono',monospace; font-size:0.72rem; color:#adb5bd; line-height:1.6; text-align:center;">
                     For any inquiries,<br>
                     feel free to contact us at<br>
@@ -406,12 +397,11 @@
             </div>
         </div>
 
-        
+        <!-- Right panel: laptop mockup with dashboard -->
         <div style="flex:1 1 500px; display:flex; justify-content:center; align-items:center; min-width:300px;">
             <div style="position:relative; width:100%; max-width:924px;">
                 <img src="img/laptop.png" alt="Laptop" style="width:100%; height:auto; pointer-events:none; display:block;">
-
-                
+                <!-- Laptop screen content -->
                 <div class="screen-area">
                     <div class="db-header">
                         <div class="db-header-left">
@@ -446,10 +436,8 @@
                             </div>
                         </div>
 
-                        
                         <div class="side-cards">
                             <div class="stat-row">
-                                
                                 <div class="stat-card" style="padding:0; overflow:hidden; position:relative; background:#cacaca;">
                                     <img src="img/Home_card_Com_edu.png" alt="Computer Education"
                                          style="width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(100%); transition:filter 0.4s;"
@@ -469,7 +457,6 @@
                                     </svg>
                                 </div>
 
-                                
                                 <div class="stat-card" id="visitor-card" style="display:flex; align-items:center; justify-content:center; cursor:default; position:relative;"
                                      onmouseover="document.getElementById('visitor-count').style.color='#42a5f5'; document.getElementById('tooltip-visitor').style.opacity='1'; document.getElementById('tooltip-visitor').style.visibility='visible';"
                                      onmouseleave="document.getElementById('visitor-count').style.color='#9e9e9e'; document.getElementById('tooltip-visitor').style.opacity='0'; document.getElementById('tooltip-visitor').style.visibility='hidden';">
@@ -481,7 +468,6 @@
                                 </div>
                             </div>
 
-                            
                             <div class="info-card" style="padding:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
                                 <img src="img/Home_card_tools.png" alt="Info"
                                      style="width:90%; height:90%; object-fit:contain; display:block; transition:transform 0.3s;"
@@ -489,7 +475,6 @@
                                      onmouseleave="this.style.transform='scale(1)'">
                             </div>
 
-                            
                             <div class="action-row">
                                 <button class="action-card" onclick="openModal('modal-why')" style="padding:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
                                     <img src="img/Home_card_reason_crete.png" alt="Why" style="width:100%; height:100%; object-fit:contain; display:block;">
@@ -911,47 +896,10 @@ const CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBInDqEoLUf
 const COUNTER_URL        = 'https://script.google.com/macros/s/AKfycbydwUaYyMQsd-JmpvItpuj39s0vt6Ks0AquuX0-8Dk_Rp0ghPPLcFCyOirkqLsrYf_i/exec';
 const SHEET_CSV          = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTPFMK8hmmhAtMWhvX-lkqHltlxoBLg0PN_DfiLUh9J0fkr9xa9IM2HWLSztdu7zJcl4B7Z8T4oD2qP/pub?gid=0&single=true&output=csv';
 
-function gasJsonp(url, params) {
-    return new Promise((resolve, reject) => {
-        const callbackName = 'imti_cb_' + Math.round(Math.random() * 1000000);
-        const TIMEOUT_MS = 15000;
-
-        const cleanup = () => {
-            delete window[callbackName];
-            if (document.body.contains(script)) document.body.removeChild(script);
-        };
-
-        const timer = setTimeout(() => {
-            cleanup();
-            reject(new Error('JSONP request timed out'));
-        }, TIMEOUT_MS);
-
-        window[callbackName] = (data) => {
-            clearTimeout(timer);
-            cleanup();
-            resolve(data);
-        };
-
-        const queryString = new URLSearchParams({ ...params, callback: callbackName }).toString();
-        const script = document.createElement('script');
-        script.src = `${url}${url.indexOf('?') > -1 ? '&' : '?'}${queryString}`;
-
-        script.onerror = () => {
-            clearTimeout(timer);
-            cleanup();
-            reject(new Error('Network response error'));
-        };
-
-        document.body.appendChild(script);
-    });
-}
-
-var _imtiReady      = false;  
-var _adminReady     = false;  
-var _appsReady      = false;  
-var _warmupPromise  = null;   
-var _adminWarmup    = null;
-var _appsWarmup     = null;
+var _imtiReady     = false;
+var _adminReady    = false;
+var _warmupPromise = null;
+var _adminWarmup   = null;
 
 function _pingGas(url) {
     return fetch(url + '?action=ping', { method: 'GET', redirect: 'follow', cache: 'no-cache' })
@@ -962,20 +910,10 @@ function warmUpScripts() {
     const indicator = document.getElementById('warmup-indicator');
     const t0 = Date.now();
 
-    
-    _warmupPromise = _pingGas(JOIN_SCRIPT_URL).then(() => {
-        _imtiReady = true;
-    });
-    _adminWarmup = _pingGas(ADMIN_SCRIPT_URL).then(() => {
-        _adminReady = true;
-    });
-    
-    _appsWarmup = Promise.resolve().then(() => {
-        _appsReady = true;
-    });
+    _warmupPromise = _pingGas(JOIN_SCRIPT_URL).then(() => { _imtiReady  = true; });
+    _adminWarmup   = _pingGas(ADMIN_SCRIPT_URL).then(() => { _adminReady = true; });
 
-    
-    Promise.all([_warmupPromise, _adminWarmup, _appsWarmup]).then(() => {
+    Promise.all([_warmupPromise, _adminWarmup]).then(() => {
         const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
         if (indicator) {
             indicator.textContent = `● ready (${elapsed}s)`;
@@ -1045,27 +983,28 @@ async function sha256(str) {
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-let _preHashedPw   = null;   
-let _preHashedRaw  = '';     
-let _prefetchEmail = '';     
-let _prefetchProm  = null;   
+// Prefetch state for login performance
+let _preHashedPw   = null;
+let _preHashedRaw  = '';
+let _prefetchEmail = '';
+let _prefetchProm  = null;
 
 function _preHashPw(val) {
-    
+    // Reset hash on each keystroke
     _preHashedPw  = null;
     _preHashedRaw = val;
     _prefetchProm = null;
     if (val.length > 0) {
         sha256(val).then(h => {
-            if (_preHashedRaw !== val) return;  
+            if (_preHashedRaw !== val) return; // stale
             _preHashedPw = h;
-            _tryPrefetchLogin();                
+            _tryPrefetchLogin();
         });
     }
 }
 
 function _onLoginEmailInput() {
-    
+    // Reset prefetch when email changes
     _prefetchEmail = '';
     _prefetchProm  = null;
     const email = (document.getElementById('login-email')?.value || '').trim();
@@ -1075,7 +1014,6 @@ function _onLoginEmailInput() {
 function _tryPrefetchLogin() {
     const email = (document.getElementById('login-email')?.value || '').trim();
     const hash  = _preHashedPw;
-    
     if (!email || !hash) return;
     if (_prefetchEmail === email && _prefetchProm) return;
 
@@ -1212,10 +1150,8 @@ async function handleLogin() {
 
     showProgress('Authenticating...');
 
-    
     _tryPrefetchLogin();
 
-    
     const usePrefetch = _prefetchProm
         && _prefetchEmail === email
         && _preHashedRaw  === pw;
@@ -1224,11 +1160,9 @@ async function handleLogin() {
     try {
         if (usePrefetch) {
             setProgressMsg('Verifying credentials...');
-            res = await _prefetchProm;              
-            
+            res = await _prefetchProm;
             if (res === null) throw new Error('prefetch_failed');
         } else {
-            
             const hashedPw = (_preHashedPw && _preHashedRaw === pw)
                 ? _preHashedPw : await sha256(pw);
             setProgressMsg('Verifying credentials...');
@@ -1242,10 +1176,10 @@ async function handleLogin() {
             ).then(r => { clearTimeout(_t); return r.json(); });
         }
         if (res && res.status === 'OK') {
-            const userId = res.id || email;  
+            const userId = res.id || email;
             sessionStorage.setItem('imti_user_id',    userId);
             sessionStorage.setItem('imti_user_email', email);
-            sessionStorage.setItem('imti_log_key',    userId);  
+            sessionStorage.setItem('imti_log_key',    userId);
             sendLog('login', userId, email);
             setProgressMsg('Loading...');
             window.location.href = 'main_what_about.html';
@@ -1254,7 +1188,6 @@ async function handleLogin() {
             openModal('modal-login-fail');
         }
     } catch(e) {
-        
         if (e.message === 'prefetch_failed') {
             try {
                 const hashedPw = (_preHashedPw && _preHashedRaw === pw)
@@ -1292,7 +1225,7 @@ async function handleLogin() {
     }
 }
 
-/* ── Verification code state ── */
+/* Verification code state */
 const VERIFY_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbza3A5nRk1I90rBpv5a_sW1iFhAYfkWTiECTfXUMxXont2u3lOmyxivpUBulq1NAZgPaA/exec';
 let _verifyEmail   = null;
 let _emailVerified = false;
@@ -1305,7 +1238,7 @@ async function sendVerificationCode() {
     _verifyEmail   = email;
     _emailVerified = false;
 
-    /* 버튼 로딩 상태 */
+    /* Button loading state */
     const btn = document.getElementById('join-send-code-btn');
     if (btn) { btn.disabled = true; btn.style.background = '#adb5bd'; btn.style.cursor = 'not-allowed'; btn.innerHTML = '발송 중...'; }
 
@@ -1318,16 +1251,16 @@ async function sendVerificationCode() {
         ).then(r => { clearTimeout(_t); return r.json(); });
 
         if (res.status === 'OK') {
-            /* 발송 성공 모달 */
+            /* Show success modal */
             openModal('modal-join-codeSent');
 
-            /* verification 행 표시 */
+            /* Show verification row */
             const row = document.getElementById('join-verify-row');
             if (row) row.style.display = 'flex';
             const msgEl = document.getElementById('join-verify-msg');
             if (msgEl) { msgEl.textContent = ''; }
 
-            /* 60초 카운트다운 */
+            /* 60-second countdown */
             if (btn) {
                 let sec = 60;
                 const tick = () => {
@@ -1375,13 +1308,13 @@ async function verifyCode() {
         if (res.status === 'OK') {
             _emailVerified = true;
             if (msgEl) { msgEl.textContent = ''; }
-            /* 인증 완료 시 ID/PW 활성화 */
+            /* Enable ID/PW fields after verification */
             const idEl = document.getElementById('join-id');
             const pwEl = document.getElementById('join-pw');
             if (idEl) { idEl.disabled = false; idEl.style.background = ''; idEl.style.color = ''; idEl.style.cursor = ''; }
             if (pwEl) { pwEl.disabled = false; pwEl.style.background = ''; pwEl.style.color = ''; pwEl.style.cursor = ''; }
             if (verifyBtn) { verifyBtn.disabled = true; verifyBtn.textContent = '확인 완료'; verifyBtn.style.background = '#adb5bd'; verifyBtn.style.cursor = 'not-allowed'; }
-            /* 인증코드 발송 버튼: 타이머 중단 후 비활성화 */
+            /* Stop timer and disable send button */
             clearInterval(_sendCodeTimer);
             const sendBtn = document.getElementById('join-send-code-btn');
             if (sendBtn) {
@@ -1443,11 +1376,10 @@ async function handleJoinConfirm() {
     };
 
     try {
-        
         const hashedPw = await sha256(pw);
 
         const ctrl = new AbortController();
-        const _t   = setTimeout(() => ctrl.abort(), 10000); 
+        const _t   = setTimeout(() => ctrl.abort(), 10000);
         const res = await fetch(
             JOIN_SCRIPT_URL + '?action=checkDuplicate'
             + '&id='    + encodeURIComponent(id)
@@ -1488,7 +1420,7 @@ async function handleJoinFinal() {
 
     try {
         const ctrl = new AbortController();
-        const _t   = setTimeout(() => ctrl.abort(), 10000); 
+        const _t   = setTimeout(() => ctrl.abort(), 10000);
         const res = await fetch(
             JOIN_SCRIPT_URL + '?action=register'
             + '&id='       + encodeURIComponent(id)
@@ -1522,7 +1454,7 @@ function handleJoinSuccess() {
     const userId        = id || email || 'unknown';
     sessionStorage.setItem('imti_user_id',    userId);
     sessionStorage.setItem('imti_user_email', email || '');
-    sessionStorage.setItem('imti_log_key',    userId);  
+    sessionStorage.setItem('imti_log_key',    userId);
     sendLog('login', userId, email || '');
     window.location.href = 'main_what_about.html';
 }
@@ -1535,15 +1467,13 @@ async function handleAdminLogin() {
     const progressEl = document.getElementById('admin-progress-alert');
     if (progressEl) progressEl.style.display = 'flex';
 
-    
     const [hashedPw, clientIp] = await Promise.all([
         sha256(pw),
         fetch('https://api.ipify.org?format=json')
             .then(r => r.json()).then(d => d.ip || 'unknown')
-            .catch(() => 'unknown')  
+            .catch(() => 'unknown')
     ]);
 
-    
     const url = ADMIN_SCRIPT_URL
         + '?action=adminLogin'
         + '&email='    + encodeURIComponent(email)
@@ -1552,7 +1482,7 @@ async function handleAdminLogin() {
 
     try {
         const ctrl = new AbortController();
-        const _t   = setTimeout(() => ctrl.abort(), 8000); 
+        const _t   = setTimeout(() => ctrl.abort(), 8000);
         const res = await fetch(url, { method: 'GET', redirect: 'follow', cache: 'no-cache', signal: ctrl.signal })
             .then(r => { clearTimeout(_t); return r.json(); });
         if (progressEl) progressEl.style.display = 'none';
