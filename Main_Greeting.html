@@ -84,10 +84,97 @@
 
         .closing {
             text-align: right;
-            margin-top: 44px;
+            margin-top: 10px;
             font-size: 0.85rem;
             font-weight: 650;
             color: #444;
+        }
+
+        .mti-table-wrap {
+            overflow-x: auto;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mti-table {
+            border-collapse: collapse;
+            width: 99%;
+            font-size: 0.77rem;
+            font-family: 'Gowun Batang', serif;
+            letter-spacing: 0;
+            table-layout: fixed;
+        }
+
+        .mti-table col.col-orient { width: 152px; }
+        .mti-table col.col-data   { width: auto; }
+
+        .mti-table th,
+        .mti-table td {
+            border: 1px solid #dde4ea;
+            padding: 7px 10px;
+            text-align: center;
+            color: #4a5a66;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .mti-table thead tr th:first-child,
+        .mti-table tbody tr th:first-child,
+        .mti-table tfoot tr th:first-child  { border-left-color: #ffffff; }
+
+        .mti-table thead tr th:last-child,
+        .mti-table tbody tr td:last-child,
+        .mti-table tfoot tr td:last-child   { border-right-color: #ffffff; }
+
+        .mti-table thead th {
+            background-color: #dce8f0;
+            color: #3a5060;
+            font-weight: 600;
+            font-size: 0.76rem;
+        }
+
+        .mti-table thead th.th-total {
+            font-weight: 700;
+            font-style: italic;
+        }
+
+        .mti-table tbody th {
+            background-color: #ffffff;
+            color: #4a5a66;
+            font-weight: 400;
+            text-align: center;
+            line-height: 1.6;
+            border-right: 1px solid #dde4ea;
+        }
+
+        .mti-table tbody td {
+            background-color: #ffffff;
+        }
+
+        .mti-table td.has-count {
+            font-weight: 600;
+            color: #3a5060;
+            font-size: 0.82rem;
+        }
+
+        .mti-table td.zero {
+            color: #c8d4dc;
+            font-size: 0.72rem;
+        }
+
+        .mti-table td.row-total {
+            background-color: #ffffff !important;
+            font-weight: 700;
+            font-style: italic;
+            color: #3a5060;
+        }
+
+        #mti-table-loading {
+            font-size: 0.82rem;
+            color: #888;
+            padding: 10px 0;
         }
     </style>
     <script>
@@ -135,13 +222,12 @@
                 // J3=index0 (MTI count), L3=index2 (teaching model count)
                 const j3 = cols[0] || '?';
                 const l3 = cols[2] || '?';
-                document.getElementById('sheet-q1').textContent = l3;  // 총 분석 건수
-                document.getElementById('sheet-n1').textContent = j3;  // MTI 건수
+                document.getElementById('sheet-q1').textContent = l3;
+                document.getElementById('sheet-n1').textContent = j3;
             } catch (e) {
                 document.getElementById('sheet-q1').textContent = '(데이터 로딩 실패)';
                 document.getElementById('sheet-n1').textContent = '(데이터 로딩 실패)';
             } finally {
-                // Notify parent page that sheet data is ready
                 try { window.parent.postMessage('imti-sheet-ready', '*'); } catch(_) {}
             }
         }
@@ -149,7 +235,126 @@
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('today-date').textContent = getTodayFormatted();
             loadSheetData();
+            loadMtiTable();
         });
+
+        const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=389975124&single=true&output=tsv';
+
+        const DOMAINS = ['컴퓨팅 시스템 영역', '데이터 영역', '알고리즘 영역', '프로그래밍 영역', '인공지능 영역', '디지털 문화 영역'];
+        const ORIENTATIONS = [
+            '문제 해결 학습 지향',
+            '유사 경험 학습 지향',
+            '탐구 학습 지향',
+            '과제 수행 학습 지향',
+            '동료 상호작용 학습 지향',
+            '정서 매개 학습 지향',
+            '환류 학습 지향',
+            '재현 학습 지향',
+            '상기적 결합 학습 지향'
+        ];
+
+        const DOMAIN_KEYS = {
+            '컴퓨팅 시스템 영역': ['컴퓨팅', 'computing', 'system'],
+            '데이터 영역': ['데이터', 'data'],
+            '알고리즘 영역': ['알고리즘', 'algorithm'],
+            '프로그래밍 영역': ['프로그래밍', 'program'],
+            '인공지능 영역': ['인공지능', 'ai', 'artificial'],
+            '디지털 문화 영역': ['디지털 문화', 'digital', '문화']
+        };
+        const ORIENT_KEYS = {
+            '문제 해결 학습 지향': ['문제 해결', '문제해결', 'problem'],
+            '유사 경험 학습 지향': ['유사 경험', '유사경험', 'simul', 'analog'],
+            '탐구 학습 지향': ['탐구', 'inquiry', 'explor'],
+            '과제 수행 학습 지향': ['과제 수행', '과제수행', 'task', 'project'],
+            '동료 상호작용 학습 지향': ['동료', '상호작용', 'peer', 'collaborat'],
+            '정서 매개 학습 지향': ['정서', 'emotion', 'affect'],
+            '환류 학습 지향': ['환류', 'feedback', 'reflect'],
+            '재현 학습 지향': ['재현', 'reproduct', 'represent'],
+            '상기적 결합 학습 지향': ['상기', '결합', 'mnemonic', 'recall', 'combin']
+        };
+
+        function fuzzyMatch(value, keyMap) {
+            const v = value.toLowerCase().replace(/\s+/g, '');
+            for (const [label, keys] of Object.entries(keyMap)) {
+                for (const k of keys) {
+                    if (v.includes(k.toLowerCase().replace(/\s+/g, ''))) return label;
+                }
+            }
+            // Fallback: exact match
+            for (const label of Object.keys(keyMap)) {
+                if (value.trim() === label) return label;
+            }
+            return null;
+        }
+
+        async function loadMtiTable() {
+            const loadingEl = document.getElementById('mti-table-loading');
+            try {
+                const res = await fetch(TSV_URL);
+                const text = await res.text();
+                const rows = text.trim().split('\n').map(r => r.split('\t'));
+
+                const counts = {};
+                for (const ori of ORIENTATIONS) {
+                    counts[ori] = {};
+                    for (const dom of DOMAINS) counts[ori][dom] = 0;
+                }
+
+                for (const row of rows) {
+                    const rawDomain = (row[3] || '').trim();
+                    const rawOrient = (row[4] || '').trim();
+                    if (!rawDomain && !rawOrient) continue;
+
+                    const domain = fuzzyMatch(rawDomain, DOMAIN_KEYS);
+                    const orient = fuzzyMatch(rawOrient, ORIENT_KEYS);
+
+                    if (domain && orient) {
+                        counts[orient][domain]++;
+                    }
+                }
+
+                renderMtiTable(counts);
+                if (loadingEl) loadingEl.remove();
+            } catch (e) {
+                if (loadingEl) loadingEl.textContent = '(데이터 로딩 실패: ' + e.message + ')';
+            }
+        }
+
+        function renderMtiTable(counts) {
+            const wrap = document.getElementById('mti-table-wrap');
+            if (!wrap) return;
+
+            let html = '<table class="mti-table">';
+
+            html += '<colgroup>';
+            html += '<col class="col-orient">';
+            for (let i = 0; i < DOMAINS.length + 1; i++) html += '<col class="col-data">';
+            html += '</colgroup>';
+
+            html += '<thead><tr>';
+            html += '<th>지향 ╲ 영역</th>';
+            for (const dom of DOMAINS) html += `<th>${dom}</th>`;
+            html += '<th class="col-data">합계</th>';
+            html += '</tr></thead>';
+
+            html += '<tbody>';
+            for (const ori of ORIENTATIONS) {
+                const rowTotal = DOMAINS.reduce((s, d) => s + counts[ori][d], 0);
+                html += '<tr>';
+                html += `<th>${ori}</th>`;
+                for (const dom of DOMAINS) {
+                    const v = counts[ori][dom];
+                    const cls = v > 0 ? 'has-count' : 'zero';
+                    html += `<td class="${cls}">${v > 0 ? v : '·'}</td>`;
+                }
+                html += `<td class="row-total">${rowTotal > 0 ? rowTotal : '·'}</td>`;
+                html += '</tr>';
+            }
+            html += '</tbody>';
+
+            html += '</table>';
+            wrap.innerHTML = html;
+        }
     </script>
 </head>
 <body>
@@ -172,7 +377,7 @@
         <p>
             이제 인류의 문명사는 인공지능(AI; Artificial Intelligence)이라는 새로운 정보 기술을 바탕으로 새로 쓰여지고 있습니다. 그 새로운 역사는 정보 기술의 비약적인 발전을 가능하게 한 정보 및 컴퓨터 관련 분야의 연구, 그리고 이러한 연구를 가능케한 정보 및 컴퓨터 관련 교수-학습이 있었습니다. 이렇게 새롭게 쓰여지는 문명사가 유지 및 발전될 수 있기 위해서는 정보 및 컴퓨터 관련된 교수-학습의 활성화가 한층더 요구됩니다. 이러한 요구의 실현에 부분적으로나마 도움이 되고자 IMTI가 기획 및 개발되었으며, IMTI의 로고는 바로 이러한 점을 반영하여 디자인되었습니다.
         </p>
-        
+
         <div class="logo-wrap">
             <img src="img/logo.png" alt="IMTI Logo" class="main-logo">
         </div>
@@ -191,16 +396,28 @@
     <section>
         <div class="heading-wrap">
             <img src="img/Head_Check.png" alt="check" class="head-icon">
+            <h2>MTI 현황</h2>
+        </div>
+        <p>
+            지금까지 정보 교과에서 적용 및 개발된 MTI 중에서 IMTI에 의해 식별된 영역(Doamin)별 MTI 현황은 다음과 같습니다.
+        </p>
+        <p id="mti-table-loading" style="font-size:0.82rem;color:#888;">데이터를 불러오는 중입니다...</p>
+        <div class="mti-table-wrap" id="mti-table-wrap"></div>
+    </section>
+
+    <section>
+        <div class="heading-wrap">
+            <img src="img/Head_Check.png" alt="check" class="head-icon">
             <h2>IMTI 운영</h2>
         </div>
         <p>
-            IMTI 운영진은 모두 전·현직 중등학교 정보 교사로 구성되어 있습니다. 모두 위에서 설명드린 바와 같이 정보 관련 교수-학습의 활성화를 바라는 사람들입니다. 물론, IMTI는 운영진에 의한 일방적 정보 전달을 목적으로 하지 않습니다. 가입한 회원은 IMTI에 저장된 수업 모형을 [MTI-Searching] 페이지에서 탐색하고 활용하실 수 있으며, 활용한 수업의 여러 모습과 그로부터의 경험들을 [MTI-Searching] 페이지의 "나의 경험 공유하기"를 통해 다른 회원들과 나눌 수 있습니다. 물론, 이러한 경험들은 [MTI-Searching] 페이지의 "수업 모형 적용 사례"를 통해 공유됨으로써 다른 회원들이 이를 확인하고 고려함으로써 더 나은 수업 모형의 활용이 가능해집니다. 또한 [Contact-Us]를 통해서도 IMTI의 운영에 직접 참여하실 수 있습니다. 우리 모두가 함께 정보 교과의 수업 모형에 대한 이야기들을 함께 만들어가는 참여자들인 것입니다. 여러분의 실천적 지식의 공유를 부탁드립니다.
+            IMTI 운영진은 모두 전·현직 중등학교 정보 교사로 구성되어 있습니다. 저희 IMTI 운영진은 정보 교과 관련 수업과 연구의 활성화와 발전을 기대합니다. 물론, IMTI는 운영진에 의한 일방적 정보 전달을 목적으로 하지 않습니다. 가입한 회원은 IMTI에 저장된 수업 모형을 [MTI-Searching] 페이지에서 탐색하고 활용하실 수 있으며, 활용한 수업의 여러 모습과 그로부터의 경험들을 [MTI-Searching] 페이지의 "나의 경험 공유하기"를 통해 다른 회원들과 나눌 수 있습니다. 이러한 경험들은 [MTI-Searching] 페이지의 "수업 모형 적용 사례"를 통해 공유됨으로써 다른 회원들이 이를 확인하고 고려함으로써 더 나은 수업 모형의 활용이 가능해집니다. 또한 [Contact-Us]를 통해서도 IMTI의 운영에 직접 참여하실 수 있습니다. 우리 모두가 함께 정보 교과의 수업 모형에 대한 이야기들을 함께 만들어가는 참여자입니다. 여러분의 실천적 지식의 공유를 부탁드립니다.
         </p>
     </section>
     <br>
 
     <div class="closing">
-        부디 IMTI가 회원 여러분 모두에게 도움이 되길 기원합니다.
+        부디 IMTI가 회원 여러분 모두의 수업과 연구에 도움이 되길 기원합니다.
     </div>
 <br>
 </body>
