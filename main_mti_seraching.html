@@ -221,8 +221,8 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
-            width: 65px;
-            height: 65px;
+            width: 70px;
+            height: 70px;
             padding: 8px 5px;
             background: #fff;
             border: 1px solid #dee2e6;
@@ -430,7 +430,7 @@
             <button class="side-btn" onclick="openPopup('exp-write')"><span class="side-btn-icon">✏️</span><span>나의 경험<br>공유하기</span></button>
             <button class="side-btn" onclick="openPopup('spread')"><span class="side-btn-icon">📋</span><span>수업 모형<br>적용 사례</span></button>
             <button class="side-btn" onclick="window.open('https://www.riss.kr/','_blank')"><span class="side-btn-icon">🔗</span><span>RISS<br>바로 가기</span></button>
-            <button class="side-btn" onclick="printCurrentDoc()"><span class="side-btn-icon">🖨️</span><span>문서로<br>출력하기</span></button>
+            <button class="side-btn" onclick="printCurrentDoc()"><span class="side-btn-icon">🖨️</span><span>인쇄 화면<br>바로 보기</span></button>
         </div>
     </div>
 </div>
@@ -1235,38 +1235,8 @@ to search for a teaching model.</span></p>
               .replace(/\/export.*/, '')
             : src;
 
-        var ex = document.getElementById('print-modal-overlay');
-        if (ex) ex.remove();
-
-        var ov  = document.createElement('div');
-        ov.id   = 'print-modal-overlay';
-        Object.assign(ov.style, { position:'fixed', inset:'0', zIndex:'3000', background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center' });
-
-        var box = document.createElement('div');
-        Object.assign(box.style, { background:'#fff', borderRadius:'12px', width:'480px', maxWidth:'92vw', padding:'36px', boxShadow:'0 20px 60px rgba(0,0,0,0.35)', display:'flex', flexDirection:'column', gap:'20px' });
-
-        var title       = document.createElement('div');
-        title.style.cssText = "font-family:'DM Mono',monospace;font-size:1rem;font-weight:700;color:#212529;";
-        title.textContent   = '🖨️  문서로 출력하기';
-
-        var br = document.createElement('div');
-        br.style.display = 'flex'; br.style.gap = '10px';
-
-        var pb = document.createElement('button');
-        pb.textContent  = '인쇄하기';
-        pb.style.cssText = "flex:1;padding:12px;background:#343a40;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:700;";
-        pb.onclick = function() { window.open(base + '/export?format=pdf&attachment=false', '_blank'); ov.remove(); };
-
-        var cb = document.createElement('button');
-        cb.textContent  = '취소 (Cancel)';
-        cb.style.cssText = "flex:1;padding:12px;background:#e9ecef;color:#495057;border:none;border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:700;";
-        cb.onclick = function() { ov.remove(); };
-
-        br.appendChild(pb); br.appendChild(cb);
-        box.appendChild(title); box.appendChild(br);
-        ov.appendChild(box);
-        ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
-        document.body.appendChild(ov);
+        // Open print view directly without modal
+        window.open(base + '/export?format=pdf&attachment=false', '_blank');
     }
 
 
