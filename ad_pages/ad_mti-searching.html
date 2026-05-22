@@ -10,7 +10,8 @@
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; background: #f8f9fa; }
-        .page-wrap { padding: 24px 18px; display: flex; flex-direction: column; min-height: 100vh; }
+        html, body { height: 100%; }
+        .page-wrap { padding: 24px 18px; display: flex; flex-direction: column; height: 100vh; }
 
         /* Header */
         .page-header {
@@ -125,9 +126,11 @@
         .table-wrap {
             border: 1px solid #dee2e6;
             border-radius: 5px;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
             background: #fff;
             flex: 1;
+            min-height: 0;
         }
         table { width: 100%; border-collapse: collapse; }
         thead tr { background: #f8f9fa; border-bottom: 2px solid #dee2e6; }
