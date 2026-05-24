@@ -579,7 +579,7 @@
                     <span class="modal-title" id="modal-next-num" style="color:#868e96;"></span>
                 </div>
                 <div style="display:flex;gap:6px;">
-                    <button class="btn btn-searching-mti" onclick="openSearchingMTI()">Searching_MTI</button>
+                    <button class="btn btn-apply" onclick="openSearchingMTI()">Searching_MTI</button>
                     <button class="btn btn-apply" onclick="submitNewMTI()">Apply</button>
                     <button class="btn" onclick="closeAddModal()">Cancel</button>
                 </div>
@@ -1891,7 +1891,13 @@ function submitNewMTI() {
     document.head.appendChild(script);
 }
 function applyMTI()   { alert('Apply: Not yet implemented.'); }
-function openSearchingMTI() { window.open('ad_mti-searching.html', '_blank'); }
+function openSearchingMTI() {
+    const w = 1100, h = 780;
+    const left = Math.round((screen.width - w) / 2);
+    const top  = Math.round((screen.height - h) / 2);
+    window.open('ad_mti-searching.html', 'SearchingMTI',
+        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+}
 function deleteMTI()  { alert('Delete(input): Not yet implemented.'); }
 
 /* Drag logic for Modify modal */
