@@ -580,7 +580,7 @@
                 </div>
                 <div style="display:flex;gap:6px;">
                     <button class="btn btn-apply" onclick="openSearchingMTI()">Searching_MTI</button>
-                    <button class="btn btn-apply" onclick="submitNewMTI()">Apply</button>
+                    <button id="add-modal-apply-btn" class="btn btn-apply" onclick="submitNewMTI()">Apply</button>
                     <button class="btn" onclick="closeAddModal()">Cancel</button>
                 </div>
             </div>
@@ -1846,7 +1846,7 @@ function submitNewMTI() {
         + String(_now.getSeconds()).padStart(2,'0');
 
     /* Set Apply button loading state */
-    const applyBtn = document.querySelector('#add-modal .btn-apply');
+    const applyBtn = document.getElementById('add-modal-apply-btn');
     const origText = applyBtn ? applyBtn.textContent : 'Apply';
     if (applyBtn) { applyBtn.textContent = 'Saving...'; applyBtn.disabled = true; }
 
