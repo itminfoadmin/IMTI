@@ -422,7 +422,7 @@
     });
 
     // Start
-    loadData();
+    loadData().then(() => { document.getElementById('search-input').focus(); });
 </script>
 </body>
 </html>

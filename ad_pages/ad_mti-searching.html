@@ -274,18 +274,19 @@
     <!-- Header -->
     <div class="page-header">
         <span class="page-title">SEARCHING MTI</span>
+        <span class="stats-text">Showing <span class="stats-count" id="stats-count">0</span> results <span id="stats-total"></span></span>
     </div>
 
     <!-- Search bar -->
     <div class="search-bar">
         <div class="search-input-wrap">
             <span class="search-icon">🔍</span>
-            <input type="text" id="search-input" placeholder="Search by name, domain, orientation, participants, competency...">
+            <input type="text" id="search-input" placeholder="Search by name, domain, orientation, participants, competency..." autofocus>
         </div>
         <button class="btn-clear" onclick="clearSearch()">Clear</button>
     </div>
 
-    <!-- Filter chips -->
+    <!-- Filter chips + Stats -->
     <div class="filter-bar">
         <span class="filter-label">Filter by:</span>
         <button class="filter-chip active" data-col="all" onclick="setColFilter('all',this)">All</button>
@@ -294,11 +295,6 @@
         <button class="filter-chip" data-col="d" onclick="setColFilter('d',this)">Domain</button>
         <button class="filter-chip" data-col="e" onclick="setColFilter('e',this)">Orientation</button>
         <button class="filter-chip" data-col="f" onclick="setColFilter('f',this)">MTI_name</button>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-bar">
-        <span class="stats-text">Showing <span class="stats-count" id="stats-count">0</span> results <span id="stats-total"></span></span>
     </div>
 
     <!-- Table -->
@@ -510,6 +506,7 @@ document.getElementById('search-input').addEventListener('keydown', e => {
 });
 
 loadData();
+document.getElementById('search-input').focus();
 </script>
 </body>
 </html>

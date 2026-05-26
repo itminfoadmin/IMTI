@@ -134,7 +134,7 @@
         .empty-state {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             gap: 10px; height: 100%; padding: 80px 20px;
-            font-family: 'Gowun Batang', serif; font-size: 0.78rem; color: #adb5bd;
+            font-family: 'Gowun Batang', serif; font-size: 0.9rem; color: #adb5bd;
         }
         .empty-state-icon { font-size: 2.2rem; opacity: 0.2; margin-bottom: 4px; }
 
@@ -952,10 +952,13 @@ window.__pageInit = function () {
     document.getElementById('btn-save').addEventListener('click', handleSave);
     document.getElementById('btn-print').addEventListener('click', () => window.print());
     document.getElementById('btn-search').addEventListener('click', function () {
+        const w = 1650, h = 720;
+        const left = Math.round(window.screenX + (window.outerWidth  - w) / 2);
+        const top  = Math.round(window.screenY + (window.outerHeight - h) / 2);
         const popup = window.open(
             'ad_mti_article_searching.html',
             'ArticleSearching',
-            'width=1650,height=720,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no'
+            `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no`
         );
         if (popup) popup.focus();
     });
