@@ -81,7 +81,7 @@
             font-weight: 500;
             color: #343a40;
             background: #f5f4f1;
-            padding: 0 10px 0 10px;
+            padding: 0 10px;
             display: flex;
             align-items: center;
             justify-content: flex-start;
@@ -198,17 +198,10 @@
         #doc-loading-overlay.visible { opacity: 1; }
         .doc-loading-label {
             font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem;
-            font-weight: 500; letter-spacing: 0.04em;
-            color: #868e96;
+            font-weight: 500; letter-spacing: 0.04em; color: #868e96;
         }
-        .doc-progress-track {
-            width: 220px; height: 2px; background: #f1f3f5;
-            border-radius: 99px; overflow: hidden;
-        }
-        .doc-progress-bar {
-            height: 100%; width: 0%; background: #d47878;
-            border-radius: 99px; transition: width 0.28s ease;
-        }
+        .doc-progress-track { width: 220px; height: 2px; background: #f1f3f5; border-radius: 99px; overflow: hidden; }
+        .doc-progress-bar { height: 100%; width: 0%; background: #d47878; border-radius: 99px; transition: width 0.28s ease; }
 
         .side-btns { position: absolute; top: 0; right: -73px; display: flex; flex-direction: column; gap: 7px; z-index: 200; }
         .side-btn {
@@ -270,7 +263,7 @@
         }
         .board-header {
             padding: 22px 28px 14px;
-            border-bottom: 1px solid #fff;   
+            border-bottom: 1px solid #fff;
             flex-shrink: 0;
             display: flex;
             justify-content: space-between;
@@ -289,13 +282,7 @@
         }
         .board-title-icon { font-size: 1.65rem; line-height: 1; display: inline-flex; align-items: center; }
         .board-meta { font-size: 0.82rem; color: #868e96; margin-top: 2px; line-height: 1.55; }
-        .board-footer {
-            padding: 14px 28px;
-            border-top: 1px solid #fff;
-            display: flex;
-            justify-content: flex-end;
-            flex-shrink: 0;
-        }
+        .board-footer { padding: 14px 28px; border-top: 1px solid #fff; display: flex; justify-content: flex-end; flex-shrink: 0; }
         #board-entry-table { width: 100%; border-collapse: collapse; }
         #board-entry-table td { border: 1px solid #dee2e6; vertical-align: middle; font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem; color: #343a40; }
         .board-lbl { background: #f8f9fa; font-size: 0.78rem; font-weight: 600; color: #495057; text-align: center; white-space: nowrap; padding: 10px 14px; width: 100px; }
@@ -349,7 +336,6 @@
         .exp-btn-cl { padding: 10px 44px; background: #e9ecef; color: #495057; border: none; border-radius: 7px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.07em; transition: background 0.18s; }
         .exp-btn-cl:hover { background: #dee2e6; }
     </style>
-
 </head>
 <body id="main-body">
 
@@ -365,40 +351,36 @@
 <div id="navbar-placeholder"></div>
 
 <div class="main-content">
-<div class="search-bar" id="search-bar">
-    <div class="filter-item" id="filter-domain">
-        <div class="filter-label" id="label-domain" onclick="toggleDropdown('dd-domain','label-domain')">영역(D) 선택 <span class="filter-caret">▾</span></div>
-        <div class="filter-dropdown" id="dd-domain"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
-    </div>
-    <div class="filter-item" id="filter-participants">
-        <div class="filter-label" id="label-participants" onclick="toggleDropdown('dd-participants','label-participants')">대상(P) 선택 <span class="filter-caret">▾</span></div>
-        <div class="filter-dropdown" id="dd-participants"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
-    </div>
-
-    <div class="filter-item" id="filter-orientation">
-        <div class="filter-label" id="label-orientation" onclick="toggleDropdown('dd-orientation','label-orientation')">지향(O) 선택 <span class="filter-caret">▾</span></div>
-        <div class="filter-dropdown" id="dd-orientation"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
-    </div>
-
-    <div class="filter-item" id="filter-competency">
-        <div class="filter-label" id="label-competency" onclick="toggleDropdown('dd-competency','label-competency')">역량(C) 선택 <span class="filter-caret">▾</span></div>
-        <div class="filter-dropdown" id="dd-competency"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
-    </div>
-
-    <div class="filter-arrow-sep">&#x2192;</div>
-
-    <div class="filter-item result-item" id="filter-result">
-        <div class="filter-label" id="label-result" onclick="toggleDropdown('dd-result','label-result')">
-            <span class="result-label-text">수업 모형(MTI)을 선택하세요.</span>
-            <span class="result-value" id="result-model-name"></span>
-            <span class="filter-caret">▾</span>
+    <div class="search-bar" id="search-bar">
+        <div class="filter-item" id="filter-domain">
+            <div class="filter-label" id="label-domain" onclick="toggleDropdown('dd-domain','label-domain')">영역(D) 선택 <span class="filter-caret">▾</span></div>
+            <div class="filter-dropdown" id="dd-domain"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
         </div>
-        <div class="filter-dropdown" id="dd-result" style="width:100%;left:0;"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
+        <div class="filter-item" id="filter-participants">
+            <div class="filter-label" id="label-participants" onclick="toggleDropdown('dd-participants','label-participants')">대상(P) 선택 <span class="filter-caret">▾</span></div>
+            <div class="filter-dropdown" id="dd-participants"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
+        </div>
+        <div class="filter-item" id="filter-orientation">
+            <div class="filter-label" id="label-orientation" onclick="toggleDropdown('dd-orientation','label-orientation')">지향(O) 선택 <span class="filter-caret">▾</span></div>
+            <div class="filter-dropdown" id="dd-orientation"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
+        </div>
+        <div class="filter-item" id="filter-competency">
+            <div class="filter-label" id="label-competency" onclick="toggleDropdown('dd-competency','label-competency')">역량(C) 선택 <span class="filter-caret">▾</span></div>
+            <div class="filter-dropdown" id="dd-competency"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
+        </div>
+        <div class="filter-arrow-sep">&#x2192;</div>
+        <div class="filter-item result-item" id="filter-result">
+            <div class="filter-label" id="label-result" onclick="toggleDropdown('dd-result','label-result')">
+                <span class="result-label-text">수업 모형(MTI)을 선택하세요.</span>
+                <span class="result-value" id="result-model-name"></span>
+                <span class="filter-caret">▾</span>
+            </div>
+            <div class="filter-dropdown" id="dd-result" style="width:100%;left:0;"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
+        </div>
+        <div class="filter-item" style="border-right:none;background:#fff;padding:0;display:flex;align-items:right;">
+            <button class="reset-all-btn" onclick="resetAllFilters(event)">Reset ↺</button>
+        </div>
     </div>
-    <div class="filter-item" style="border-right:none;background:#fff;padding:0 0px;display:flex;align-items:right;">
-        <button class="reset-all-btn" onclick="resetAllFilters(event)">Reset ↺</button>
-    </div>
-</div>
 
     <div class="body-row" id="body-row">
         <div class="iframe-wrap">
@@ -425,6 +407,7 @@
     </div>
 </div>
 
+<!-- Experience write modal -->
 <div id="modal-exp-write" class="modal-bg" onclick="outsideClose(event,'modal-exp-write')">
     <div class="exp-popup-box" onclick="event.stopPropagation()">
         <div style="display:flex;align-items:flex-start;padding:22px 40px 0;">
@@ -445,21 +428,15 @@
             <table class="exp-table">
                 <tr>
                     <td class="exp-lbl">수업 모형</td>
-                    <td class="exp-inp" colspan="3" style="padding:0;">
-                        <input type="text" id="exp-model" readonly style="width:100%;border:none;outline:none;padding:10px 12px;font-family:'Noto Sans KR',sans-serif;font-size:0.78rem;color:#343a40;background:#fff;box-sizing:border-box;">
-                    </td>
+                    <td class="exp-inp" colspan="3"><input type="text" id="exp-model" readonly></td>
                 </tr>
                 <tr>
                     <td class="exp-lbl">수업 대상</td>
-                    <td class="exp-inp" colspan="3" style="padding:0;">
-                        <input type="text" id="exp-participants" placeholder="누구(대상)와 함께 수업을 하였는지를 입력해주세요." style="width:100%;border:none;outline:none;padding:10px 12px;font-family:'Noto Sans KR',sans-serif;font-size:0.78rem;color:#343a40;background:#fff;box-sizing:border-box;">
-                    </td>
+                    <td class="exp-inp" colspan="3"><input type="text" id="exp-participants" placeholder="누구(대상)와 함께 수업을 하였는지를 입력해주세요."></td>
                 </tr>
                 <tr>
                     <td class="exp-lbl">수업 내용</td>
-                    <td class="exp-inp" colspan="3" style="padding:0;">
-                        <input type="text" id="exp-subcontent" placeholder="수업 내용을 구체적으로 입력해주세요." style="width:100%;border:none;outline:none;padding:10px 12px;font-family:'Noto Sans KR',sans-serif;font-size:0.78rem;color:#343a40;background:#fff;box-sizing:border-box;">
-                    </td>
+                    <td class="exp-inp" colspan="3"><input type="text" id="exp-subcontent" placeholder="수업 내용을 구체적으로 입력해주세요."></td>
                 </tr>
                 <tr>
                     <td class="exp-lbl" style="vertical-align:middle;">좋았던 점</td>
@@ -482,6 +459,7 @@
     </div>
 </div>
 
+<!-- Alert modals -->
 <div id="modal-exp-nomodel" class="modal-bg">
     <div class="alert-modal-box">
         <p>경험을 등록할 수업 모형(MTI)을 선택해 주세요.<span class="en">Please select a teaching model first.</span></p>
@@ -496,10 +474,8 @@
 </div>
 <div id="modal-filter-noselect" class="modal-bg">
     <div class="alert-modal-box">
-        <p>수업 모형(MTI)의 검색을 위해<br>
- 영역(D), 대상(P), 지향(O), 역량(C) 등의 조건을 선택하세요.
-<span class="en">Please select at least one condition <br>
-to search for a teaching model.</span></p>
+        <p>수업 모형(MTI)의 검색을 위해<br>영역(D), 대상(P), 지향(O), 역량(C) 등의 조건을 선택하세요.
+        <span class="en">Please select at least one condition <br>to search for a teaching model.</span></p>
         <div class="btn-row" style="justify-content:center;"><button class="btn-confirm" style="max-width:160px;" onclick="imtiCloseModal('modal-filter-noselect')">확인 (OK)</button></div>
     </div>
 </div>
@@ -510,6 +486,7 @@ to search for a teaching model.</span></p>
     </div>
 </div>
 
+<!-- No entries modal -->
 <div id="modal-spread-noexist" class="modal-bg" onclick="outsideClose(event,'modal-spread-noexist')">
     <div class="noexist-box" onclick="event.stopPropagation()">
         <div class="noexist-icon">📭</div>
@@ -522,13 +499,14 @@ to search for a teaching model.</span></p>
     </div>
 </div>
 
+<!-- Experience board modal -->
 <div id="modal-spread-board" class="modal-bg" onclick="outsideClose(event,'modal-spread-board')">
     <div class="board-popup-box" onclick="event.stopPropagation()" style="width:90%;max-width:1000px;height:90vh;">
         <div class="board-header">
             <div>
                 <div class="board-title"><span class="board-title-icon">📋</span> 수업 모형 적용 사례</div>
                 <div class="board-meta" id="board-model-meta">수업 모형(MTI)을 직접 적용한 사례와 경험들입니다.</div>
- <p class="exp-popup-subtitle">비난, 욕설, 기타 수업과 무관한 내용을 발견하시면 운영진에게 신고해주세요. ☞ <button class="nav-menu-item" onclick="imtiOpenModal('modal-contact')">신고하기</button></p>
+                <p class="exp-popup-subtitle">비난, 욕설, 기타 수업과 무관한 내용을 발견하시면 운영진에게 신고해주세요. ☞ <button class="nav-menu-item" onclick="imtiOpenModal('modal-contact')">신고하기</button></p>
             </div>
             <button onclick="imtiCloseModal('modal-spread-board')"
                 style="background:none;border:none;cursor:pointer;font-size:2rem;color:#adb5bd;font-weight:700;padding:0 4px;line-height:1;"
@@ -550,8 +528,6 @@ to search for a teaching model.</span></p>
     </div>
 </div>
 
-</div>
-
 <script>
     const SHEET_SCRIPT_URL      = 'https://script.google.com/macros/s/AKfycbzY3a3F93NUK0_CNLqQ4zxwzjY9WYdQulptb2EqCypmb4SooNWNU51Z-9oaxFxTN2rT/exec';
     const EXP_SURVEY_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbye_Tya-8ItxfkD3DLYysmXImC4FM-N7nb_clv3AWuM59Mb389oZ1E6bp9YCy_MxYRt/exec';
@@ -565,7 +541,7 @@ to search for a teaching model.</span></p>
 
     function loadSheetData() {
         return new Promise(function(resolve) {
-            var url = SHEET_SCRIPT_URL + '?action=getSheetData';
+            var url  = SHEET_SCRIPT_URL + '?action=getSheetData';
             var done = false;
 
             function applyData(data) {
@@ -573,11 +549,11 @@ to search for a teaching model.</span></p>
                 done = true;
                 try {
                     if (data && data.error) throw new Error(data.error);
-                    DOMAIN_LIST      = data.domains       || [];
-                    PARTICIPANTS_LIST= data.participants   || [];
-                    ORIENTATION_LIST = data.orientations  || data.orientation || [];
-                    COMPETENCY_LIST  = data.competencies  || [];
-                    COMPETENCY_MAP   = data.competencyMap || {};
+                    DOMAIN_LIST      = data.domains        || [];
+                    PARTICIPANTS_LIST = data.participants   || [];
+                    ORIENTATION_LIST = data.orientations   || data.orientation || [];
+                    COMPETENCY_LIST  = data.competencies   || [];
+                    COMPETENCY_MAP   = data.competencyMap  || {};
                     PARTICIPANTS_MAP = data.participantsMap || {};
                     sheetRows = (data.rows || []).filter(function(r) { return r.model; });
                     MODEL_URL = {}; MODEL_NUM = {};
@@ -594,14 +570,15 @@ to search for a teaching model.</span></p>
                 resolve();
             }
 
-            // JSONP request
-            var cbName = 'imti_sheet_cb_' + Date.now();
-            var s = document.createElement('script');
+            // JSONP request with 12s timeout
+            var cbName  = 'imti_sheet_cb_' + Date.now();
+            var s       = document.createElement('script');
             var timeout = setTimeout(function() {
                 delete window[cbName];
                 if (s.parentNode) s.parentNode.removeChild(s);
                 if (!done) { console.warn('[IMTI] JSONP timeout'); useFallbackData(); resolve(); }
             }, 12000);
+
             window[cbName] = function(data) {
                 clearTimeout(timeout); delete window[cbName];
                 if (s.parentNode) s.parentNode.removeChild(s);
@@ -618,15 +595,15 @@ to search for a teaching model.</span></p>
     }
 
     function useFallbackData() {
-        DOMAIN_LIST       = ['컴퓨팅 시스템 영역','데이터 영역','알고리즘 영역', '프로그래밍 영역','인공지능 영역','디지털 문화 영역'];
-        ORIENTATION_LIST     = ['문제 해결 학습 지향','유사 경험 학습 지향','탐구 학습 지향','과제 수행 학습 지향','동료 상호작용 학습 지향', '정서 매개 학습 지향', '환류 학습 지향', '재현 학습 지향', '상기적 결합 학습 지향'];
-        COMPETENCY_LIST   = ['컴퓨팅 사고력','디지털 문화 소양','인공지능 소양', '문제 해결 능력', '창의적 사고 능력', '창의적 문제해결 능력', '논리적 사고력', '학업 성취', '수업 만족', '학습 동기(흥미)', '기타'];
+        DOMAIN_LIST       = ['컴퓨팅 시스템 영역','데이터 영역','알고리즘 영역','프로그래밍 영역','인공지능 영역','디지털 문화 영역'];
+        ORIENTATION_LIST  = ['문제 해결 학습 지향','유사 경험 학습 지향','탐구 학습 지향','과제 수행 학습 지향','동료 상호작용 학습 지향','정서 매개 학습 지향','환류 학습 지향','재현 학습 지향','상기적 결합 학습 지향'];
+        COMPETENCY_LIST   = ['컴퓨팅 사고력','디지털 문화 소양','인공지능 소양','문제 해결 능력','창의적 사고 능력','창의적 문제해결 능력','논리적 사고력','학업 성취','수업 만족','학습 동기(흥미)','기타'];
         PARTICIPANTS_LIST = ['영유아 대상','초등학생(1-2학년) 대상','초등학생(3-4학년) 대상','초등학생(5-6학년) 대상','중학생 대상','고등학생 대상','특수학습자 대상','영재학습자 대상','성인학습자 대상'];
         sheetRows = []; MODEL_URL = {};
         rebuildFilterDropdowns(); buildResultDropdown();
     }
 
-    var ALL_LABEL_MAP = { domain: '전체 영역', participants: '전체 대상', orientation: '전체 지향', competency: '전체 역량' };
+    var ALL_LABEL_MAP = { domain: '선택 해제', participants: '선택 해제', orientation: '선택 해제', competency: '선택 해제' };
 
     function rebuildFilterDropdowns() {
         var lists = { domain: DOMAIN_LIST, orientation: ORIENTATION_LIST, competency: COMPETENCY_LIST, participants: PARTICIPANTS_LIST };
@@ -653,27 +630,26 @@ to search for a teaching model.</span></p>
             allItem.className = 'dropdown-item dropdown-item-all';
             allItem.dataset.isAll = 'true';
             allItem.textContent = ALL_LABEL_MAP[key];
-            allItem.onclick = function() { selectAllFilter(key); };
+            allItem.onclick = function() { clearFilter(key); closeAllDropdowns(); buildResultDropdown(); };
             dd.appendChild(allItem);
         });
     }
 
-    // Filter state
-    var filterState = { domain: null, orientation: null, competency: null, participants: null };
+    var filterState  = { domain: null, orientation: null, competency: null, participants: null };
     var selectedResult = null;
 
     function buildResultDropdown() {
         var dd = document.getElementById('dd-result');
-        var ls = document.querySelector('#label-result .result-label-text');
         if (!dd) return;
 
         var s   = filterState;
         var any = s.domain || s.orientation || s.competency || s.participants;
-        // __ALL__ = selected but includes all (no filter applied)
-        var domainFilter      = (s.domain        && s.domain        !== '__ALL__') ? s.domain        : null;
-        var orientationFilter = (s.orientation   && s.orientation   !== '__ALL__') ? s.orientation   : null;
-        var competencyFilter  = (s.competency    && s.competency    !== '__ALL__') ? s.competency    : null;
-        var participantsFilter= (s.participants  && s.participants  !== '__ALL__') ? s.participants  : null;
+
+        // __ALL__ means filter was visited but no value selected
+        var domainFilter      = (s.domain       && s.domain       !== '__ALL__') ? s.domain       : null;
+        var orientationFilter = (s.orientation  && s.orientation  !== '__ALL__') ? s.orientation  : null;
+        var competencyFilter  = (s.competency   && s.competency   !== '__ALL__') ? s.competency   : null;
+        var participantsFilter= (s.participants && s.participants  !== '__ALL__') ? s.participants : null;
         var cIds = competencyFilter   ? (COMPETENCY_MAP[competencyFilter]    || []) : null;
         var pIds = participantsFilter ? (PARTICIPANTS_MAP[participantsFilter] || []) : null;
 
@@ -691,14 +667,13 @@ to search for a teaching model.</span></p>
         var ri = document.getElementById('filter-result');
         if (ri) ri.classList.toggle('has-results', any && models.length > 0);
 
-        // Reset selected MTI whenever filters change
+        // Reset selected MTI when filters change
         if (selectedResult) {
             selectedResult = null;
             var labelResult = document.getElementById('label-result');
             if (labelResult) labelResult.classList.remove('active');
         }
 
-        // Update result count / hint text
         var nameEl = document.getElementById('result-model-name');
         if (nameEl) {
             if (!any)                { nameEl.textContent = '수업 모형(MTI)의 검색을 위한 조건을 선택하세요.'; nameEl.classList.remove('has-count'); }
@@ -706,39 +681,30 @@ to search for a teaching model.</span></p>
             else                     { nameEl.textContent = '✔ [' + models.length + '] 건의 MTI가 검색되었습니다. 🖱️ Click!'; nameEl.classList.add('has-count'); }
         }
 
-        if (!any) { dd.innerHTML = '<div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;">먼저 조건을 선택해주세요.</div>'; return; }
+        if (!any)           { dd.innerHTML = '<div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;">먼저 조건을 선택해주세요.</div>'; return; }
         if (!models.length) { dd.innerHTML = '<div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;">조건에 해당하는 수업 모형(MTI)이 없습니다.</div>'; return; }
 
         dd.innerHTML = '';
         models.forEach(function(name) {
-            var item = document.createElement('div');
-            item.className = 'dropdown-item' + (selectedResult === name ? ' selected' : '');
+            var item        = document.createElement('div');
+            item.className  = 'dropdown-item' + (selectedResult === name ? ' selected' : '');
             item.dataset.modelName = name;
-            
             var displayName = name.replace(/\s*\([^)]*영역\)\s*$/, '').trim();
-            
-            var numTag = '';
-            if (MODEL_NUM[name]) {
-                numTag = '<span style="display:none;font-family:\'DM Mono\',monospace;font-size:0.78rem;font-weight:700;color:inherit;margin-right:6px;flex-shrink:0;">[' + MODEL_NUM[name] + ']</span>';
-            }
-            item.innerHTML = numTag + '<span>' + displayName + '</span>';
-            item.onclick = function() { selectResult(name); };
-            
-            item.onmouseenter = function() {
-                var url = MODEL_URL[name];
-                if (url) prefetchIframe(url);
-            };
+            var numTag      = MODEL_NUM[name]
+                ? '<span style="display:none;font-family:\'DM Mono\',monospace;font-size:0.78rem;font-weight:700;color:inherit;margin-right:6px;flex-shrink:0;">[' + MODEL_NUM[name] + ']</span>'
+                : '';
+            item.innerHTML  = numTag + '<span>' + displayName + '</span>';
+            item.onclick     = function() { selectResult(name); };
+            item.onmouseenter = function() { if (MODEL_URL[name]) prefetchIframe(MODEL_URL[name]); };
             dd.appendChild(item);
         });
 
-        // Auto-prefetch if only one result
-        if (models.length === 1 && MODEL_URL[models[0]]) {
-            prefetchIframe(MODEL_URL[models[0]]);
-        }
+        // Auto-prefetch when only one result
+        if (models.length === 1 && MODEL_URL[models[0]]) prefetchIframe(MODEL_URL[models[0]]);
     }
 
     function selectResult(name) {
-        selectedResult = name;
+        selectedResult  = name;
         var displayName = name.replace(/\s*\([^)]*영역\)\s*$/, '').trim();
 
         var nameEl = document.getElementById('result-model-name');
@@ -753,22 +719,22 @@ to search for a teaching model.</span></p>
             i.classList.toggle('selected', (i.dataset.modelName || i.textContent) === name);
         });
         closeAllDropdowns();
+
         var em = document.getElementById('exp-model');
         if (em) em.value = displayName;
-
         var bm = document.getElementById('board-model-meta');
         if (bm) bm.textContent = '이 수업 모형(MTI)을 직접 적용한 사례와 경험들입니다.';
-        var url = MODEL_URL[name];
-        if (url) loadIframe(url);
+        if (MODEL_URL[name]) loadIframe(MODEL_URL[name]);
     }
 
     function toggleDropdown(ddId, labelId) {
         if (ddId === 'dd-result') {
-            var s = filterState;
-            var any = (s.domain && s.domain !== null) || (s.orientation && s.orientation !== null) || (s.competency && s.competency !== null) || (s.participants && s.participants !== null);
+            var s   = filterState;
+            var any = s.domain || s.orientation || s.competency || s.participants;
             if (!any) { closeAllDropdowns(); imtiOpenModal('modal-filter-noselect'); return; }
         }
-        var dd = document.getElementById(ddId), lb = document.getElementById(labelId);
+        var dd     = document.getElementById(ddId);
+        var lb     = document.getElementById(labelId);
         var isOpen = dd.classList.contains('open');
         closeAllDropdowns();
         if (!isOpen) { dd.classList.add('open'); if (lb) lb.classList.add('open'); }
@@ -800,18 +766,6 @@ to search for a teaching model.</span></p>
         buildResultDropdown();
     }
 
-    function selectAllFilter(key) {
-        filterState[key] = '__ALL__';
-        var lbl = document.getElementById(LABEL_MAP[key]);
-        lbl.innerHTML = ' <strong>' + ALL_LABEL_MAP[key] + '</strong>&nbsp;<span class="filter-caret">▾</span>';
-        lbl.classList.add('active');
-        document.querySelectorAll('#' + DD_MAP[key] + ' .dropdown-item').forEach(function(i) {
-            i.classList.toggle('selected', !!i.dataset.isAll);
-        });
-        closeAllDropdowns();
-        buildResultDropdown();
-    }
-
     function clearFilter(key) {
         filterState[key] = null;
         var lbl = document.getElementById(LABEL_MAP[key]);
@@ -822,7 +776,7 @@ to search for a teaching model.</span></p>
 
     function resetAllFilters(event) {
         if (event) event.stopPropagation();
-        filterState = { domain: null, participants: null, orientation: null, competency: null };
+        filterState    = { domain: null, participants: null, orientation: null, competency: null };
         selectedResult = null;
         ['domain','participants','orientation','competency'].forEach(clearFilter);
 
@@ -830,10 +784,7 @@ to search for a teaching model.</span></p>
         if (nameEl) { nameEl.textContent = '수업 모형(MTI)의 검색을 위한 조건을 선택하세요.'; nameEl.classList.remove('has-count'); }
         document.getElementById('label-result').classList.remove('active');
         buildResultDropdown();
-
         hideDocOverlay();
-        var ov = document.getElementById('doc-loading-overlay');
-        if (ov) { ov.classList.remove('show', 'visible'); }
 
         var c  = document.getElementById('iframe-container');
         var sp = document.getElementById('loading-spinner');
@@ -846,7 +797,7 @@ to search for a teaching model.</span></p>
             f.style.display    = 'block';
         });
 
-        // Show guide iframe (create if missing)
+        // Show guide iframe, create if missing
         var guide = c.querySelector('iframe[data-is-guide="true"]');
         if (guide) {
             guide.classList.add('active');
@@ -858,10 +809,7 @@ to search for a teaching model.</span></p>
             gf.dataset.src     = GUIDE_URL;
             gf.dataset.isGuide = 'true';
             gf.allowFullscreen = true;
-            gf.onload = function() {
-                gf.classList.add('active');
-                scaleIframes();
-            };
+            gf.onload = function() { gf.classList.add('active'); scaleIframes(); };
             c.appendChild(gf);
             gf.src = GUIDE_URL;
             scaleIframes();
@@ -872,17 +820,16 @@ to search for a teaching model.</span></p>
         closeAllDropdowns();
     }
 
-    // Render iframes at native scale
+    // Render iframes at container size (no scaling)
     function scaleIframes() {
         var c = document.getElementById('iframe-container');
         if (!c || c.clientWidth === 0) return;
-        var containerW = c.clientWidth;
-        var containerH = c.clientHeight;
+        var w = c.clientWidth, h = c.clientHeight;
         c.querySelectorAll('iframe').forEach(function(f) {
-            f.style.width     = containerW + 'px';
-            f.style.height    = containerH + 'px';
-            f.style.transform = 'none';
-            f.style.display   = 'block';
+            f.style.width      = w + 'px';
+            f.style.height     = h + 'px';
+            f.style.transform  = 'none';
+            f.style.display    = 'block';
             f.style.visibility = f.classList.contains('active') ? 'visible' : 'hidden';
         });
     }
@@ -896,29 +843,26 @@ to search for a teaching model.</span></p>
         return base + '/preview?rm=minimal';
     }
 
-    // Find cached iframe by URL
     function findIframeByUrl(fs) {
-        var c = document.getElementById('iframe-container');
         var found = null;
-        c.querySelectorAll('iframe[data-src]').forEach(function(f) {
+        document.getElementById('iframe-container').querySelectorAll('iframe[data-src]').forEach(function(f) {
             if (f.dataset.src === fs) found = f;
         });
         return found;
     }
 
-    // Preload iframe in background
+    // Preload iframe silently in background
     function prefetchIframe(src) {
         var fs = toPreviewUrl(src);
         if (findIframeByUrl(fs)) return;
-        var c = document.getElementById('iframe-container');
         var f = document.createElement('iframe');
-        f.dataset.src    = fs;
-        f.dataset.loaded = 'false';
+        f.dataset.src     = fs;
+        f.dataset.loaded  = 'false';
         f.allowFullscreen = true;
         f.style.background = '#fff';
         f.onload = function() { f.dataset.loaded = 'true'; };
         f.src = fs;
-        c.appendChild(f);
+        document.getElementById('iframe-container').appendChild(f);
     }
 
     var _docProgressTimer = null;
@@ -929,22 +873,19 @@ to search for a teaching model.</span></p>
         var bar = document.getElementById('doc-progress-bar');
         var lbl = document.getElementById('doc-loading-label');
         if (!ov) return;
-
         if (_docProgressTimer) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
         _docProgressPct = 0;
-        if (bar) bar.style.transition = 'none';
-        if (bar) bar.style.width = '0%';
+        if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
         if (lbl && label) lbl.textContent = label;
         ov.classList.add('show');
         requestAnimationFrame(function() {
             requestAnimationFrame(function() {
                 ov.classList.add('visible');
                 if (bar) bar.style.transition = 'width 0.28s ease';
-
-                // Phase 1: 0% → 80% while iframe loads
+                // Phase 1: animate 0% → 80% while iframe loads
                 _docProgressTimer = setInterval(function() {
                     var step = _docProgressPct < 40 ? 2.5 : (_docProgressPct < 65 ? 1.0 : 0.3);
-                    _docProgressPct = Math.min(_docProgressPct + step, 80);
+                    _docProgressPct  = Math.min(_docProgressPct + step, 80);
                     if (bar) bar.style.width = _docProgressPct + '%';
                     if (_docProgressPct >= 80) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
                 }, 120);
@@ -952,14 +893,11 @@ to search for a teaching model.</span></p>
         });
     }
 
-    // Advance progress bar 80→97% after iframe loads, then hide overlay
-    function waitForImagesAndHide(token, lbl) {
+    // Phase 2: animate 80% → 97%, then hide overlay
+    function waitForImagesAndHide(token) {
         if (_loadToken !== token) return;
         var bar = document.getElementById('doc-progress-bar');
-        var lblEl = document.getElementById('doc-loading-label');
         if (_docProgressTimer) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
-
-        // Phase 2: 80% → 97% over ~2.5s
         _docProgressPct = 80;
         if (bar) { bar.style.transition = 'width 0.25s ease'; bar.style.width = '80%'; }
         _docProgressTimer = setInterval(function() {
@@ -968,7 +906,6 @@ to search for a teaching model.</span></p>
             if (bar) bar.style.width = _docProgressPct + '%';
             if (_docProgressPct >= 97) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
         }, 120);
-
         setTimeout(function() {
             if (_loadToken !== token) return;
             clearInterval(_docProgressTimer); _docProgressTimer = null;
@@ -981,7 +918,6 @@ to search for a teaching model.</span></p>
         var bar = document.getElementById('doc-progress-bar');
         if (!ov) return;
         if (_docProgressTimer) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
-
         if (bar) { bar.style.transition = 'width 0.2s ease'; bar.style.width = '100%'; }
         setTimeout(function() {
             ov.classList.remove('visible');
@@ -989,7 +925,6 @@ to search for a teaching model.</span></p>
         }, 350);
     }
 
-    // Token to cancel stale callbacks
     var _loadToken = 0;
 
     function loadIframe(src) {
@@ -1019,8 +954,7 @@ to search for a teaching model.</span></p>
             clearTimeout(fallbackTimer);
             frm.classList.add('active');
             scaleIframes();
-            // Keep overlay during phase 2, then hide
-            waitForImagesAndHide(token, '이미지를 불러오는 중...');
+            waitForImagesAndHide(token);
         }
 
         var ex = findIframeByUrl(fs);
@@ -1033,10 +967,7 @@ to search for a teaching model.</span></p>
                 scaleIframes();
             } else {
                 // Prefetch in progress — wait for onload
-                ex.onload = function() {
-                    ex.dataset.loaded = 'true';
-                    revealFrame(ex);
-                };
+                ex.onload = function() { ex.dataset.loaded = 'true'; revealFrame(ex); };
             }
             return;
         }
@@ -1047,10 +978,7 @@ to search for a teaching model.</span></p>
         f.dataset.loaded   = 'false';
         f.allowFullscreen  = true;
         f.style.background = '#fff';
-        f.onload = function() {
-            f.dataset.loaded = 'true';
-            revealFrame(f);
-        };
+        f.onload = function() { f.dataset.loaded = 'true'; revealFrame(f); };
         f.src = fs;
         c.appendChild(f);
         scaleIframes();
@@ -1069,9 +997,7 @@ to search for a teaching model.</span></p>
             if (em) em.value = modelName;
             var uid = document.getElementById('exp-userid-display');
             if (uid) uid.textContent = sessionStorage.getItem('imti_user_id') || '—';
-            var pe = document.getElementById('exp-participants');
-            if (pe) pe.value = '';
-            ['exp-subcontent','exp-merit','exp-demerit','exp-etc'].forEach(function(id) {
+            ['exp-participants','exp-subcontent','exp-merit','exp-demerit','exp-etc'].forEach(function(id) {
                 var el = document.getElementById(id); if (el) el.value = '';
             });
             imtiOpenModal('modal-exp-write');
@@ -1079,6 +1005,7 @@ to search for a teaching model.</span></p>
         } else if (type === 'spread') {
             if (!modelName) { imtiOpenModal('modal-spread-noselect'); return; }
 
+            // Resolve mtiId from sheet data
             var mr    = sheetRows.find(function(r) { return r.model === modelName; });
             var mtiId = '';
             if (mr) {
@@ -1096,14 +1023,11 @@ to search for a teaching model.</span></p>
 
             imtiOpenModal('modal-spread-board');
             showBoardLoading(true);
-
             fetchExpSurveyData(mtiId, function(entries) {
                 showBoardLoading(false);
                 if (!entries || !entries.length) { imtiCloseModal('modal-spread-board'); imtiOpenModal('modal-spread-noexist'); return; }
-                entries.sort(function(a, b) {
-                    return new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0);
-                });
-                boardAllEntries = entries;
+                entries.sort(function(a, b) { return new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0); });
+                boardAllEntries  = entries;
                 boardCurrentPage = 1;
                 renderBoardPage(1);
             });
@@ -1127,10 +1051,7 @@ to search for a teaching model.</span></p>
                 var rows = Array.isArray(data) ? data : (data && Array.isArray(data.rows) ? data.rows : []);
                 callback(rows);
             })
-            .catch(function(e) {
-                console.error('[IMTI] fetchExpSurveyData error:', e);
-                callback([]);
-            });
+            .catch(function(e) { console.error('[IMTI] fetchExpSurveyData error:', e); callback([]); });
     }
 
     function renderBoardPage(page) {
@@ -1144,8 +1065,8 @@ to search for a teaching model.</span></p>
         var advantage    = entry.advantage    || '—';
         var disadvantage = entry.disadvantage || entry.disadvantege || '—';
         var etc          = entry.etc          || '—';
+        var rawDate      = String(entry.timestamp || entry.date || '').substring(0, 10);
 
-        var rawDate = String(entry.timestamp || entry.date || '').substring(0, 10);
         document.getElementById('board-entry-author').textContent = '작성자: ' + userId;
         document.getElementById('board-entry-date').textContent   = '작성일: ' + rawDate;
 
@@ -1165,6 +1086,7 @@ to search for a teaching model.</span></p>
     function bRow(label, cls, text) {
         return '<tr><td class="board-lbl">' + escHtml(label) + '</td><td class="' + cls + '">' + escHtml(String(text)) + '</td></tr>';
     }
+
     function escHtml(s) {
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
     }
@@ -1182,9 +1104,9 @@ to search for a teaching model.</span></p>
 
         function mkBtn(label, page, disabled, active) {
             var b = document.createElement('button');
-            b.className = 'pg-btn' + (active ? ' active' : '');
+            b.className   = 'pg-btn' + (active ? ' active' : '');
             b.textContent = label;
-            b.disabled = !!disabled;
+            b.disabled    = !!disabled;
             if (!disabled) b.onclick = function() { renderBoardPage(page); };
             pg.appendChild(b);
         }
@@ -1197,8 +1119,8 @@ to search for a teaching model.</span></p>
     }
 
     function submitExpWrite() {
-        var model  = (document.getElementById('exp-model')   || {}).value || '';
-        var userId = sessionStorage.getItem('imti_user_id')  || '';
+        var model  = (document.getElementById('exp-model') || {}).value || '';
+        var userId = sessionStorage.getItem('imti_user_id') || '';
 
         // Resolve mtiId from sheet data
         var mr    = sheetRows.find(function(r) { return r.model === model; });
@@ -1219,9 +1141,9 @@ to search for a teaching model.</span></p>
         var dem = ((document.getElementById('exp-demerit')     || {}).value || '').trim();
         var etc = ((document.getElementById('exp-etc')         || {}).value || '').trim();
 
-        if (!mtiId)              { alert('수업 모형(MTI) 정보를 찾을 수 없습니다. 모형을 다시 선택해주세요.'); return; }
-        if (!userId)             { alert('로그인 정보가 없습니다. 다시 로그인해주세요.'); return; }
-        if (!mer && !dem && !etc){ alert('장점, 단점, 기타 중 하나 이상을 입력해주세요.'); return; }
+        if (!mtiId)               { alert('수업 모형(MTI) 정보를 찾을 수 없습니다. 모형을 다시 선택해주세요.'); return; }
+        if (!userId)              { alert('로그인 정보가 없습니다. 다시 로그인해주세요.'); return; }
+        if (!mer && !dem && !etc) { alert('장점, 단점, 기타 중 하나 이상을 입력해주세요.'); return; }
 
         var btn = document.querySelector('.exp-btn-ok');
         if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
@@ -1270,10 +1192,7 @@ to search for a teaching model.</span></p>
                     body:    payload
                 })
                     .then(function() { onSuccess(); })
-                    .catch(function(err2) {
-                        console.error('[IMTI] no-cors fallback error:', err2);
-                        onError('NETWORK_ERROR');
-                    });
+                    .catch(function(err2) { console.error('[IMTI] no-cors fallback error:', err2); onError('NETWORK_ERROR'); });
             });
     }
 
@@ -1284,7 +1203,7 @@ to search for a teaching model.</span></p>
         } else {
             var f = document.querySelector('#iframe-container iframe.active');
             if (f && f.dataset.isGuide === 'true') {
-                        try { f.contentWindow.print(); } catch(e) {
+                try { f.contentWindow.print(); } catch(e) {
                     var pw = window.open('Main_mti_searching_guide.html', '_blank');
                     if (pw) pw.onload = function() { pw.print(); };
                 }
@@ -1295,17 +1214,15 @@ to search for a teaching model.</span></p>
         if (!src) { alert('출력할 문서가 없습니다.'); return; }
 
         var base = src.includes('docs.google.com/document')
-            ? src.split('/preview')[0].split('/edit')[0].split('/view')[0]
-              .replace(/\/export.*/, '')
+            ? src.split('/preview')[0].split('/edit')[0].split('/view')[0].replace(/\/export.*/, '')
             : src;
-
         window.open(base + '/export?format=pdf&attachment=false', '_blank');
     }
 
     document.addEventListener('DOMContentLoaded', function() {
 
         function dismissOverlay() {
-            var ov  = document.getElementById('preload-overlay');
+            var ov = document.getElementById('preload-overlay');
             if (!ov || ov.classList.contains('fade-out')) return;
             var bar = document.getElementById('preload-bar');
             var dot = document.getElementById('preload-dot');
@@ -1352,7 +1269,7 @@ to search for a teaching model.</span></p>
         f.src = GUIDE_URL;
         scaleIframes();
 
-        // Fallback timeout (15s)
+        // Fallback timeout (15s) in case onload never fires
         setTimeout(function() {
             clearInterval(fakeTimer);
             sheetDone = true; iframeDone = true;
