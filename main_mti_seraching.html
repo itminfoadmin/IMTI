@@ -26,7 +26,6 @@
         }
         body::-webkit-scrollbar { display: none; }
 
-
         .topnav {
             background: #fff;
             padding: 4vh 5% 1vh 5%;
@@ -57,9 +56,7 @@
         }
         .nav-menu-item:hover, .nav-menu-item.active { color: #212529; font-weight: 700; border-bottom: 2px solid #212529; }
 
-
         .main-content { flex: 1; min-height: 0; padding: 10px 15%; display: flex; flex-direction: column; gap: 0; }
-
 
         .search-bar {
             display: flex;
@@ -139,7 +136,6 @@
         }
         .reset-all-btn:hover { background: #e03131; color: #fff; border-color: #e03131; }
 
-
         .filter-dropdown {
             position: absolute;
             top: 100%;
@@ -180,7 +176,6 @@
         .dropdown-item-all.selected::before { background: #d47878; }
         #filter-result { border-right: 1px solid #fff !important; }
 
-
         .body-row { flex: 1; min-height: 0; display: flex; gap: 0; position: relative; }
         .iframe-wrap { flex: 1; min-width: 0; position: relative; background: #fff; border: 1px solid #dee2e6; overflow: hidden; }
         .iframe-inner { width: 100%; height: 100%; position: relative; overflow: hidden; background: #fff; }
@@ -191,7 +186,6 @@
         .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .scrollbar-cover { position: absolute; top: 0; right: 0; width: 16px; height: 100%; background: #fff; z-index: 2; pointer-events: none; }
-
 
         #doc-loading-overlay {
             position: absolute; inset: 0; background: #fff;
@@ -215,7 +209,6 @@
             height: 100%; width: 0%; background: #d47878;
             border-radius: 99px; transition: width 0.28s ease;
         }
-
 
         .side-btns { position: absolute; top: 0; right: -73px; display: flex; flex-direction: column; gap: 7px; z-index: 200; }
         .side-btn {
@@ -245,7 +238,6 @@
         .side-btn-icon { font-size: 1.05rem; }
         .side-btn:hover .side-btn-icon { filter: brightness(10); }
 
-
         .popup-btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .popup-btn-primary {
             flex: 1; padding: 11px; background: #343a40; color: #fff; border: none; border-radius: 8px; cursor: pointer;
@@ -260,12 +252,10 @@
         }
         .popup-btn-secondary:hover { background: #dee2e6; }
 
-
         .noexist-box { background: #fff; border-radius: 12px; width: 90%; max-width: 420px; padding: 36px 32px 28px; text-align: center; }
         .noexist-icon { font-size: 2.5rem; margin-bottom: 14px; }
         .noexist-title { font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 700; color: #212529; margin-bottom: 8px; }
         .noexist-desc { font-size: 0.8rem; color: #868e96; line-height: 1.7; margin-bottom: 24px; }
-
 
         .board-popup-box {
             background: #fff;
@@ -312,7 +302,6 @@
         .board-val { padding: 10px 14px; line-height: 1.7; }
         .board-val-tall { padding: 12px 14px; line-height: 1.7; min-height: 80px; vertical-align: top !important; }
 
-
         .pg-btn {
             min-width: 30px; height: 30px; padding: 0 8px;
             background: #fff; border: 1px solid #dee2e6; border-radius: 5px; cursor: pointer;
@@ -322,7 +311,6 @@
         .pg-btn:hover:not(:disabled) { background: #f1f3f5; }
         .pg-btn.active { background: #343a40; color: #fff; border-color: #343a40; font-weight: 700; }
         .pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
 
         #preload-overlay {
             position: fixed; inset: 0; background: #fff; z-index: 2000;
@@ -337,7 +325,6 @@
         @keyframes preload-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.65); } }
         .preload-bar-wrap { flex: 1; height: 2px; background: #f1f3f5; border-radius: 99px; overflow: hidden; }
         .preload-bar { height: 100%; width: 0%; background: #d47878; border-radius: 99px; transition: width 0.3s ease; }
-
 
         .exp-popup-box {
             background: #fff; border-radius: 10px; width: 95%; max-width: 980px;
@@ -659,11 +646,9 @@ to search for a teaching model.</span></p>
                 item.onclick = function() { selectFilter(key, val); };
                 dd.appendChild(item);
             });
-            // 구분선
             var sep = document.createElement('div');
             sep.style.cssText = 'height:1px;background:#e9e8e3;margin:4px 0;';
             dd.appendChild(sep);
-            // 전체 항목
             var allItem = document.createElement('div');
             allItem.className = 'dropdown-item dropdown-item-all';
             allItem.dataset.isAll = 'true';
@@ -684,7 +669,7 @@ to search for a teaching model.</span></p>
 
         var s   = filterState;
         var any = s.domain || s.orientation || s.competency || s.participants;
-        // __ALL__ = 선택됐지만 전체 포함 (필터 미적용)
+        // __ALL__ = selected but includes all (no filter applied)
         var domainFilter      = (s.domain        && s.domain        !== '__ALL__') ? s.domain        : null;
         var orientationFilter = (s.orientation   && s.orientation   !== '__ALL__') ? s.orientation   : null;
         var competencyFilter  = (s.competency    && s.competency    !== '__ALL__') ? s.competency    : null;
@@ -706,14 +691,14 @@ to search for a teaching model.</span></p>
         var ri = document.getElementById('filter-result');
         if (ri) ri.classList.toggle('has-results', any && models.length > 0);
 
-        // 필터가 바뀌면 이전에 선택된 MTI는 항상 초기화
+        // Reset selected MTI whenever filters change
         if (selectedResult) {
             selectedResult = null;
             var labelResult = document.getElementById('label-result');
             if (labelResult) labelResult.classList.remove('active');
         }
 
-        // 건수/안내 텍스트를 result-model-name(.result-value)에 표시
+        // Update result count / hint text
         var nameEl = document.getElementById('result-model-name');
         if (nameEl) {
             if (!any)                { nameEl.textContent = '수업 모형(MTI)의 검색을 위한 조건을 선택하세요.'; nameEl.classList.remove('has-count'); }
@@ -887,7 +872,7 @@ to search for a teaching model.</span></p>
         closeAllDropdowns();
     }
 
-    // Render iframes at 1:1 scale for best quality
+    // Render iframes at native scale
     function scaleIframes() {
         var c = document.getElementById('iframe-container');
         if (!c || c.clientWidth === 0) return;
@@ -956,7 +941,7 @@ to search for a teaching model.</span></p>
                 ov.classList.add('visible');
                 if (bar) bar.style.transition = 'width 0.28s ease';
 
-                // Phase 1: 0% → 80% while iframe is loading
+                // Phase 1: 0% → 80% while iframe loads
                 _docProgressTimer = setInterval(function() {
                     var step = _docProgressPct < 40 ? 2.5 : (_docProgressPct < 65 ? 1.0 : 0.3);
                     _docProgressPct = Math.min(_docProgressPct + step, 80);
@@ -967,15 +952,14 @@ to search for a teaching model.</span></p>
         });
     }
 
-    // Called after iframe onload — advances bar 80→97% while images render, then hides
+    // Advance progress bar 80→97% after iframe loads, then hide overlay
     function waitForImagesAndHide(token, lbl) {
         if (_loadToken !== token) return;
         var bar = document.getElementById('doc-progress-bar');
         var lblEl = document.getElementById('doc-loading-label');
-        // label unchanged
         if (_docProgressTimer) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
 
-        // Phase 2: 80% → 97% over ~2.5 s
+        // Phase 2: 80% → 97% over ~2.5s
         _docProgressPct = 80;
         if (bar) { bar.style.transition = 'width 0.25s ease'; bar.style.width = '80%'; }
         _docProgressTimer = setInterval(function() {
@@ -1005,7 +989,7 @@ to search for a teaching model.</span></p>
         }, 350);
     }
 
-    // Active load token — prevents stale callbacks from a previous selection
+    // Token to cancel stale callbacks
     var _loadToken = 0;
 
     function loadIframe(src) {
@@ -1015,7 +999,6 @@ to search for a teaching model.</span></p>
         var token = ++_loadToken;
         sp.classList.remove('show');
 
-        // Hide all iframes
         c.querySelectorAll('iframe').forEach(function(f) {
             f.classList.remove('active');
             f.style.visibility = 'hidden';
@@ -1023,7 +1006,7 @@ to search for a teaching model.</span></p>
 
         showDocOverlay('선택한 MTI를 불러오는 중...');
 
-        // Fallback: force-show after 8 s if onload never fires
+        // Fallback: force-show after 8s if onload never fires
         var fallbackTimer = setTimeout(function() {
             if (_loadToken !== token) return;
             var target = findIframeByUrl(fs);
@@ -1036,20 +1019,20 @@ to search for a teaching model.</span></p>
             clearTimeout(fallbackTimer);
             frm.classList.add('active');
             scaleIframes();
-            // Keep overlay while images render (phase 2), then hide
+            // Keep overlay during phase 2, then hide
             waitForImagesAndHide(token, '이미지를 불러오는 중...');
         }
 
         var ex = findIframeByUrl(fs);
         if (ex) {
             if (ex.dataset.loaded === 'true') {
-                // Already prefetched and fully rendered — show immediately
+                // Already cached — show immediately
                 clearTimeout(fallbackTimer);
                 hideDocOverlay();
                 ex.classList.add('active');
                 scaleIframes();
             } else {
-                // Prefetch in progress — attach onload and wait
+                // Prefetch in progress — wait for onload
                 ex.onload = function() {
                     ex.dataset.loaded = 'true';
                     revealFrame(ex);
@@ -1058,7 +1041,7 @@ to search for a teaching model.</span></p>
             return;
         }
 
-        // Create new iframe — reveal on first onload
+        // Create new iframe
         var f = document.createElement('iframe');
         f.dataset.src      = fs;
         f.dataset.loaded   = 'false';
@@ -1217,7 +1200,7 @@ to search for a teaching model.</span></p>
         var model  = (document.getElementById('exp-model')   || {}).value || '';
         var userId = sessionStorage.getItem('imti_user_id')  || '';
 
-        // Find mtiId from sheetRows
+        // Resolve mtiId from sheet data
         var mr    = sheetRows.find(function(r) { return r.model === model; });
         var mtiId = '';
         if (mr) {
@@ -1277,7 +1260,7 @@ to search for a teaching model.</span></p>
                 else { onError((res && res.error) || 'GAS_REJECTED'); }
             })
             .catch(function(err) {
-                // Fallback to no-cors if CORS blocked
+                // Fallback: retry with no-cors if CORS blocked
                 console.warn('[IMTI] POST blocked, retrying with no-cors:', err);
                 fetch(EXP_SURVEY_SCRIPT_URL, {
                     method:  'POST',
@@ -1301,8 +1284,7 @@ to search for a teaching model.</span></p>
         } else {
             var f = document.querySelector('#iframe-container iframe.active');
             if (f && f.dataset.isGuide === 'true') {
-                // Print guide page directly
-                try { f.contentWindow.print(); } catch(e) {
+                        try { f.contentWindow.print(); } catch(e) {
                     var pw = window.open('Main_mti_searching_guide.html', '_blank');
                     if (pw) pw.onload = function() { pw.print(); };
                 }
@@ -1317,10 +1299,8 @@ to search for a teaching model.</span></p>
               .replace(/\/export.*/, '')
             : src;
 
-        // Open print view directly without modal
         window.open(base + '/export?format=pdf&attachment=false', '_blank');
     }
-
 
     document.addEventListener('DOMContentLoaded', function() {
 
