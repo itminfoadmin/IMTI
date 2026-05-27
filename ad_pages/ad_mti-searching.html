@@ -83,7 +83,6 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            margin-bottom: 16px;
             flex-wrap: wrap;
         }
         .filter-label {
@@ -121,6 +120,19 @@
             color: #adb5bd;
         }
         .stats-count { font-weight: 700; color: #343a40; }
+
+        /* Header inner layout */
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .page-header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
 
         /* Table */
         .table-wrap {
@@ -274,8 +286,11 @@
 
     <!-- Header -->
     <div class="page-header">
-        <span class="page-title">SEARCHING MTI</span>
-        <span class="stats-text">Showing <span class="stats-count" id="stats-count">0</span> results <span id="stats-total"></span></span>
+        <div class="page-header-top">
+            <span class="page-title">SEARCHING MTI</span>
+            <span class="stats-text">Showing <span class="stats-count" id="stats-count">0</span> results <span id="stats-total"></span></span>
+        </div>
+
     </div>
 
     <!-- Search bar -->
@@ -285,17 +300,6 @@
             <input type="text" id="search-input" placeholder="Search by name, domain, orientation, participants, competency..." autofocus>
         </div>
         <button class="btn-clear" onclick="clearSearch()">Clear</button>
-    </div>
-
-    <!-- Filter chips + Stats -->
-    <div class="filter-bar">
-        <span class="filter-label">Filter by:</span>
-        <button class="filter-chip active" data-col="all" onclick="setColFilter('all',this)">All</button>
-        <button class="filter-chip" data-col="b" onclick="setColFilter('b',this)">MTI_num</button>
-        <button class="filter-chip" data-col="c" onclick="setColFilter('c',this)">MTI_id</button>
-        <button class="filter-chip" data-col="d" onclick="setColFilter('d',this)">Domain</button>
-        <button class="filter-chip" data-col="e" onclick="setColFilter('e',this)">Orientation</button>
-        <button class="filter-chip" data-col="f" onclick="setColFilter('f',this)">MTI_name</button>
     </div>
 
     <!-- Table -->
