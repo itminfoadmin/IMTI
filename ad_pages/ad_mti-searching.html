@@ -133,6 +133,7 @@
             min-height: 0;
         }
         table { width: 100%; border-collapse: collapse; }
+        thead { position: sticky; top: 0; z-index: 10; }
         thead tr { background: #f8f9fa; border-bottom: 2px solid #dee2e6; }
         th {
             font-family: 'Gowun Batang', serif;
@@ -422,7 +423,7 @@ function render() {
         return;
     }
 
-    let html = `<table><thead><tr>
+    let html = `<table><colgroup><col style="width:8%"><col style="width:11%"><col style="width:13%"><col style="width:17%"><col><col style="width:93px"></colgroup><thead><tr>
         <th class="${thCls('b')}" onclick="toggleSort('b')">MTI_num<span class="si"></span></th>
         <th class="${thCls('c')}" onclick="toggleSort('c')">MTI_id<span class="si"></span></th>
         <th class="${thCls('d')}" onclick="toggleSort('d')">Domain<span class="si"></span></th>
