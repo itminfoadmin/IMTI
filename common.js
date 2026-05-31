@@ -311,6 +311,91 @@ function imtiDoLogout() {
     location.href = 'index.html';
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Idle auto-logout: log the user out after 30 minutes of no activity.
+   - Tracks last-activity timestamp in sessionStorage so the countdown
+     survives page navigation and stays consistent across open tabs.
+   - User activity (mouse, keyboard, click, scroll, touch) resets it.
+   ───────────────────────────────────────────────────────────── */
+var IMTI_IDLE_LIMIT_MS   = 30 * 60 * 1000;   // 30 minutes
+var IMTI_IDLE_CHECK_MS   = 30 * 1000;        // re-check every 30 s
+var IMTI_IDLE_STORAGE_KEY = 'imti_last_activity';
+var _imtiIdleTimer = null;
+
+/* Perform the auto-logout (mirrors imtiDoLogout, no user confirmation) */
+function imtiAutoLogout() {
+    if (sessionStorage.getItem('imti_user_email')) {
+        var logKey = sessionStorage.getItem('imti_log_key')
+                  || sessionStorage.getItem('imti_user_id')
+                  || sessionStorage.getItem('imti_user_email')
+                  || '';
+        imtiSendLog('logout', logKey, sessionStorage.getItem('imti_user_email') || '');
+    }
+    if (sessionStorage.getItem('admin_email')) {
+        imtiSendAdminLog('logout', sessionStorage.getItem('admin_email') || '');
+    }
+    sessionStorage.clear();
+    /* Flag so index.html can show a "session expired" notice if desired */
+    try { sessionStorage.setItem('imti_logout_reason', 'idle'); } catch (e) {}
+    location.replace('index.html');
+}
+
+/* Record current time as the last activity moment */
+function imtiMarkActivity() {
+    try { sessionStorage.setItem(IMTI_IDLE_STORAGE_KEY, String(Date.now())); } catch (e) {}
+}
+
+/* Check elapsed idle time; log out if over the limit */
+function imtiCheckIdle() {
+    /* Only enforce when a user session actually exists */
+    if (!sessionStorage.getItem('imti_user_email') && !sessionStorage.getItem('admin_email')) {
+        return;
+    }
+    var last = parseInt(sessionStorage.getItem(IMTI_IDLE_STORAGE_KEY) || '0', 10);
+    if (!last) { imtiMarkActivity(); return; }
+    if (Date.now() - last >= IMTI_IDLE_LIMIT_MS) {
+        imtiAutoLogout();
+    }
+}
+
+/* Start watching for inactivity */
+function imtiStartIdleWatch() {
+    /* No session → nothing to watch */
+    if (!sessionStorage.getItem('imti_user_email') && !sessionStorage.getItem('admin_email')) {
+        return;
+    }
+    /* Seed timestamp if missing (e.g. fresh login) */
+    if (!sessionStorage.getItem(IMTI_IDLE_STORAGE_KEY)) imtiMarkActivity();
+
+    var activityEvents = ['mousemove', 'mousedown', 'keydown', 'click', 'scroll', 'touchstart', 'wheel'];
+    /* Throttle writes: only update timestamp at most once per 5 s */
+    var lastWrite = 0;
+    function onActivity() {
+        var now = Date.now();
+        if (now - lastWrite > 5000) { lastWrite = now; imtiMarkActivity(); }
+    }
+    activityEvents.forEach(function(ev) {
+        window.addEventListener(ev, onActivity, { passive: true });
+    });
+
+    /* Catch up immediately when returning to a backgrounded tab */
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) imtiCheckIdle();
+    });
+
+    if (_imtiIdleTimer) clearInterval(_imtiIdleTimer);
+    _imtiIdleTimer = setInterval(imtiCheckIdle, IMTI_IDLE_CHECK_MS);
+    /* Run an initial check in case the page was reopened after the limit */
+    imtiCheckIdle();
+}
+
+/* Auto-start once the DOM is ready */
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', imtiStartIdleWatch);
+} else {
+    imtiStartIdleWatch();
+}
+
 async function imtiDoWithdraw() {
     var email = sessionStorage.getItem('imti_user_email') || '';
     var pw    = document.getElementById('withdraw-pw').value.trim();

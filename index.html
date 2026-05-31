@@ -944,6 +944,18 @@ function nextSlide() { currentSlide = (currentSlide + 1) % slides.length; applyS
 
 window.addEventListener('load', () => {
     if (window.lucide) lucide.createIcons();
+
+    /* Show the inactivity auto-logout notice if we arrived here via idle timeout.
+       common.js sets sessionStorage 'imti_logout_reason' = 'idle' before redirecting,
+       but it also calls sessionStorage.clear() first — so the flag is passed via
+       sessionStorage right after the clear. Read and consume it once. */
+    try {
+        if (sessionStorage.getItem('imti_logout_reason') === 'idle') {
+            sessionStorage.removeItem('imti_logout_reason');
+            openModal('modal-auto-logout');
+        }
+    } catch (e) {}
+
     warmUpScripts();
     runCounter();
     fetchSheet();
