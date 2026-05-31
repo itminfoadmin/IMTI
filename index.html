@@ -842,11 +842,12 @@
 
 <div id="modal-why" class="modal-overlay" onclick="outsideClose(event,'modal-why')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:600px; padding:36px 40px;">
-        <div style="font-size:0.75rem; line-height:1.9; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all;">
+        <div style="font-size:0.75rem; line-height:1.9; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all; display:none;">
             <p style="margin:0 0 16px;">IMTI(Inventory of Models of Teaching for Informatics) 방문을 환영합니다.</p>
             <p style="margin:0 0 16px;">본 인벤토리는 정보 교과의 수업 모형에 대한 연구 결과와 실제 수업 상황을 연결하고자 만들어진 공간입니다. 정보 교과의 다양한 수업 모형 관련 연구들을 자유롭게 확인하고 수업 상황에 적합한 수업모형을 적용하고 그 경험들을 본 인벤토리를 통해 공유함으로써 정보 교과 수업에서의 이론적, 실천적 지식이 한데 모아졌으면 합니다. 감사합니다.
             <p style="margin:0;" align="right">IMTI 운영진으로부터...</p>
         </div>
+        <div id="why-counter-list" style="font-size:0.75rem; line-height:1.9; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all; display:flex; flex-direction:column; gap:6px;"></div>
         <div style="margin-top:28px; text-align:center;">
             <button onclick="closeModal('modal-why')"
                     style="background:#fff; color:#343a40; border:1.5px solid #adb5bd; border-radius:6px; padding:8px 36px; font-family:'DM Mono',monospace; font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
@@ -894,7 +895,7 @@ const ADMIN_SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbwhgPJyoLR-Z
 
 const CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBInDqEoLUfRUKmAGEdvgJhFy6FHsp0uqv0HnhgVfh4Lb5F-NeeSACdMAJdT9DYaBZlA/exec';
 const COUNTER_URL        = 'https://script.google.com/macros/s/AKfycbydwUaYyMQsd-JmpvItpuj39s0vt6Ks0AquuX0-8Dk_Rp0ghPPLcFCyOirkqLsrYf_i/exec';
-const SHEET_CSV          = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTPFMK8hmmhAtMWhvX-lkqHltlxoBLg0PN_DfiLUh9J0fkr9xa9IM2HWLSztdu7zJcl4B7Z8T4oD2qP/pub?gid=0&single=true&output=csv';
+const SHEET_CSV          = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRclbL-Jh5Bh7VxCbl55mj6iRMTwSUbofSLWurmkQF2opAmxQJqZqsXxl9-CgkbawoiV2eAxYmMr9YA/pub?gid=0&single=true&output=csv';
 
 var _imtiReady     = false;
 var _adminReady    = false;
@@ -1031,7 +1032,7 @@ function sendLog(type, id, email) {
     catch(e) {}
 }
 
-function openModal(id)               { document.getElementById(id)?.classList.add('open'); }
+function openModal(id)               { document.getElementById(id)?.classList.add('open'); if (id === 'modal-why') loadWhyCounterList(); }
 function closeModal(id)              { document.getElementById(id)?.classList.remove('open'); }
 function outsideClose(e, id)         { if (e.target === document.getElementById(id)) closeModal(id); }
 
@@ -1518,16 +1519,71 @@ async function runCounter() {
 
 async function fetchSheet() {
     try {
-        const text = await fetch(SHEET_CSV + '?t=' + Date.now()).then(r => r.text());
-        const rows = text.split(/\r?\n/).map(r => r.split(','));
+        const text = await fetch(SHEET_CSV + '&t=' + Date.now()).then(r => r.text());
+        const rows = _parseCSV(text);
         if (rows.length > 1) {
-            const dateVal = (rows[1][1] || '').trim() || '2026/03/25';
+            // A4 셀의 "Latest Update: 2026/05/31 00:39" 에서 날짜 부분만 추출
+            const raw     = (rows[3] && rows[3][0] ? rows[3][0] : '').trim();
+            const m       = raw.match(/(\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}(?:\s+\d{1,2}:\d{2})?)/);
+            const dateVal = (m ? m[1] : raw) || '2026/03/25';
             ['update-date', 'footer-date'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.innerText = dateVal;
             });
         }
     } catch { console.error('[IMTI] Sheet fetch error'); }
+}
+
+// CSV 한 줄을 셀 배열로 파싱 (따옴표 안의 쉼표/줄바꿈 처리)
+function _parseCSV(text) {
+    const rows = [];
+    let row = [], field = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQuotes) {
+            if (c === '"') {
+                if (text[i + 1] === '"') { field += '"'; i++; }
+                else inQuotes = false;
+            } else field += c;
+        } else {
+            if (c === '"') inQuotes = true;
+            else if (c === ',') { row.push(field); field = ''; }
+            else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+            else if (c === '\r') { /* skip */ }
+            else field += c;
+        }
+    }
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    return rows;
+}
+
+// modal-why 가 열릴 때 시트(gid=0) B2,B3,B4,B5 를 세로로 표시
+async function loadWhyCounterList() {
+    const box = document.getElementById('why-counter-list');
+    if (!box) return;
+    box.innerHTML = '<span style="color:#adb5bd;">불러오는 중...</span>';
+    try {
+        const text = await fetch(SHEET_CSV + '&t=' + Date.now()).then(r => r.text());
+        const rows = _parseCSV(text);
+        // A열 = index 0, 2~5행 = index 1~4 (A5 = index 4)
+        const values = [1, 2, 3, 4]
+            .map(r => ({ row: r + 1, v: (rows[r] && rows[r][0] != null ? rows[r][0].trim() : '') }))
+            .filter(o => o.v.length > 0);
+        if (values.length === 0) {
+            box.innerHTML = '<span style="color:#adb5bd;">표시할 내용이 없습니다.</span>';
+            return;
+        }
+        box.innerHTML = values
+            .map(o => {
+                const esc = o.v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const align = o.row === 5 ? ' style="text-align:right;"' : '';
+                return `<div${align}>${esc}</div>`;
+            })
+            .join('');
+    } catch (e) {
+        console.error('[IMTI] counter list fetch error:', e);
+        box.innerHTML = '<span style="color:#e03131;">내용을 불러오지 못했습니다.</span>';
+    }
 }
 </script>
 
