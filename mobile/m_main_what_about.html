@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - What's IMTI?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html {
+            font-size: calc(14px + (18 - 14) * ((100vw - 1000px) / (1920 - 1000)));
+            height: 100%;
+            overflow: hidden;
+        }
+        @media (max-width: 1000px) { html { font-size: 13px; } }
+
+        body {
+            font-family: 'Noto Sans KR', 'DM Mono', sans-serif;
+            background: #fff;
+            color: #343a40;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-synthesis: none;
+            -webkit-font-smoothing: antialiased;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        body::-webkit-scrollbar { display: none; }
+        html { scrollbar-width: none; -ms-overflow-style: none; }
+        html::-webkit-scrollbar { display: none; }
+
+        
+        .topnav {
+            background: #fff;
+            padding: 3vh 5% 1.5vh 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .logo-area { padding-left: 5%; flex-shrink: 0; }
+        .logo-img { height: 4rem; width: auto; transition: transform 0.3s; cursor: pointer; }
+        .logo-img:hover { transform: scale(1.03); }
+
+        /* 햄버거 버튼 */
+        .nav-hamburger {
+            margin-right: 5%;
+            width: 38px; height: 30px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            background: none; border: none; cursor: pointer; padding: 4px 0;
+        }
+        .nav-hamburger span {
+            display: block; height: 2px; width: 100%;
+            background: #495057; border-radius: 2px;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        .nav-hamburger:hover span { background: #212529; }
+
+        /* 슬라이드 메뉴 백드롭 */
+        .nav-drawer-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.35);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1500;
+        }
+        .nav-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        /* 슬라이드 메뉴 패널 */
+        .nav-drawer {
+            position: fixed; top: 0; right: 0;
+            width: 320px; max-width: 85vw; height: 100%;
+            background: #fff;
+            box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1600;
+            display: flex; flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .nav-drawer::-webkit-scrollbar { display: none; }
+        .nav-drawer.open { transform: translateX(0); }
+
+        .nav-drawer-header {
+            display: flex; align-items: center; justify-content: flex-end;
+            padding: 20px 22px; border-bottom: 1px solid #f1f3f5;
+        }
+        .nav-drawer-logo { display: none; }
+        .nav-drawer-logo-img { height: 2.4rem; width: auto; }
+        .nav-drawer-close {
+            background: none; border: none; cursor: pointer;
+            font-size: 1.8rem; line-height: 1; color: #868e96;
+        }
+        .nav-drawer-close:hover { color: #212529; }
+
+        /* 맨 상단: 접속 이메일 표시 */
+        .nav-drawer-account {
+            display: flex; flex-direction: column; gap: 4px;
+            padding: 18px 22px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .nav-drawer-account-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+            color: #adb5bd;
+        }
+        .nav-drawer-email {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.95rem; font-weight: 500; color: #343a40;
+            word-break: break-all;
+        }
+
+        /* 메인 메뉴 */
+        .nav-drawer-menu {
+            display: flex; flex-direction: column;
+            padding: 10px 0;
+        }
+        .nav-drawer-menu .nav-menu-item {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 1rem; color: #495057; text-align: left;
+            text-decoration: none; background: none; border: none;
+            padding: 14px 22px; cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .nav-drawer-menu .nav-menu-item:hover {
+            background: #f8f9fa; color: #212529;
+        }
+        .nav-drawer-menu .nav-menu-item.active {
+            color: #212529; font-weight: 700;
+            border-left-color: #d47878;
+            background: #fdf5f5;
+        }
+
+        /* 하위 메뉴 (탭) */
+        .nav-submenu { display: flex; flex-direction: column; }
+        .nav-subitem {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.9rem; color: #868e96; text-align: left;
+            background: none; border: none; cursor: pointer;
+            padding: 11px 22px 11px 40px;
+            border-left: 3px solid transparent;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .nav-subitem:hover { background: #f8f9fa; color: #495057; }
+        .nav-subitem.active {
+            color: #d47878; font-weight: 700;
+            border-left-color: #d47878;
+            background: #fdf5f5;
+        }
+
+        /* 계정 관리 버튼 */
+        .nav-drawer-account-actions {
+            margin-top: 8px;
+            display: flex; flex-direction: column; gap: 2px;
+            padding: 14px 22px 8px;
+            border-top: 1px solid #f1f3f5;
+        }
+        .nav-drawer-account-actions .nav-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem; color: #868e96; text-align: left;
+            background: none; border: none; cursor: pointer;
+            padding: 10px 0;
+        }
+        .nav-drawer-account-actions .nav-btn:hover { color: #1a56db; }
+        .nav-drawer-account-actions .nav-btn-logout:hover { color: #d4452f; }
+
+        
+        
+        .iframe-wrap { flex: 1; min-height: 0; padding: 10px 10%; position: relative; }
+        .iframe-inner {
+            width: 100%; height: 100%; background: #fff;
+            position: relative; overflow: hidden;
+        }
+
+        
+        .iframe-scroll {
+            position: absolute; inset: 0;
+            overflow-y: auto; overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .iframe-scroll::-webkit-scrollbar { display: none; }
+
+        
+        .iframe-spacer { width: 1px; pointer-events: none; }
+
+        iframe {
+            border: none;
+            opacity: 0;
+            z-index: -1;
+            position: absolute;
+            top: 0; left: 0;
+            transform-origin: top left;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        iframe.active {
+            opacity: 1;
+            z-index: 1;
+            pointer-events: auto;
+        }
+
+        
+        #preload-overlay {
+            position: fixed; inset: 0;
+            background: #fff;
+            z-index: 2000;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 24px;
+            transition: opacity 0.5s ease;
+        }
+        #preload-overlay.fade-out { opacity: 0; pointer-events: none; }
+
+        .preload-logo {
+            height: 10rem; width: auto; opacity: 0.85;
+        }
+
+        .preload-title {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.82rem; font-weight: 700;
+            letter-spacing: 0.18em; text-transform: uppercase;
+            color: #adb5bd;
+        }
+
+        .preload-bar-row {
+            display: flex; align-items: center; gap: 10px;
+            width: 260px;
+        }
+        .preload-pulse-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #d47878; flex-shrink: 0;
+            animation: preload-pulse 1.2s ease-in-out infinite;
+        }
+        @keyframes preload-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.35; transform: scale(0.65); }
+        }
+        .preload-bar-wrap {
+            flex: 1; height: 2px;
+            background: #f1f3f5; border-radius: 99px; overflow: hidden;
+        }
+        .preload-bar {
+            height: 100%; width: 0%;
+            background: #d47878;
+            border-radius: 99px;
+            transition: width 0.4s ease;
+        }
+
+        .preload-count {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem; color: transparent;
+            letter-spacing: 0.1em;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===================== MOBILE OPTIMIZATION ===================== */
+        @media (max-width: 768px) {
+            html { font-size: 14px; overflow: visible; height: auto; }
+            /* Allow the whole page to scroll instead of a fixed 100vh split,
+               so the stacked navbar is never clipped */
+            body { height: auto; min-height: 100vh; overflow: visible; }
+
+            /* Navbar: 화면 상단에 완전히 고정 (스크롤해도 사라지지 않음) */
+            #navbar-placeholder {
+                position: fixed;
+                top: 0; left: 0; right: 0;
+                z-index: 1400;
+                background: #fff;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            }
+            .topnav {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 16px 4%;
+                background: #fff;
+            }
+            /* 고정된 navbar 높이만큼 본문을 아래로 밀어 가림 방지 */
+            #main-body { padding-top: 72px; }
+            /* 로고가 햄버거 버튼 공간을 침범하지 않도록 폭 제한 */
+            .logo-area { padding-left: 0; }
+            .logo-img { height: 3rem; }
+            .nav-hamburger { flex: 0 0 auto; margin-right: 0; }
+            .nav-drawer { width: 300px; }
+
+            /* Tabs full width, no big side padding */
+            .tab-bar { padding: 0 4%; margin-top: 14px; height: 42px; }
+            .tab-btn { font-size: 0.82rem; padding: 8px 4px; white-space: normal; line-height: 1.2; }
+
+            /* Give the iframe content the full width to scale into.
+               Height grows with the iframe content; the page scrolls. */
+            .iframe-wrap { padding: 8px 4% 24px; flex: none; height: auto; min-height: 0; position: static; }
+            .iframe-inner { height: auto; position: static; overflow: visible; }
+            #iframe-scroll { position: static; inset: auto; overflow: visible; }
+            #iframe-spacer { display: none; }
+            #iframe-container iframe { position: relative !important; inset: auto; width: 100% !important; transform: none !important; display: none; }
+            #iframe-container iframe.active { display: block; }
+
+            .preload-logo { height: 6rem; }
+        }
+    </style>
+
+</head>
+<body id="main-body">
+
+<div id="preload-overlay">
+    <img src="../img/logo.png" alt="IMTI" class="preload-logo"
+         onerror="this.style.display='none'">
+    <div class="preload-bar-row">
+        <div class="preload-pulse-dot" id="preload-dot"></div>
+        <div class="preload-bar-wrap">
+            <div class="preload-bar" id="preload-bar"></div>
+        </div>
+    </div>
+    <div class="preload-title">Loading Contents...</div>
+    <div class="preload-count" id="preload-count">0 / 2</div>
+</div>
+
+<div id="navbar-placeholder">
+<nav class="topnav">
+    <div class="logo-area">
+        <img src="../img/logo-main_mobile.png" alt="IMTI" class="logo-img">
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" onclick="imtiToggleMenu()" aria-label="메뉴 열기">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<div class="nav-drawer-backdrop" id="nav-drawer-backdrop" onclick="imtiCloseMenu()"></div>
+
+<aside class="nav-drawer" id="nav-drawer">
+    <div class="nav-drawer-header">
+        <div class="nav-drawer-logo">
+            <img src="../img/logo-main_con.png" alt="IMTI" class="nav-drawer-logo-img">
+        </div>
+        <button class="nav-drawer-close" onclick="imtiCloseMenu()" aria-label="메뉴 닫기">&times;</button>
+    </div>
+
+    <div class="nav-drawer-account">
+        <span class="nav-drawer-account-label">접속 계정</span>
+        <span class="nav-drawer-email" id="user-email-display">Guest User</span>
+    </div>
+
+    <nav class="nav-drawer-menu">
+        <a class="nav-menu-item active" href="m_main_what_about.html" data-page="m_main_what_about.html">What's_IMTI?</a>
+        <div class="nav-submenu" id="nav-submenu">
+            <button class="nav-subitem active" data-idx="0" onclick="switchTab(0); imtiCloseMenu();">IMTI 소개 및 운영 안내</button>
+            <button class="nav-subitem" data-idx="1" onclick="switchTab(1); imtiCloseMenu();">분석된 연구물 목록</button>
+        </div>
+        <a class="nav-menu-item" href="m_main_research_trends.html" data-page="m_main_research_trends.html">Reserach_Trends</a>
+        <a class="nav-menu-item" href="m_main_mti_seraching.html" data-page="m_main_mti_seraching.html">MTI_Searching</a>
+    </nav>
+
+    <div class="nav-drawer-account-actions">
+        <button class="nav-btn" onclick="imtiOpenModal('modal-contact'); imtiCloseMenu();">Contact_Us</button>
+        <button class="nav-btn" onclick="imtiOpenModal('modal-pw')">P/W변경</button>
+        <button class="nav-btn" onclick="imtiOpenModal('modal-withdraw')">회원탈퇴</button>
+        <button class="nav-btn nav-btn-logout" onclick="imtiOpenModal('modal-logout')">로그아웃</button>
+    </div>
+</aside>
+</div>
+
+<div class="iframe-wrap">
+    <div class="iframe-inner" id="iframe-container">
+        <div class="iframe-scroll" id="iframe-scroll">
+            <div class="iframe-spacer" id="iframe-spacer"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+const TABS = [
+    { src: "m_Main_Greeting.html",               type: "local", baseWidth: 1100 },
+    { src: "m_Main_Reference.html",               type: "local", baseWidth: 1100 }
+];
+let currentTabIdx = 0;
+
+function getScaledContentH(iframe, scale) {
+    try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (doc && doc.body) return Math.ceil(doc.body.scrollHeight * scale);
+    } catch(e) {}
+    return Math.ceil(2400 * scale);
+}
+
+function scaleIframes() {
+    const container = document.getElementById('iframe-container');
+    const spacer    = document.getElementById('iframe-spacer');
+    const scrollEl  = document.getElementById('iframe-scroll');
+    const scrollTop = scrollEl ? scrollEl.scrollTop : 0;
+
+    document.querySelectorAll('#iframe-container iframe').forEach(f => {
+        const idx       = parseInt(f.dataset.idx);
+        const tab       = TABS[idx] ?? {};
+        const isMobile  = window.innerWidth <= 768;
+
+        if (isMobile) {
+            // Grow the iframe to its full content height; the outer page scrolls.
+            f.style.width     = '100%';
+            f.style.transform = 'none';
+            f.style.top       = '0px';
+            f.style.left      = '0px';
+            f.style.position  = 'relative';
+            if (parseInt(f.dataset.idx) === currentTabIdx) {
+                let h = 0;
+                try {
+                    const doc = f.contentDocument || f.contentWindow?.document;
+                    if (doc && doc.body) h = doc.body.scrollHeight;
+                } catch(e) {}
+                f.style.height = (h > 0 ? h : 1200) + 'px';
+            } else {
+                f.style.height = '0px';
+            }
+            if (spacer) spacer.style.height = '0px';
+            return;
+        }
+
+        const baseWidth = tab.baseWidth ?? 980;
+        const scale     = container.clientWidth / baseWidth;
+
+        f.style.width     = baseWidth + 'px';
+        f.style.height    = Math.ceil(container.clientHeight / scale) + 'px';
+        f.style.transform = `scale(${scale})`;
+        
+        f.style.top  = (-scrollTop / scale) + 'px';
+        f.style.left = '0px';
+
+        
+        if (idx === currentTabIdx && spacer) {
+            const ch = getScaledContentH(f, scale);
+            spacer.style.height = ch + 'px';
+        }
+    });
+}
+window.addEventListener('resize', scaleIframes);
+
+// 자식 iframe(연구물 목록 등)이 콘텐츠를 다 그린 뒤 보내는 높이 재측정 요청
+window.addEventListener('message', (e) => {
+    if (e.data === 'imti-content-resized') {
+        scaleIframes();
+        setTimeout(scaleIframes, 200);
+    }
+});
+
+function onScroll() {
+    const container = document.getElementById('iframe-container');
+    const scrollEl  = document.getElementById('iframe-scroll');
+    if (!scrollEl) return;
+    const scrollTop = scrollEl.scrollTop;
+    document.querySelectorAll('#iframe-container iframe').forEach(f => {
+        const idx       = parseInt(f.dataset.idx);
+        const isMobile  = window.innerWidth <= 768;
+        const baseWidth = isMobile ? container.clientWidth : (TABS[idx]?.baseWidth ?? 980);
+        const scale     = container.clientWidth / baseWidth;
+        f.style.top = (-scrollTop / scale) + 'px';
+    });
+}
+
+function preloadAll() {
+    const container  = document.getElementById('iframe-container');
+    const bar        = document.getElementById('preload-bar');
+    const countEl    = document.getElementById('preload-count');
+    const overlay    = document.getElementById('preload-overlay');
+    const total      = TABS.length;
+
+    
+    const PER_TIMEOUT_LOCAL = 8000;
+    const PER_TIMEOUT_SHEET = 20000;
+
+    let   loaded     = 0;
+    let   dismissed  = false;
+    let   iframesDone = false;   // iframe load events done
+    let   sheetReady  = false;   // Main_Greeting sheet data ready
+
+    countEl.textContent = `0 / ${total}`;
+
+    // Listen for sheet-ready signal from child iframe
+    function onSheetReady(e) {
+        if (e.data !== 'imti-sheet-ready') return;
+        window.removeEventListener('message', onSheetReady);
+        sheetReady = true;
+        if (iframesDone) dismiss();
+    }
+    window.addEventListener('message', onSheetReady);
+
+    
+    const iframes = TABS.map((tab, idx) => {
+        const iframe = document.createElement('iframe');
+        iframe.dataset.idx     = idx;
+        iframe.allow           = 'fullscreen';
+        iframe.allowFullscreen = true;
+        if (idx === 0) iframe.classList.add('active');
+        container.appendChild(iframe);
+        return iframe;
+    });
+
+    
+    scaleIframes();
+
+    function onOneLoaded() {
+        if (dismissed) return;
+        loaded = Math.min(loaded + 1, total);
+        bar.style.width     = Math.round((loaded / total) * 100) + '%';
+        countEl.textContent = `${loaded} / ${total}`;
+        if (loaded >= total) {
+            iframesDone = true;
+            // Wait for sheet signal from tab-0 (Main_Greeting); 8s fallback
+            if (sheetReady) {
+                dismiss();
+            } else {
+                setTimeout(() => { if (!dismissed) dismiss(); }, 8000);
+            }
+        }
+    }
+
+    function dismiss() {
+        if (dismissed) return;
+        dismissed = true;
+        bar.style.width     = '100%';
+        countEl.textContent = `${total} / ${total}`;
+        const dot = document.getElementById('preload-dot');
+        if (dot) { dot.style.animation = 'none'; dot.style.opacity = '1'; dot.style.transform = 'scale(1)'; }
+        setTimeout(() => {
+            overlay.classList.add('fade-out');
+            setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 520);
+        }, 300);
+    }
+
+    
+    TABS.forEach((tab, idx) => {
+        const iframe  = iframes[idx];
+        const timeout = tab.type === 'local' ? PER_TIMEOUT_LOCAL : PER_TIMEOUT_SHEET;
+
+        let done = false;
+        function markDone() {
+            if (done) return;
+            done = true;
+            onOneLoaded();
+        }
+        iframe.addEventListener('load',  markDone);
+        iframe.addEventListener('error', markDone);
+        setTimeout(markDone, timeout);
+
+        
+        iframe.src = tab.type === 'local'
+            ? tab.src + '?v=' + Date.now()
+            : tab.src;
+        
+        iframe.addEventListener('load', () => {
+            scaleIframes();
+            // Inner content (esp. async sheet data) can grow after load on mobile
+            setTimeout(scaleIframes, 400);
+            setTimeout(scaleIframes, 1500);
+        }, { once: true });
+    });
+
+    
+    setTimeout(dismiss, 35000);
+}
+
+function switchTab(idx) {
+    currentTabIdx = idx;
+    document.querySelectorAll('.nav-subitem').forEach(btn => btn.classList.remove('active'));
+    const activeSub = document.querySelector(`.nav-subitem[data-idx="${idx}"]`);
+    if (activeSub) activeSub.classList.add('active');
+    document.querySelectorAll('#iframe-container iframe').forEach(f => {
+        f.classList.toggle('active', parseInt(f.dataset.idx) === idx);
+    });
+    
+    const scrollEl = document.getElementById('iframe-scroll');
+    if (scrollEl) scrollEl.scrollTop = 0;
+    // On mobile the page itself scrolls — return to top of the document
+    if (window.innerWidth <= 768) window.scrollTo(0, 0);
+    scaleIframes();
+    setTimeout(scaleIframes, 300);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    preloadAll();
+});
+</script>
+<script src="m_common.js"></script>
+<script>
+    function imtiToggleMenu() {
+        const drawer   = document.getElementById('nav-drawer');
+        const backdrop = document.getElementById('nav-drawer-backdrop');
+        if (!drawer) return;
+        if (drawer.classList.contains('open')) { imtiCloseMenu(); }
+        else { drawer.classList.add('open'); backdrop.classList.add('open'); }
+    }
+    function imtiCloseMenu() {
+        const drawer   = document.getElementById('nav-drawer');
+        const backdrop = document.getElementById('nav-drawer-backdrop');
+        if (drawer)   drawer.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('open');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') imtiCloseMenu(); });
+</script>
+<script>imtiRequireAuth(); imtiLoadNavbar("m_main_what_about.html");</script>
+</body>
+</html>

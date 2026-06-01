@@ -1,0 +1,190 @@
+<nav class="topnav">
+    <div class="logo-area">
+        <img src="img/logo-main_con.png" alt="IMTI" class="logo-img">
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" onclick="imtiToggleMenu()" aria-label="메뉴 열기">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<!-- 슬라이드 메뉴 오버레이 -->
+<div class="nav-drawer-backdrop" id="nav-drawer-backdrop" onclick="imtiCloseMenu()"></div>
+
+<aside class="nav-drawer" id="nav-drawer">
+    <div class="nav-drawer-header">
+        <div class="nav-drawer-logo" style="display:none;">
+            <img src="img/logo-main_con.png" alt="IMTI" class="nav-drawer-logo-img" style="display:none;">
+        </div>
+        <button class="nav-drawer-close" onclick="imtiCloseMenu()" aria-label="메뉴 닫기">&times;</button>
+    </div>
+
+    <!-- 맨 상단: 현재 접속한 이메일 -->
+    <div class="nav-drawer-account">
+        <span class="nav-drawer-account-label">접속 계정</span>
+        <span class="nav-drawer-email" id="user-email-display">Guest User</span>
+    </div>
+
+    <!-- 메인 메뉴 -->
+    <nav class="nav-drawer-menu">
+        <a class="nav-menu-item" href="m_main_what_about.html" data-page="m_main_what_about.html">What's_IMTI?</a>
+        <a class="nav-menu-item" href="m_main_research_trends.html" data-page="m_main_research_trends.html">Reserach_Trends</a>
+        <a class="nav-menu-item" href="m_main_mti_seraching.html" data-page="m_main_mti_seraching.html">MTI_Searching</a>
+    </nav>
+
+    <!-- 계정 관리 메뉴 -->
+    <div class="nav-drawer-account-actions">
+        <button class="nav-btn" onclick="imtiOpenModal('modal-contact'); imtiCloseMenu();">Contact_Us</button>
+        <button class="nav-btn" onclick="imtiOpenModal('modal-pw')">P/W변경</button>
+        <button class="nav-btn" onclick="imtiOpenModal('modal-withdraw')">회원탈퇴</button>
+        <button class="nav-btn nav-btn-logout" onclick="imtiOpenModal('modal-logout')">로그아웃</button>
+    </div>
+</aside>
+
+<style>
+    /* ===== 상단 바 ===== */
+    .topnav {
+        background: #fff;
+        padding: 3vh 5% 1.5vh 5%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .logo-area { padding-left: 5%; flex-shrink: 0; }
+    .logo-img { height: 4rem; width: auto; transition: transform 0.3s; cursor: pointer; }
+    .logo-img:hover { transform: scale(1.03); }
+
+    /* 햄버거 버튼 */
+    .nav-hamburger {
+        margin-right: 5%;
+        width: 38px; height: 30px;
+        display: flex; flex-direction: column; justify-content: space-between;
+        background: none; border: none; cursor: pointer; padding: 4px 0;
+    }
+    .nav-hamburger span {
+        display: block; height: 2px; width: 100%;
+        background: #495057; border-radius: 2px;
+        transition: transform 0.3s, opacity 0.3s;
+    }
+    .nav-hamburger:hover span { background: #212529; }
+
+    /* ===== 슬라이드 메뉴 백드롭 ===== */
+    .nav-drawer-backdrop {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.35);
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.3s ease;
+        z-index: 1500;
+    }
+    .nav-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    /* ===== 슬라이드 메뉴 패널 ===== */
+    .nav-drawer {
+        position: fixed; top: 0; right: 0;
+        width: 320px; max-width: 85vw; height: 100%;
+        background: #fff;
+        box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        z-index: 1600;
+        display: flex; flex-direction: column;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+    .nav-drawer::-webkit-scrollbar { display: none; }
+    .nav-drawer.open { transform: translateX(0); }
+
+    .nav-drawer-header {
+        display: flex; align-items: center; justify-content: flex-end;
+        padding: 20px 22px; border-bottom: 1px solid #f1f3f5;
+    }
+    .nav-drawer-logo { display: none; }
+    .nav-drawer-logo-img { height: 2.4rem; width: auto; }
+    .nav-drawer-close {
+        background: none; border: none; cursor: pointer;
+        font-size: 1.8rem; line-height: 1; color: #868e96;
+    }
+    .nav-drawer-close:hover { color: #212529; }
+
+    /* 맨 상단: 접속 이메일 표시 */
+    .nav-drawer-account {
+        display: flex; flex-direction: column; gap: 4px;
+        padding: 18px 22px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #f1f3f5;
+    }
+    .nav-drawer-account-label {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+        color: #adb5bd;
+    }
+    .nav-drawer-email {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.95rem; font-weight: 500; color: #343a40;
+        word-break: break-all;
+    }
+
+    /* 메인 메뉴 */
+    .nav-drawer-menu {
+        display: flex; flex-direction: column;
+        padding: 10px 0;
+    }
+    .nav-drawer-menu .nav-menu-item {
+        font-family: 'Noto Sans KR', sans-serif;
+        font-size: 1rem; color: #495057; text-align: left;
+        text-decoration: none; background: none; border: none;
+        padding: 14px 22px; cursor: pointer;
+        border-left: 3px solid transparent;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .nav-drawer-menu .nav-menu-item:hover {
+        background: #f8f9fa; color: #212529;
+    }
+    .nav-drawer-menu .nav-menu-item.active {
+        color: #212529; font-weight: 700;
+        border-left-color: #d47878;
+        background: #fdf5f5;
+    }
+
+    /* 계정 관리 버튼 */
+    .nav-drawer-account-actions {
+        margin-top: 8px;
+        display: flex; flex-direction: column; gap: 2px;
+        padding: 14px 22px 8px;
+        border-top: 1px solid #f1f3f5;
+    }
+    .nav-drawer-account-actions .nav-btn {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.85rem; color: #868e96; text-align: left;
+        background: none; border: none; cursor: pointer;
+        padding: 10px 0;
+    }
+    .nav-drawer-account-actions .nav-btn:hover { color: #1a56db; }
+    .nav-drawer-account-actions .nav-btn-logout:hover { color: #d4452f; }
+
+    /* 모바일 */
+    @media (max-width: 768px) {
+        .topnav { padding: 16px 4%; }
+        .logo-area { padding-left: 0; }
+        .logo-img { height: 3rem; }
+        .nav-hamburger { margin-right: 0; }
+        .nav-drawer { width: 300px; }
+    }
+</style>
+
+<script>
+    function imtiToggleMenu() {
+        const drawer   = document.getElementById('nav-drawer');
+        const backdrop = document.getElementById('nav-drawer-backdrop');
+        const isOpen   = drawer.classList.contains('open');
+        if (isOpen) { imtiCloseMenu(); } else {
+            drawer.classList.add('open');
+            backdrop.classList.add('open');
+        }
+    }
+    function imtiCloseMenu() {
+        document.getElementById('nav-drawer').classList.remove('open');
+        document.getElementById('nav-drawer-backdrop').classList.remove('open');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') imtiCloseMenu(); });
+</script>
