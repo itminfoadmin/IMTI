@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - Member Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ad_common.css">
+    <style>
+        .main { display: flex; flex-direction: column; margin: 24px; border: 1px dashed #fff; border-radius: 2px; padding: 36px; overflow-x: auto; }
+    </style>
+
+    <style id="m-responsive">
+        /* ── Mobile layout reset (PC navbar removed) ── */
+        html, body { height: auto; min-height: 100%; overflow-x: hidden; }
+        body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
+        .page-body {
+            height: auto !important; max-height: none !important;
+            overflow: visible !important; display: block !important;
+        }
+        .main {
+            margin: 12px !important;
+            padding: 16px 12px !important;
+            border: none !important;
+        }
+        /* Horizontal scroll container for wide data tables */
+        #table-area { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .member-table { width: 100%; min-width: 640px; font-size: 0.72rem; }
+        .member-table th, .member-table td { padding: 8px 8px; }
+        /* Popups: keep within viewport on small screens */
+        .adm-modal-box, .popup-box, .view-popup-box, .del-modal-box {
+            width: 92vw !important; max-width: 92vw !important;
+        }
+        .popup-box { padding: 40px 22px 28px !important; }
+        .adm-modal-body, .view-popup-body { padding-left: 20px !important; padding-right: 20px !important; }
+        .adm-modal-footer, .view-popup-footer { padding-left: 18px !important; padding-right: 18px !important; }
+        .adm-info-table td:first-child { width: 92px; }
+        .popup-btn-row { flex-wrap: wrap; justify-content: center; }
+        .popup-cancel-btn, .popup-confirm-btn { padding: 10px 32px !important; }
+    </style>
+
+</head>
+<body>
+
+<!-- Mobile navbar injected here -->
+<div id="m-navbar-mount"></div>
+<script>
+/* Load the mobile navbar fragment */
+fetch('m_ad_navbar.html')
+    .then(r => r.text())
+    .then(html => {
+        const mount = document.getElementById('m-navbar-mount');
+        mount.innerHTML = html;
+        mount.querySelectorAll('script').forEach(old => {
+            const s = document.createElement('script');
+            if (old.src) s.src = old.src; else s.textContent = old.textContent;
+            document.body.appendChild(s);
+        });
+    })
+    .catch(err => console.error('navbar load error:', err));
+</script>
+
+
+<div class="page-body">
+<div class="main">
+    <div id="table-area">
+        <p class="status-msg" id="loading-msg">Loading member data...</p>
+    </div>
+</div>
+</div>
+
+<!-- Popup: PW Reset -->
+<div class="popup-overlay" id="pw-popup">
+    <div class="adm-modal-box">
+        <div class="adm-modal-title">
+            <span class="adm-modal-dot"></span>
+            <span class="adm-modal-title-text">Password Reset</span>
+            <div class="adm-title-right">
+                <button class="adm-x-btn" onclick="closePwPopup()">&#x2715;</button>
+            </div>
+        </div>
+        <div class="adm-modal-body">
+            <p class="adm-modal-msg">Do you want reset the password for the user below?</p>
+            <table class="adm-info-table">
+                <tr><td>ID</td>     <td id="pw-target-id">-</td></tr>
+                <tr><td>e-mail</td> <td id="pw-target-email">-</td></tr>
+            </table>
+            <div id="pw-result" class="adm-modal-result"></div>
+        </div>
+        <div class="adm-modal-footer">
+            <button class="adm-cancel-btn" onclick="closePwPopup()">Cancel</button>
+            <button class="adm-confirm-btn" id="pw-confirm-btn" onclick="handlePwReset()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: PW Reset Complete -->
+<div class="popup-overlay" id="pw-ok-popup">
+    <div class="adm-modal-box">
+        <div class="adm-modal-title">
+            <span class="adm-modal-dot"></span>
+            <span class="adm-modal-title-text">Password Reset Complete</span>
+        </div>
+        <div class="adm-modal-body" style="align-items:center;padding:32px 36px;">
+            <p class="adm-modal-msg">Password has been reset and sent to the user's email.</p>
+        </div>
+        <div class="adm-modal-footer">
+            <button class="adm-confirm-btn" style="padding:8px 56px;" onclick="closePwOkPopup()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: Delete Step 1 -->
+<div class="popup-overlay" id="del-popup">
+    <div class="adm-modal-box" style="max-width:560px;">
+        <div class="adm-modal-title">
+            <span class="adm-modal-dot"></span>
+            <span class="adm-modal-title-text">Delete Member</span>
+            <div class="adm-title-right">
+                <button class="adm-x-btn" onclick="closeDelPopup()">&#x2715;</button>
+            </div>
+        </div>
+        <div class="adm-modal-body">
+            <p class="adm-modal-msg">Do you want delete the member information below?</p>
+            <table class="adm-info-table">
+                <tr><td>ID</td>           <td id="del-target-id">-</td></tr>
+                <tr><td>e-mail</td>       <td id="del-target-email">-</td></tr>
+                <tr><td>Sign-up</td>      <td id="del-target-signup">-</td></tr>
+                <tr><td>Visits</td>       <td id="del-target-visits">-</td></tr>
+                <tr><td>Recent Visit</td> <td id="del-target-recent">-</td></tr>
+                <tr><td>Num. of Com.</td> <td id="del-target-numcom">-</td></tr>
+            </table>
+        </div>
+        <div class="adm-modal-footer">
+            <button class="adm-cancel-btn" id="del-cancel-btn1" onclick="closeDelPopup()">Cancel</button>
+            <button class="adm-confirm-btn" onclick="openDelReconfirmPopup()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: Delete Step 2 (final confirm) -->
+<div class="popup-overlay" id="del-reconfirm-popup" style="z-index:1100;">
+    <div class="adm-modal-box">
+        <div class="adm-modal-title">
+            <span class="adm-modal-dot"></span>
+            <span class="adm-modal-title-text">Delete Member — Final Confirm</span>
+            <div class="adm-title-right">
+                <button class="adm-x-btn" onclick="closeDelReconfirmPopup()">&#x2715;</button>
+            </div>
+        </div>
+        <div class="adm-modal-body" style="align-items:center;">
+            <p class="adm-modal-msg">Do you want delete the member information really?</p>
+            <div id="del-result" class="adm-modal-result"></div>
+        </div>
+        <div class="adm-modal-footer">
+            <button class="adm-cancel-btn" id="del-cancel-btn2" onclick="closeDelReconfirmPopup()">Cancel</button>
+            <button class="adm-confirm-btn" id="del-confirm-btn" onclick="handleDelete()">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: Delete Complete -->
+<div class="popup-overlay" id="del-ok-popup" style="z-index:1200;">
+    <div class="adm-modal-box">
+        <div class="adm-modal-title">
+            <span class="adm-modal-dot"></span>
+            <span class="adm-modal-title-text">Delete Complete</span>
+        </div>
+        <div class="adm-modal-body" style="align-items:center;padding:32px 36px;">
+            <p class="adm-modal-msg">The member information has been deleted.</p>
+        </div>
+        <div class="adm-modal-footer">
+            <button class="adm-confirm-btn" style="padding:8px 56px;" onclick="closeDelOkPopup()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script>window.__skipPCNavbar = true;</script>
+<script src="ad_common.js"></script>
+<script>
+    window.__pageInit = function() { loadData(); };
+
+    /* Member Management GAS endpoint (handles deleteUser / resetUserPw) */
+    const MEMBER_GAS_URL = 'https://script.google.com/macros/s/AKfycbx4SXbyr-NoPYgs0xB5wWHiPb2qbn_DEiRbfMUSgMST_d7HnFmSCeBEXTlz3xNsz3wsFg/exec';
+    const MEMBER_TOKEN   = 'imti-admin-se-nicobas5735';
+
+    /* Load Google Sheets data via gviz JSONP */
+    function fetchSheetJson(sheetName) {
+        return new Promise((resolve, reject) => {
+            const cbName = 'gviz_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+            const timer  = setTimeout(() => { cleanup(); reject(new Error('Timeout: ' + sheetName)); }, 15000);
+            function cleanup() {
+                delete window[cbName];
+                const el = document.getElementById('s_' + cbName);
+                if (el) el.remove();
+            }
+            window[cbName] = function(data) { clearTimeout(timer); cleanup(); resolve(data); };
+            const url = 'https://docs.google.com/spreadsheets/d/'
+                + SHEET_ID + '/gviz/tq?tqx=out:json;responseHandler:' + cbName
+                + '&sheet=' + encodeURIComponent(sheetName);
+            const script = document.createElement('script');
+            script.id = 's_' + cbName;
+            script.src = url;
+            script.onerror = function() { clearTimeout(timer); cleanup(); reject(new Error('Load error: ' + sheetName)); };
+            document.head.appendChild(script);
+        });
+    }
+
+    function gvizToRows(data) {
+        const rows = [];
+        if (!data || !data.table || !data.table.rows) return rows;
+        for (const row of data.table.rows) {
+            if (!row || !row.c) continue;
+            rows.push(row.c.map(cell => {
+                if (!cell || cell.v === null || cell.v === undefined) return '';
+                return cell.f ? String(cell.f) : String(cell.v);
+            }));
+        }
+        return rows;
+    }
+
+    function fmtDate(raw) {
+        if (!raw || raw.trim() === '' || raw.trim() === '-') return '-';
+        let s = raw.trim().replace(/오전|오후/g, '').replace(/\./g, '-')  /* strip Korean AM/PM markers */.replace(/\s+/g, ' ').trim();
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return raw.trim();
+        const date = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+        const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+        return `${date} ${time}`;
+    }
+
+    let memberData = [];
+    let selectedRow = null;
+
+    async function loadData() {
+        try {
+            const [dMember, dVisit, dExp, dSum] = await Promise.all([
+                fetchSheetJson('Member_info'),
+                fetchSheetJson('login_date_part'),
+                fetchSheetJson('mti_exp_part'),
+                fetchSheetJson('Member_info_sum'),
+            ]);
+            const memberRows = gvizToRows(dMember);
+            const visitRows  = gvizToRows(dVisit);
+            const expRows    = gvizToRows(dExp);
+            const sumRows    = gvizToRows(dSum);
+
+            const visitCountMap = {}, visitRecentMap = {};
+            for (const r of visitRows) {
+                const uid = (r[3] || '').trim();
+                if (!uid) continue;
+                visitCountMap[uid] = (visitCountMap[uid] || 0) + 1;
+                const ts = (r[0] || '').trim();
+                if (ts && (!visitRecentMap[uid] || ts > visitRecentMap[uid])) visitRecentMap[uid] = ts;
+            }
+            const expMap = {};
+            for (const r of expRows) {
+                const uid = (r[3] || '').trim();
+                if (uid) expMap[uid] = (expMap[uid] || 0) + 1;
+            }
+
+            /* Member_info_sum: col C (idx 2) = id, col E (idx 4) = num_visit, col G (idx 6) = last_logout */
+            const lastLogoutMap = {}, numVisitMap = {};
+            for (const r of sumRows) {
+                const uid = (r[2] || '').trim();
+                if (uid) {
+                    numVisitMap[uid]   = parseInt((r[4] || ''), 10) || 0;
+                    lastLogoutMap[uid] = (r[6] || '').trim();
+                }
+            }
+
+            memberData = [];
+            for (const r of memberRows) {
+                const id    = (r[1] || '').trim();
+                const email = (r[2] || '').trim();
+                if (!id && !email) continue;
+                memberData.push({
+                    no: memberData.length + 1, id, email,
+                    signUp:      fmtDate((r[0] || '').trim()),
+                    visits:      numVisitMap[id] || 0,
+                    recentVisit: fmtDate(lastLogoutMap[id] || ''),
+                    numCom:      expMap[id] || 0
+                });
+            }
+            renderTable();
+        } catch (e) {
+            console.error(e);
+            const msg = document.getElementById('loading-msg');
+            if (msg) { msg.textContent = 'Failed to load data. (' + e.message + ')'; msg.classList.add('error'); }
+        }
+    }
+
+    function renderTable() {
+        const area = document.getElementById('table-area');
+        if (!memberData.length) { area.innerHTML = '<p class="status-msg">No member data found.</p>'; return; }
+        let rows = '';
+        memberData.forEach((m, idx) => {
+            rows += `<tr>
+                <td>${String(m.no).padStart(3,'0')}</td>
+                <td>${m.id||'-'}</td><td>${m.email||'-'}</td>
+                <td>${m.signUp}</td><td>${m.visits}</td>
+                <td>${m.recentVisit}</td><td>${m.numCom}</td>
+                <td><div class="tbl-btn-wrap">
+                    <button class="tbl-btn" onclick="openPwPopup(${idx})">PW_RST</button>
+                    <button class="tbl-btn del" onclick="openDelPopup(${idx})">Del</button>
+                </div></td>
+            </tr>`;
+        });
+        area.innerHTML = `<table class="member-table">
+            <thead><tr>
+                <th>No.</th><th>ID</th><th>e-mail</th><th>Sign-up Date</th>
+                <th>Visits</th><th>Recent Visits</th><th>Num. of Com.</th><th>Managing</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+        <p style="text-align:right;font-family:'Gowun Batang',serif;font-size:0.72rem;color:#adb5bd;letter-spacing:0.08em;margin-top:10px;padding-right:5%;">— End of List —</p>`;
+    }
+
+    /* PW Reset */
+    function openPwPopup(idx) {
+        selectedRow = memberData[idx];
+        document.getElementById('pw-target-id').textContent    = selectedRow.id    || '-';
+        document.getElementById('pw-target-email').textContent = selectedRow.email || '-';
+        document.getElementById('pw-result').textContent = '';
+        document.getElementById('pw-result').className   = 'adm-modal-result';
+        const btn = document.getElementById('pw-confirm-btn');
+        btn.disabled = false; btn.textContent = 'Confirm';
+        document.getElementById('pw-popup').classList.add('active');
+        setTimeout(() => { const cb = document.querySelector('#pw-popup .adm-cancel-btn'); if (cb) cb.focus(); }, 50);
+    }
+    function closePwPopup()   { document.getElementById('pw-popup').classList.remove('active'); selectedRow = null; }
+    function closePwOkPopup() { document.getElementById('pw-ok-popup').classList.remove('active'); }
+
+    async function handlePwReset() {
+        const btn = document.getElementById('pw-confirm-btn');
+        const resultEl = document.getElementById('pw-result');
+        btn.disabled = true; btn.textContent = 'Processing...';
+        resultEl.textContent = ''; resultEl.className = 'adm-modal-result';
+        const newPw = generatePassword();
+        try {
+            const res = await gasJsonp(MEMBER_GAS_URL, {
+                action: 'resetUserPw', token: MEMBER_TOKEN,
+                id: selectedRow.id, email: selectedRow.email, newpw: newPw
+            }, 'mgcb');
+            if (res && res.status === 'OK') {
+                if (res.mailSent === false) {
+                    resultEl.textContent = 'Password reset succeeded, but the notification email could not be sent. Please inform the user manually.';
+                    resultEl.className = 'adm-modal-result';
+                    btn.disabled = false; btn.textContent = 'Confirm';
+                } else {
+                    closePwPopup();
+                    document.getElementById('pw-ok-popup').classList.add('active');
+                }
+            } else {
+                resultEl.textContent = 'Failed: ' + (res && res.status || 'ERROR');
+                resultEl.className = 'adm-modal-result';
+                btn.disabled = false; btn.textContent = 'Confirm';
+            }
+        } catch (e) {
+            resultEl.textContent = 'Failed to reset password. Please try again.';
+            btn.disabled = false; btn.textContent = 'Confirm';
+        }
+    }
+
+    /* Delete (2-step) */
+    function openDelPopup(idx) {
+        selectedRow = memberData[idx];
+        document.getElementById('del-target-id').textContent     = selectedRow.id          || '-';
+        document.getElementById('del-target-email').textContent  = selectedRow.email       || '-';
+        document.getElementById('del-target-signup').textContent = selectedRow.signUp      || '-';
+        document.getElementById('del-target-visits').textContent = selectedRow.visits      || '0';
+        document.getElementById('del-target-recent').textContent = selectedRow.recentVisit || '-';
+        document.getElementById('del-target-numcom').textContent = selectedRow.numCom      || '0';
+        document.getElementById('del-popup').classList.add('active');
+        setTimeout(() => { const cb = document.getElementById('del-cancel-btn1'); if (cb) cb.focus(); }, 50);
+    }
+    function closeDelPopup() { document.getElementById('del-popup').classList.remove('active'); selectedRow = null; }
+
+    function openDelReconfirmPopup() {
+        document.getElementById('del-popup').classList.remove('active');
+        document.getElementById('del-result').textContent = '';
+        document.getElementById('del-result').className   = 'adm-modal-result';
+        const btn = document.getElementById('del-confirm-btn');
+        btn.disabled = false; btn.textContent = 'Delete';
+        document.getElementById('del-reconfirm-popup').classList.add('active');
+        setTimeout(() => { const cb = document.getElementById('del-cancel-btn2'); if (cb) cb.focus(); }, 50);
+    }
+    function closeDelReconfirmPopup() { document.getElementById('del-reconfirm-popup').classList.remove('active'); selectedRow = null; }
+    function closeDelOkPopup()        { document.getElementById('del-ok-popup').classList.remove('active'); }
+
+    async function handleDelete() {
+        const btn = document.getElementById('del-confirm-btn');
+        const resultEl = document.getElementById('del-result');
+        btn.disabled = true; btn.textContent = 'Deleting...';
+        try {
+            const res = await gasJsonp(MEMBER_GAS_URL, {
+                action: 'deleteUser', token: MEMBER_TOKEN,
+                id: selectedRow.id, email: selectedRow.email
+            }, 'mgcb');
+            if (res && res.status === 'OK') {
+                const deletedId = selectedRow.id;
+                memberData = memberData.filter(m => m.id !== deletedId);
+                renderTable();
+                closeDelReconfirmPopup();
+                document.getElementById('del-ok-popup').classList.add('active');
+            } else {
+                resultEl.textContent = 'Failed: ' + (res && res.status || 'ERROR');
+                btn.disabled = false; btn.textContent = 'Delete';
+            }
+        } catch (e) {
+            resultEl.textContent = 'Failed to delete member. Please try again.';
+            btn.disabled = false; btn.textContent = 'Delete';
+        }
+    }
+</script>
+</body>
+</html>

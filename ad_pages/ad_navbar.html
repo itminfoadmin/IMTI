@@ -7,19 +7,9 @@
     #admin-topnav .topnav-btn.current {
         color: var(--gray-text); font-weight: 700; position: relative;
     }
-    #admin-topnav .topnav-btn.current::before {
-        content: '# # #'; position: absolute; top: -4px; left: 50%;
-        transform: translateX(-50%) rotate(180deg);
-        font-size: 0.65rem; color: var(--gray-text); line-height: 1;
-    }
     .dropdown-menu .topnav-btn.current::before { display: none; }
 
     .nav-dropdown.active > .topnav-btn { color: var(--gray-text); font-weight: 700; position: relative; }
-    .nav-dropdown.active > .topnav-btn::before {
-        content: '# # #'; position: absolute; top: -4px; left: 50%;
-        transform: translateX(-50%) rotate(180deg);
-        font-size: 0.65rem; color: var(--gray-text); line-height: 1;
-    }
 
     /* ── Dropdown ── */
     .nav-dropdown { position: relative; display: flex; align-items: center; }
@@ -40,7 +30,6 @@
     .topnav-btn.has-dropdown::after { content: '▾'; font-size: 0.65rem; margin-left: 4px; opacity: 0.5; }
 </style>
 
-<br>
 <nav class="topnav" id="admin-topnav">
     <div class="topnav-logo-area">
         <img src="../img/logo-main_con.png" alt="IMTI" class="topnav-logo-img">

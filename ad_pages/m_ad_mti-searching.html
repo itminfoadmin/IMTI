@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - MTI Searching</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ad_common.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #f8f9fa; }
+        html, body { height: 100%; }
+        .page-wrap { padding: 24px 18px; display: flex; flex-direction: column; height: 100vh; }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+        .page-title {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #343a40;
+            letter-spacing: 0.08em;
+        }
+
+        /* Search bar */
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .search-input-wrap {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-icon {
+            position: absolute;
+            left: 11px;
+            color: #adb5bd;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+        #search-input {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.84rem;
+            color: #343a40;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 9px 12px 9px 32px;
+            outline: none;
+            background: #fff;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        #search-input:focus { border-color: #868e96; }
+        #search-input::placeholder { color: #adb5bd; }
+
+        .btn-clear {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 9px 15px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            cursor: pointer;
+            background: #fff;
+            color: #868e96;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn-clear:hover { background: #f1f3f5; border-color: #868e96; color: #343a40; }
+
+        /* Filter chips */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .filter-label {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #adb5bd;
+            margin-right: 2px;
+        }
+        .filter-chip {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 4px 11px;
+            border-radius: 20px;
+            border: 1px solid #ced4da;
+            cursor: pointer;
+            background: #fff;
+            color: #868e96;
+            transition: all 0.12s;
+        }
+        .filter-chip:hover { border-color: #495057; color: #343a40; }
+        .filter-chip.active { background: #495057; color: #fff; border-color: #495057; }
+
+        /* Stats */
+        .stats-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .stats-text {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.75rem;
+            color: #adb5bd;
+        }
+        .stats-count { font-weight: 700; color: #343a40; }
+
+        /* Header inner layout */
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .page-header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        /* Table */
+        .table-wrap {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #fff;
+            flex: 1;
+            min-height: 0;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { position: sticky; top: 0; z-index: 10; }
+        thead tr { background: #f8f9fa; border-bottom: 2px solid #dee2e6; }
+        th {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #495057;
+            padding: 11px 12px;
+            text-align: left;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        th.sortable { cursor: pointer; user-select: none; }
+        th.sortable:hover { color: #343a40; }
+        th.sort-asc  .si::after { content: ' ▲'; color: #495057; font-size: 0.62rem; }
+        th.sort-desc .si::after { content: ' ▼'; color: #495057; font-size: 0.62rem; }
+        th:not(.sort-asc):not(.sort-desc) .si::after { content: ' ⇅'; color: #ced4da; font-size: 0.62rem; }
+
+        tbody tr { border-bottom: 1px solid #f1f3f5; transition: background 0.1s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #f8f9fa; }
+
+        td {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.8rem;
+            color: #343a40;
+            padding: 10px 12px;
+            vertical-align: middle;
+        }
+        td.col-b { font-weight: 700; }
+        td.col-preview { padding: 8px 10px; text-align: center; white-space: nowrap; }
+
+        /* Preview button */
+        .btn-preview {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 5px 13px;
+            border-radius: 3px;
+            border: 1px solid #adb5bd;
+            cursor: pointer;
+            background: #fff;
+            color: #495057;
+            transition: all 0.13s;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .btn-preview:hover { background: #495057; color: #fff; border-color: #495057; }
+        .btn-preview:disabled { opacity: 0.35; cursor: default; }
+
+        /* Highlight */
+        .hl { background: #fff3bf; border-radius: 2px; padding: 0 1px; }
+
+        /* Empty / Loading */
+        .empty-state, .loading-state {
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .spinner {
+            display: inline-block;
+            width: 26px; height: 26px;
+            border: 3px solid #dee2e6;
+            border-top-color: #495057;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state p, .loading-state p {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.8rem;
+            color: #adb5bd;
+            margin: 0;
+        }
+        .empty-icon { font-size: 1.8rem; margin-bottom: 10px; }
+
+        /* Docs preview overlay */
+        .docs-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.42);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .docs-overlay.active { display: flex; }
+        .docs-box {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            width: 88%;
+            height: 88vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.22);
+        }
+        .docs-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+        }
+        .docs-title {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #343a40;
+            letter-spacing: 0.04em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 80%;
+        }
+        .docs-close {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 6px 15px;
+            border-radius: 4px;
+            border: 1px solid #adb5bd;
+            cursor: pointer;
+            background: #fff;
+            color: #868e96;
+            transition: all 0.13s;
+            flex-shrink: 0;
+        }
+        .docs-close:hover { background: #868e96; color: #fff; border-color: #868e96; }
+        .docs-iframe-wrap { flex: 1; overflow: hidden; }
+        .docs-iframe { width: 100%; height: 100%; border: none; display: block; }
+    </style>
+
+    <style id="m-responsive">
+        html, body { height: auto !important; min-height: 100%; }
+        .page-wrap { height: auto !important; min-height: 100vh; padding: 16px 12px !important; }
+        .search-bar { flex-wrap: wrap; }
+        .search-input-wrap { flex: 1 1 100%; }
+        table { width: 100%; }
+        /* generic: any fixed-width inner box becomes fluid */
+        [style*="width: 1"], [style*="width:1"] { max-width: 100% !important; }
+    </style>
+
+</head>
+<body>
+<div class="page-wrap">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-header-top">
+            <span class="page-title">SEARCHING MTI</span>
+            <span class="stats-text">Showing <span class="stats-count" id="stats-count">0</span> results <span id="stats-total"></span></span>
+        </div>
+
+    </div>
+
+    <!-- Search bar -->
+    <div class="search-bar">
+        <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Search by name, domain, orientation, participants, competency..." autofocus>
+        </div>
+        <button class="btn-clear" onclick="clearSearch()">Clear</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap" id="table-wrap">
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading MTI data...</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- Docs Preview Overlay -->
+<div class="docs-overlay" id="docs-overlay" onclick="if(event.target===this)closePreview()">
+    <div class="docs-box">
+        <div class="docs-header">
+            <span class="docs-title" id="docs-title">Google Docs Preview</span>
+            <button class="docs-close" onclick="closePreview()">Close</button>
+        </div>
+        <div class="docs-iframe-wrap">
+            <iframe class="docs-iframe" id="docs-iframe" src="" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=389975124&single=true&output=csv';
+
+let allData = [];
+let currentQuery = '';
+let currentColFilter = 'all';
+let sortCol = null;
+let sortDir = 'asc';
+
+/* ── CSV parser ────────────────────────── */
+function parseCSV(text) {
+    const lines = text.split(/\r?\n/);
+    const rows = [];
+    for (const line of lines) {
+        if (!line.trim()) continue;
+        const cells = [];
+        let cur = '', inQ = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+                else inQ = !inQ;
+            } else if (ch === ',' && !inQ) {
+                cells.push(cur); cur = '';
+            } else cur += ch;
+        }
+        cells.push(cur);
+        rows.push(cells);
+    }
+    return rows;
+}
+
+/* ── Load ──────────────────────────────── */
+async function loadData() {
+    try {
+        const res = await fetch(CSV_URL);
+        if (!res.ok) throw new Error('Network error');
+        const text = await res.text();
+        const rows = parseCSV(text);
+        // row0 = header; B=idx1 C=idx2 D=idx3 E=idx4 F=idx5 G=idx6
+        allData = rows.slice(1)
+            .map(r => ({
+                b: (r[1] || '').trim(),
+                c: (r[2] || '').trim(),
+                d: (r[3] || '').trim(),
+                e: (r[4] || '').trim(),
+                f: (r[5] || '').trim(),
+                g: (r[6] || '').trim(),
+            }))
+            .filter(row => row.b !== '');
+        document.getElementById('stats-total').textContent = `(${allData.length} total)`;
+        render();
+    } catch(e) {
+        document.getElementById('table-wrap').innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">⚠️</div>
+                <p>Failed to load data. Please check your connection.</p>
+            </div>`;
+    }
+}
+
+/* ── Highlight ─────────────────────────── */
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function hl(text, q) {
+    if (!q) return esc(text);
+    const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+    return esc(text).replace(rx, m => `<span class="hl">${m}</span>`);
+}
+
+/* ── Filter & Sort ─────────────────────── */
+function getFiltered() {
+    const q = currentQuery.toLowerCase();
+    if (!q) return [...allData];
+    return allData.filter(row => {
+        if (currentColFilter === 'all')
+            return ['b','c','d','e','f'].some(k => row[k].toLowerCase().includes(q));
+        return row[currentColFilter].toLowerCase().includes(q);
+    });
+}
+function getSorted(data) {
+    if (!sortCol) return data;
+    return [...data].sort((a, b) => {
+        const cmp = a[sortCol].toLowerCase().localeCompare(b[sortCol].toLowerCase(), 'ko');
+        return sortDir === 'asc' ? cmp : -cmp;
+    });
+}
+
+/* ── Render ────────────────────────────── */
+function thCls(col) {
+    return 'sortable' + (sortCol === col ? (' sort-' + sortDir) : '');
+}
+function render() {
+    const data = getSorted(getFiltered());
+    const q = currentQuery;
+    const wrap = document.getElementById('table-wrap');
+    document.getElementById('stats-count').textContent = data.length;
+
+    if (data.length === 0) {
+        wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><p>${q ? 'No results for "'+esc(q)+'".' : 'No data available.'}</p></div>`;
+        return;
+    }
+
+    let html = `<table><colgroup><col style="width:8%"><col style="width:11%"><col style="width:13%"><col style="width:17%"><col><col style="width:93px"></colgroup><thead><tr>
+        <th class="${thCls('b')}" onclick="toggleSort('b')">MTI_num<span class="si"></span></th>
+        <th class="${thCls('c')}" onclick="toggleSort('c')">MTI_id<span class="si"></span></th>
+        <th class="${thCls('d')}" onclick="toggleSort('d')">Domain<span class="si"></span></th>
+        <th class="${thCls('e')}" onclick="toggleSort('e')">Orientation<span class="si"></span></th>
+        <th class="${thCls('f')}" onclick="toggleSort('f')">MTI_name<span class="si"></span></th>
+        <th style="width:82px;text-align:center;"></th>
+    </tr></thead><tbody>`;
+
+    data.forEach((row, i) => {
+        const hasDoc = /https?:\/\/(docs|drive)\.google\.com\//.test(row.g);
+        const previewBtn = hasDoc
+            ? `<button class="btn-preview" onclick="openPreview(${i}, this)">Preview</button>`
+            : `<button class="btn-preview" disabled title="No document linked">—</button>`;
+        html += `<tr>
+            <td class="col-b">${hl(row.b, q)}</td>
+            <td>${hl(row.c, q)}</td>
+            <td>${hl(row.d, q)}</td>
+            <td>${hl(row.e, q)}</td>
+            <td>${hl(row.f, q)}</td>
+            <td class="col-preview">${previewBtn}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    wrap.innerHTML = html;
+
+    // keep sorted index synced with filtered data for preview
+    wrap._filteredData = data;
+}
+
+/* ── Preview ───────────────────────────── */
+function openPreview(idx, btn) {
+    const wrap = document.getElementById('table-wrap');
+    const data = wrap._filteredData;
+    if (!data || !data[idx]) return;
+    const row = data[idx];
+    let url = row.g;
+
+    // Convert Google Docs/Slides/Sheets edit URL → embed URL
+    url = url
+        .replace(/\/edit(\?.*)?$/, '/preview')
+        .replace(/\/pub(\?.*)?$/, '/preview')
+        .replace(/\/view(\?.*)?$/, '/preview');
+    if (!/\/preview/.test(url)) url = url.replace(/\/*$/, '/preview');
+
+    document.getElementById('docs-title').textContent = row.b || 'Google Docs Preview';
+    document.getElementById('docs-iframe').src = url;
+    document.getElementById('docs-overlay').classList.add('active');
+}
+function closePreview() {
+    document.getElementById('docs-overlay').classList.remove('active');
+    document.getElementById('docs-iframe').src = '';
+}
+
+/* ── Controls ──────────────────────────── */
+function clearSearch() {
+    document.getElementById('search-input').value = '';
+    currentQuery = '';
+    render();
+}
+function setColFilter(col, btn) {
+    currentColFilter = col;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+}
+function toggleSort(col) {
+    sortDir = (sortCol === col && sortDir === 'asc') ? 'desc' : 'asc';
+    sortCol = col;
+    render();
+}
+
+/* ── Search debounce ───────────────────── */
+let dbt = null;
+document.getElementById('search-input').addEventListener('input', function() {
+    clearTimeout(dbt);
+    dbt = setTimeout(() => { currentQuery = this.value.trim(); render(); }, 160);
+});
+document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Escape') clearSearch();
+});
+
+loadData();
+document.getElementById('search-input').focus();
+</script>
+</body>
+</html>

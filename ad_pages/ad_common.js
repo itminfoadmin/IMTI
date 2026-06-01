@@ -22,6 +22,7 @@ function requireAdminSession() {
 
 /* ── Inject navbar from ad_navbar.html ── */
 async function injectNavbar() {
+    if (window.__skipPCNavbar) return;
     try {
         const res = await fetch('ad_navbar.html');
         if (!res.ok) throw new Error('fetch failed: ' + res.status);
