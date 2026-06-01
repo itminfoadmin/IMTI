@@ -57,8 +57,11 @@
 </nav>
 
 <div class="main">
-    <div class="main-text">You have logged in with the admin account.<br>If you wish to maintenance the web page, please click [Admin-Mode].</div>
-    <button class="admin-mode-btn" onclick="goAdminMode()">Admin-Mode</button>
+    <div class="main-text">You have logged in with the admin account.<br>If you wish to maintenance the web page, please click [Admin Mode].</div>
+    <div style="display:flex;flex-direction:column;align-items:stretch;gap:16px;">
+        <button class="admin-mode-btn" onclick="goAdminMode()" style="justify-content:center;">Admin Mode(PC)</button>
+        <button class="admin-mode-btn" onclick="goAdminModeMobile()" style="justify-content:center;">Admin Mode(Mobile)</button>
+    </div>
 </div>
 
 <div class="popup-overlay" id="logout-popup">
@@ -76,6 +79,7 @@
     imtiRequireAdminAuth();
 
     function goAdminMode() { window.location.href = 'ad_pages/ad_intro.html'; }
+    function goAdminModeMobile() { window.location.href = 'ad_pages/m_ad_intro.html'; }
 
     function openLogoutPopup()  { document.getElementById('logout-popup').classList.add('active'); }
     function closeLogoutPopup() { document.getElementById('logout-popup').classList.remove('active'); }
