@@ -40,6 +40,44 @@
         .popup-cancel-btn, .popup-confirm-btn { padding: 10px 32px !important; }
     </style>
 
+    <style id="m-card-table">
+        /* ===== Mobile: turn the wide member table into stacked cards ===== */
+        @media (max-width: 760px) {
+            #table-area { overflow-x: visible !important; }
+            .member-table { min-width: 0 !important; width: 100% !important; border-collapse: collapse; }
+            .member-table thead { display: none; }           /* header row hidden on cards */
+            .member-table tbody, .member-table tr, .member-table td { display: block; width: 100%; }
+            .member-table tr {
+                border: 1px solid #e9ecef; border-radius: 8px;
+                margin-bottom: 12px; padding: 6px 0; background: #fff;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            }
+            .member-table td {
+                display: flex; justify-content: space-between; align-items: flex-start;
+                gap: 12px; padding: 9px 14px !important; text-align: right;
+                border: none; border-bottom: 1px solid #f5f5f5;
+                font-size: 0.82rem; word-break: break-word;
+            }
+            .member-table td:last-child { border-bottom: none; }
+            /* Label from header text, injected per column */
+            .member-table td::before {
+                content: attr(data-label);
+                font-weight: 700; color: #868e96; text-align: left;
+                flex-shrink: 0; white-space: nowrap;
+                font-family: 'Gowun Batang', serif; font-size: 0.74rem;
+            }
+            /* Action buttons row: center, full tap targets */
+            .member-table td.cell-actions { justify-content: center; padding-top: 12px !important; }
+            .member-table td.cell-actions::before { display: none; }
+            .tbl-btn-wrap { display: flex; gap: 10px; width: 100%; justify-content: center; }
+            .tbl-btn {
+                flex: 1; padding: 10px 4px !important; font-size: 0.78rem !important;
+                text-align: center !important;
+                display: flex !important; align-items: center !important; justify-content: center !important;
+            }
+        }
+    </style>
+
 </head>
 <body>
 
@@ -297,11 +335,11 @@ fetch('m_ad_navbar.html')
         let rows = '';
         memberData.forEach((m, idx) => {
             rows += `<tr>
-                <td>${String(m.no).padStart(3,'0')}</td>
-                <td>${m.id||'-'}</td><td>${m.email||'-'}</td>
-                <td>${m.signUp}</td><td>${m.visits}</td>
-                <td>${m.recentVisit}</td><td>${m.numCom}</td>
-                <td><div class="tbl-btn-wrap">
+                <td data-label="No.">${String(m.no).padStart(3,'0')}</td>
+                <td data-label="ID">${m.id||'-'}</td><td data-label="e-mail">${m.email||'-'}</td>
+                <td data-label="Sign-up">${m.signUp}</td><td data-label="Visits">${m.visits}</td>
+                <td data-label="Recent Visit">${m.recentVisit}</td><td data-label="Num. of Com.">${m.numCom}</td>
+                <td class="cell-actions"><div class="tbl-btn-wrap">
                     <button class="tbl-btn" onclick="openPwPopup(${idx})">PW_RST</button>
                     <button class="tbl-btn del" onclick="openDelPopup(${idx})">Del</button>
                 </div></td>

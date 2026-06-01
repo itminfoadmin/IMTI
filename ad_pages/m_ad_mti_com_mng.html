@@ -117,6 +117,46 @@
         .popup-cancel-btn, .popup-confirm-btn { padding: 10px 32px !important; }
     </style>
 
+    <style id="m-card-table">
+        /* ===== Mobile: turn the wide comment table into stacked cards ===== */
+        @media (max-width: 760px) {
+            #table-area { overflow-x: visible !important; }
+            .member-table { min-width: 0 !important; width: 100% !important;
+                table-layout: auto !important; border-collapse: collapse; }
+            .member-table colgroup { display: none; }
+            .member-table thead { display: none; }
+            .member-table tbody, .member-table tr, .member-table td { display: block; width: auto; }
+            .member-table tr {
+                border: 1px solid #e9ecef; border-radius: 8px;
+                margin-bottom: 12px; padding: 6px 0; background: #fff;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            }
+            .member-table td {
+                display: flex; justify-content: space-between; align-items: flex-start;
+                gap: 12px; padding: 9px 14px !important; text-align: right;
+                border: none; border-bottom: 1px solid #f5f5f5;
+                font-size: 0.82rem; max-width: none !important;
+                white-space: normal !important; overflow: visible !important;
+                text-overflow: clip !important; word-break: break-word;
+            }
+            .member-table td:last-child { border-bottom: none; }
+            .member-table td::before {
+                content: attr(data-label);
+                font-weight: 700; color: #868e96; text-align: left;
+                flex-shrink: 0; white-space: nowrap;
+                font-family: 'Gowun Batang', serif; font-size: 0.74rem;
+            }
+            .member-table td.cell-actions { justify-content: center; padding-top: 12px !important; }
+            .member-table td.cell-actions::before { display: none; }
+            .tbl-btn-wrap { display: flex; gap: 10px; width: 100%; justify-content: center; }
+            .tbl-btn {
+                flex: 1; padding: 10px 4px !important; font-size: 0.78rem !important;
+                text-align: center !important;
+                display: flex !important; align-items: center !important; justify-content: center !important;
+            }
+        }
+    </style>
+
 </head>
 <body>
 
@@ -296,13 +336,13 @@ fetch('m_ad_navbar.html')
         expData.forEach(function(m, idx) {
             var content = m.subContents || '-';
             rows += '<tr>'
-                + '<td>' + String(m.no).padStart(3, '0') + '</td>'
-                + '<td>' + (m.timestamp || '-') + '</td>'
-                + '<td>' + (m.mtiId     || '-') + '</td>'
-                + '<td>' + ((m.participants||'-').length > 20 ? (m.participants||'-').slice(0,20)+'…' : (m.participants||'-')) + '</td>'
-                + '<td class="align-center">' + (content.length > 40 ? content.slice(0,40)+'…' : content) + '</td>'
-                + '<td>' + (m.userId    || '-') + '</td>'
-                + '<td><div class="tbl-btn-wrap">'
+                + '<td data-label="No.">' + String(m.no).padStart(3, '0') + '</td>'
+                + '<td data-label="Date/Time">' + (m.timestamp || '-') + '</td>'
+                + '<td data-label="MTI-ID">' + (m.mtiId     || '-') + '</td>'
+                + '<td data-label="Participants">' + ((m.participants||'-').length > 20 ? (m.participants||'-').slice(0,20)+'…' : (m.participants||'-')) + '</td>'
+                + '<td class="align-center" data-label="Content">' + (content.length > 40 ? content.slice(0,40)+'…' : content) + '</td>'
+                + '<td data-label="Writer">' + (m.userId    || '-') + '</td>'
+                + '<td class="cell-actions"><div class="tbl-btn-wrap">'
                 +   '<button class="tbl-btn" onclick="openViewPopup(' + idx + ')">View</button>'
                 + '</div></td>'
                 + '</tr>';

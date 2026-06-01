@@ -594,6 +594,131 @@
         table { max-width: 100%; }
     </style>
 
+    <style id="m-mti-mobile">
+        @media (max-width: 760px) {
+            /* Full-width content columns */
+            .align-bar, .list-area { width: 100% !important; }
+
+            /* Align/action bar → 2-per-row grid of comfortable buttons */
+            .align-bar {
+                display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px;
+            }
+            .btn-align {
+                width: 100%; box-sizing: border-box; text-align: center;
+                padding: 11px 8px !important; font-size: 0.74rem !important;
+                white-space: normal; line-height: 1.3;
+            }
+            .btn-add-new { grid-column: 1 / -1; }   /* Add-New spans full width */
+
+            /* Cards: label column narrower, content wraps */
+            .field-row { grid-template-columns: 104px 1fr !important; }
+            .field-label { padding: 8px 10px !important; font-size: 0.72rem !important; }
+            .field-content { padding: 8px 10px !important; }
+
+            /* ── Modals: full-screen sheet, stacked fields ── */
+            .modal-box {
+                width: 96vw !important; max-width: 96vw !important;
+                max-height: 92vh !important; overflow-y: auto;
+            }
+            .modal-header {
+                flex-direction: column; align-items: stretch; gap: 10px;
+                position: sticky; top: 0; background: #fff; z-index: 5;
+            }
+            .modal-header > div { flex-wrap: wrap; gap: 6px !important; }
+            .modal-header .btn { flex: 1 1 auto; padding: 9px 10px !important; }
+
+            /* Any field row (incl. inline multi-column ones) becomes single column */
+            .modal-field-row,
+            .modal-field-row[style] {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 4px !important;
+            }
+            .modal-field-label {
+                text-align: left !important; background: transparent !important;
+                border: none !important; padding: 8px 4px 2px !important;
+            }
+            .modal-field-content { padding: 0 4px 8px !important; }
+            .modal-field-content select,
+            .modal-field-content input[type="text"],
+            .modal-field-content input[type="url"] {
+                width: 100% !important; min-width: 0 !important; box-sizing: border-box;
+            }
+            /* hide the little vertical spacer divs used between desktop columns */
+            .modal-field-row > div[style*="width:1px"],
+            .modal-field-row > div[style*="width: 1px"],
+            .modal-field-row > div[style*="background:#fff"] { display: none !important; }
+
+            /* Checkbox grids wrap naturally, larger tap targets */
+            .modal-field-content .check-item,
+            .edit-val .check-item {
+                flex: 1 1 calc(50% - 8px); font-size: 0.8rem;
+            }
+
+            /* ════════ MTI list cards → clean vertical stack ════════ */
+            .list-area { padding: 0 !important; gap: 12px; }
+
+            /* Name/header row: number + name on top, ID + buttons below */
+            .item-name-row {
+                display: flex !important; flex-direction: column;
+                align-items: stretch; gap: 0; min-height: 0;
+            }
+            .item-name-row > .item-label {
+                /* the MTI number becomes a small badge header */
+                justify-content: flex-start !important; text-align: left !important;
+                background: #e4ecd6 !important; border-right: none !important;
+                border-bottom: 1px solid #dee2e6;
+                padding: 8px 14px !important; font-size: 0.8rem !important;
+            }
+            .item-name-row > .item-value { padding: 0 !important; }
+            .item-name-value { font-size: 0.95rem !important; padding: 10px 14px !important; }
+            /* ID + action buttons share one tidy row */
+            .item-name-row > div:last-child {
+                display: flex !important; align-items: center !important;
+                justify-content: space-between; flex-wrap: wrap; gap: 6px;
+                padding: 8px 12px; border-top: 1px solid #eef1e7;
+            }
+            .item-id { padding: 0 !important; }
+
+            /* Detail field rows: label header on top, value full width */
+            .item-field-row,
+            .item-field-row[style],
+            .item-field-row.has-btn {
+                display: flex !important; flex-direction: column;
+                align-items: stretch !important; min-height: 0 !important; gap: 0;
+            }
+            .item-label {
+                justify-content: flex-start !important; text-align: left !important;
+                background: rgba(255,255,255,0.6) !important;
+                border-right: none !important; border-bottom: 1px solid #eef1e7;
+                padding: 7px 14px !important; font-size: 0.74rem !important;
+            }
+            .item-value { padding: 8px 14px !important; }
+            /* hide the desktop vertical divider between Domain & Orientation */
+            .item-field-row > div[style*="background:#dee2e6"] { display: none !important; }
+
+            /* Read-only checkbox lists: 1 per line, comfy spacing */
+            .check-readonly { min-width: 0 !important; width: 100%; font-size: 0.82rem; }
+
+            /* Button groups inside cards: full-width tap targets */
+            .item-btn-group, .item-edit-bar {
+                display: flex !important; flex-wrap: wrap; gap: 8px;
+                padding: 8px 0 0 !important; width: 100%;
+            }
+            .item-btn-group .btn, .item-edit-bar .btn {
+                flex: 1 1 auto; text-align: center; padding: 10px 8px !important;
+            }
+            /* Address row's button container goes full width below the link */
+            .item-field-row.has-btn > div:last-child { width: 100%; padding: 0 14px 10px; }
+
+            /* Edit-mode inputs fill width */
+            .edit-val { width: 100%; }
+            .edit-val input[type="text"], .edit-val input[type="url"], .edit-val select {
+                width: 100% !important; box-sizing: border-box;
+            }
+        }
+    </style>
+
 </head>
 <body>
 

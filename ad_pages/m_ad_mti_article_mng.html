@@ -376,13 +376,147 @@
         .popup-cancel-btn, .popup-confirm-btn { padding: 10px 32px !important; }
     </style>
 
-    <style>
+    <style id="m-analyser-mobile">
+        /* ====== Mobile layout for Article Analyser ====== */
         body { height: auto !important; overflow: visible !important; }
-        .main { margin: 12px !important; padding: 14px 10px !important; }
-        .main > * { min-width: 0 !important; }
-        table { max-width: 100%; }
-        /* any flex rows in the analyser stack vertically */
-        .main [style*="display: flex"], .main [style*="display:flex"] { flex-wrap: wrap; }
+        .page-body { display: block !important; height: auto !important; overflow: visible !important; }
+
+        .main {
+            margin: 10px !important;
+            padding: 0 !important;
+            border: 1px solid #e9ecef !important;
+            border-radius: 4px;
+            overflow: visible !important;
+            display: block !important;
+        }
+
+        /* ── Toolbar: stack into clean rows ── */
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 14px 14px;
+        }
+        .toolbar-left {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            width: 100%;
+        }
+        /* hide the little vertical dividers — they look stray when stacked */
+        .toolbar-divider { display: none !important; }
+
+        .toolbar-title {
+            font-size: 0.78rem; letter-spacing: 0.12em;
+            text-align: center; padding-bottom: 4px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        /* Article ID selector takes full width with label on top */
+        .article-id-wrap {
+            flex-direction: column; align-items: stretch; gap: 4px; width: 100%;
+        }
+        .article-id-label { font-size: 0.68rem; }
+        .article-id-select {
+            width: 100%; min-width: 0; box-sizing: border-box;
+            font-size: 0.92rem; padding: 10px 12px;
+        }
+
+        .latest-update-wrap {
+            justify-content: space-between; width: 100%;
+            background: #f8f9fa; border-radius: 3px; padding: 7px 10px;
+        }
+        .latest-update-label, .latest-update-val { font-size: 0.74rem; }
+
+        .status-badge { align-self: flex-start; font-size: 0.82rem; }
+
+        /* ── Toolbar-right: button grid ── */
+        .toolbar-right {
+            flex-wrap: wrap; gap: 8px; width: 100%;
+        }
+        .last-saved-wrap {
+            order: -1; width: 100%; justify-content: space-between;
+            background: #f8f9fa; border-radius: 3px; padding: 7px 10px;
+        }
+        /* Buttons share the row two-up, sizing evenly */
+        .toolbar-right .btn {
+            flex: 1 1 calc(50% - 4px);
+            min-width: 0;
+            padding: 11px 8px;
+            font-size: 0.74rem;
+            text-align: center;
+        }
+        /* SAVE / DELETE leave the toolbar flow — they are pinned to the bottom */
+        .toolbar-right #btn-save,
+        .toolbar-right #btn-delete { flex: none; }
+        /* Prev / Next side by side on their own row */
+        #btn-prev, #btn-next { flex: 1 1 calc(50% - 4px); }
+
+        /* ── Editor body ── */
+        .editor-wrap { overflow: visible !important; height: auto !important; }
+        .editor-body { padding: 14px 12px 32px !important; max-width: 100% !important; }
+
+        .empty-state { padding: 48px 16px; font-size: 0.85rem; text-align: center; }
+
+        /* Current-ID badge centred above the form */
+        .article-id-above { padding-left: 0 !important; justify-content: center !important; }
+        .current-id-badge { font-size: 0.9rem; padding: 8px 18px; }
+
+        /* Form rows: label on top, field full width */
+        .form-row, .sub-row {
+            flex-direction: column; align-items: stretch; gap: 4px;
+            padding: 10px 0;
+        }
+        .form-row:hover, .form-row-2col:hover { background: none; margin: 0; padding-left: 0; padding-right: 0; }
+        .form-row:hover { padding: 10px 0; }
+
+        .form-label {
+            width: auto !important; padding: 0 0 2px 0 !important;
+            font-size: 0.74rem; white-space: normal;
+        }
+        .col-tag { font-size: 0.6rem !important; }
+        .form-field { width: 100%; }
+
+        /* Two-column section becomes single column */
+        .form-row-2col { flex-direction: column; padding: 0; }
+        .col-half + .col-half {
+            border-left: none; padding-left: 0; margin-left: 0;
+            border-top: 1px solid #f1f3f5;
+        }
+        .sub-row:last-child { border-bottom: 1px solid #f8f9fa; }
+
+        .f-textarea, .f-input, .f-select { font-size: 0.92rem; padding: 9px 10px; }
+        .f-textarea.f-single { min-height: 42px; }
+
+        .section-sep { margin: 10px 0 4px; }
+
+        /* ── Status bar: stack the three counters ── */
+        .statusbar {
+            flex-direction: column; align-items: stretch; gap: 6px;
+            padding: 10px 14px;
+        }
+        .statusbar .toolbar-divider { display: none !important; }
+        .statusbar-text { font-size: 0.78rem; }
+
+        /* Confirm dialog stays centred & sized for phones */
+        .confirm-box { width: 88vw; max-width: 88vw; padding: 24px 22px; }
+
+        /* ── SAVE / DELETE pinned to the bottom of the screen ── */
+        .toolbar-right #btn-save,
+        .toolbar-right #btn-delete {
+            position: fixed;
+            bottom: 0;
+            z-index: 600;
+            margin: 0;
+            border-radius: 0;
+            padding: 15px 8px;
+            font-size: 0.82rem;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.12);
+        }
+        .toolbar-right #btn-save  { left: 0;  width: 50vw; }
+        .toolbar-right #btn-delete{ right: 0; width: 50vw; }
+        /* Reserve space so the fixed bar never covers the last form fields */
+        body { padding-bottom: 64px !important; }
     </style>
 
 </head>

@@ -289,6 +289,37 @@
         table { width: 100%; }
         /* generic: any fixed-width inner box becomes fluid */
         [style*="width: 1"], [style*="width:1"] { max-width: 100% !important; }
+
+        /* ===== Mobile: stacked cards instead of a squeezed table ===== */
+        @media (max-width: 760px) {
+            .table-wrap { overflow-x: hidden; border: none; background: transparent; }
+            table colgroup { display: none; }
+            thead { display: none; }
+            table, tbody, tr, td { display: block; width: 100%; }
+            tbody tr {
+                border: 1px solid #e9ecef; border-radius: 8px;
+                margin-bottom: 12px; padding: 4px 0; background: #fff;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            }
+            tbody tr:hover { background: #fff; }
+            td {
+                display: flex; justify-content: space-between; align-items: flex-start;
+                gap: 12px; padding: 9px 14px !important; text-align: right;
+                border-bottom: 1px solid #f5f5f5; white-space: normal;
+                font-size: 0.84rem; word-break: break-word;
+            }
+            td:last-child { border-bottom: none; }
+            td::before {
+                content: attr(data-label);
+                font-weight: 700; color: #adb5bd; text-align: left;
+                flex-shrink: 0; white-space: nowrap; font-size: 0.74rem;
+            }
+            td.col-preview { justify-content: center; padding-top: 11px !important; }
+            td.col-preview::before { display: none; }
+            .btn-preview { width: 100%; padding: 11px !important; font-size: 0.8rem !important; }
+            /* Docs preview fills the screen on phones */
+            .docs-box { width: 96vw; height: 92vh; }
+        }
     </style>
 
 </head>
@@ -453,11 +484,11 @@ function render() {
             ? `<button class="btn-preview" onclick="openPreview(${i}, this)">Preview</button>`
             : `<button class="btn-preview" disabled title="No document linked">—</button>`;
         html += `<tr>
-            <td class="col-b">${hl(row.b, q)}</td>
-            <td>${hl(row.c, q)}</td>
-            <td>${hl(row.d, q)}</td>
-            <td>${hl(row.e, q)}</td>
-            <td>${hl(row.f, q)}</td>
+            <td class="col-b" data-label="MTI_num">${hl(row.b, q)}</td>
+            <td data-label="MTI_id">${hl(row.c, q)}</td>
+            <td data-label="Domain">${hl(row.d, q)}</td>
+            <td data-label="Orientation">${hl(row.e, q)}</td>
+            <td data-label="MTI_name">${hl(row.f, q)}</td>
             <td class="col-preview">${previewBtn}</td>
         </tr>`;
     });

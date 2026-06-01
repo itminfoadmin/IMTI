@@ -180,6 +180,37 @@
         table { width: 100%; }
         /* generic: any fixed-width inner box becomes fluid */
         [style*="width: 1"], [style*="width:1"] { max-width: 100% !important; }
+
+        /* ===== Mobile: stacked cards instead of a squeezed table ===== */
+        @media (max-width: 760px) {
+            .search-bar { gap: 8px; }
+            .search-select, .search-input { flex: 1 1 100%; box-sizing: border-box; }
+            .search-divider { display: none; }
+            .btn-reload { flex: 1 1 100%; }
+
+            .table-wrap { overflow-x: hidden; border: none; background: transparent; }
+            thead { display: none; }
+            table, tbody, tr, td { display: block; width: 100%; }
+            tbody tr {
+                border: 1px solid #e9ecef; border-radius: 8px;
+                margin-bottom: 12px; padding: 4px 0; background: #fff;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            }
+            tbody tr.state-row { box-shadow: none; border: none; }
+            td {
+                display: flex; justify-content: space-between; align-items: flex-start;
+                gap: 12px; padding: 9px 14px !important; text-align: right;
+                border-bottom: 1px solid #f5f5f5; white-space: normal;
+                font-size: 0.84rem; word-break: break-word;
+            }
+            td:last-child { border-bottom: none; }
+            td[data-label]::before {
+                content: attr(data-label);
+                font-weight: 700; color: #adb5bd; text-align: left;
+                flex-shrink: 0; white-space: nowrap; font-size: 0.74rem;
+            }
+            td.state-row, td[colspan] { justify-content: center; text-align: center; }
+        }
     </style>
 
 </head>
@@ -377,15 +408,16 @@
         filteredRows.forEach(r => {
             const tr = document.createElement('tr');
             const cells = [
-                { cls: 'col-a', val: r[COL_A] },
-                { cls: 'col-j', val: r[COL_J] },
-                { cls: 'col-n', val: r[COL_N] },
-                { cls: 'col-t', val: r[COL_T] },
-                { cls: 'col-v', val: r[COL_V] },
+                { cls: 'col-a', val: r[COL_A], label: 'Article ID' },
+                { cls: 'col-j', val: r[COL_J], label: 'Orientation' },
+                { cls: 'col-n', val: r[COL_N], label: 'Treatment' },
+                { cls: 'col-t', val: r[COL_T], label: 'MAIN_Ref.' },
+                { cls: 'col-v', val: r[COL_V], label: 'APA' },
             ];
             cells.forEach(c => {
                 const td = document.createElement('td');
                 td.className = c.cls;
+                td.setAttribute('data-label', c.label);
                 td.innerHTML = hl(c.val || '', q || '');
                 tr.appendChild(td);
             });
