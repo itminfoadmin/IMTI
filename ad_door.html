@@ -43,24 +43,12 @@
 </head>
 <body>
 
-<br>
-<nav class="topnav">
-    <a class="topnav-logo-area" href="ad_door.html" style="display:flex;align-items:center;text-decoration:none;flex-shrink:0;margin-right:28px;">
-        <img src="img/logo-main_con.png" alt="IMTI" class="topnav-logo-img" style="height:68px;width:auto;">
-    </a>
-    <div class="topnav-menu"></div>
-    <div class="topnav-right">
-        <div class="topnav-divider-v"></div>
-        <button class="admin-mode-btn" onclick="openLogoutPopup()">Admin-Log-out</button>
-        <div class="topnav-divider-v"></div>
-    </div>
-</nav>
-
 <div class="main">
     <div class="main-text">You have logged in with the admin account.<br>If you wish to maintenance the web page, please click [Admin Mode].</div>
     <div style="display:flex;flex-direction:column;align-items:stretch;gap:16px;">
         <button class="admin-mode-btn" onclick="goAdminMode()" style="justify-content:center;">Admin Mode(PC)</button>
         <button class="admin-mode-btn" onclick="goAdminModeMobile()" style="justify-content:center;">Admin Mode(Mobile)</button>
+        <button class="admin-mode-btn" onclick="openLogoutPopup()" style="justify-content:center;">Admin-Log-out</button>
     </div>
 </div>
 
