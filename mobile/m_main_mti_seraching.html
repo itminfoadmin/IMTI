@@ -1592,9 +1592,34 @@
         }
         if (!src) { alert('출력할 문서가 없습니다.'); return; }
 
-        var base = src.includes('docs.google.com/document')
+        var isGoogleDoc = src.includes('docs.google.com/document');
+        var base = isGoogleDoc
             ? src.split('/preview')[0].split('/edit')[0].split('/view')[0].replace(/\/export.*/, '')
             : src;
+
+        // 모바일 브라우저는 PDF export URL을 인쇄하지 않고 곧바로 다운로드한다.
+        // 따라서 PDF export 대신 인쇄 가능한 미리보기 페이지를 열고 print()를 호출한다.
+        var isMobile = window.matchMedia('(max-width: 768px)').matches
+            || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+        if (isGoogleDoc) {
+            // 미리보기 페이지는 모바일에서도 인라인 렌더되어 브라우저 인쇄 기능 사용 가능
+            var pw = window.open(base + '/preview', '_blank');
+            if (pw) {
+                // cross-origin이라 직접 print() 호출은 차단될 수 있으나, 시도는 해 본다.
+                pw.onload = function() { try { pw.focus(); pw.print(); } catch (e) {} };
+            }
+            return;
+        }
+
+        if (isMobile) {
+            // 일반 URL(자체 호스팅 문서 등): 새 탭에서 열고 사용자가 인쇄하도록 한다.
+            var w = window.open(src, '_blank');
+            if (w) { w.onload = function() { try { w.focus(); w.print(); } catch (e) {} }; }
+            return;
+        }
+
+        // 데스크톱: 기존 동작 유지
         window.open(base + '/export?format=pdf&attachment=false', '_blank');
     }
 
