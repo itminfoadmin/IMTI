@@ -156,8 +156,8 @@
             .nav-drawer { width: 300px; }
 
             /* iframe area: 높이는 JS가 리포트 크기에 맞춰 동적 설정 */
-            .iframe-wrap { padding: 12px 3% 16px; }
-            .iframe-inner { min-height: 0; height: auto; overflow: hidden; }
+            .iframe-wrap { padding: 12px 3% 16px; display: block; overflow: visible; }
+            .iframe-inner { min-height: 0; height: auto; overflow: visible; }
 
             html, body { scrollbar-width: none !important; -ms-overflow-style: none !important; }
             html::-webkit-scrollbar, body::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
@@ -261,16 +261,21 @@ function sizeReportIframe() {
     f.style.height = fullH + 'px';
     f.style.transformOrigin = 'top left';
     f.style.transform = 'scale(' + scale + ')';
-    // transform:scale 은 레이아웃 크기를 바꾸지 않으므로, 줄어든 만큼 음수 마진으로 공간 보정
-    f.style.marginRight  = Math.round(-(fullW * (1 - scale))) + 'px';
-    f.style.marginBottom = Math.round(-(fullH * (1 - scale))) + 'px';
+    f.style.marginRight  = '0';
+    f.style.marginBottom = '0';
+    f.style.position = 'absolute';
+    f.style.top = '0';
+    f.style.left = '0';
 
-    // 보이는 영역: 폭은 리포트 폭까지만(스크롤바는 우측 밖으로 잘림), 높이는 축소된 리포트 높이
+    // 보이는 영역: 컨테이너 높이를 '축소된 실제 높이'로 명시 지정해
+    // 페이지 흐름이 정확한 콘텐츠 높이를 갖게 하고 body 스크롤이 생기도록 함
+    const scaledH = Math.round(REPORT_H * scale);
+    c.style.position = 'relative';
     c.style.width    = Math.round(REPORT_W * scale) + 'px';
     c.style.maxWidth = '100%';
     c.style.margin   = '0 auto';
-    c.style.height   = '';          // 높이는 iframe(음수마진 적용)이 자연히 결정하도록
-    c.style.minHeight = '0';
+    c.style.height   = scaledH + 'px';
+    c.style.minHeight = scaledH + 'px';
 }
 
 function hideReportOverlay() {
