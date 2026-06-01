@@ -1597,18 +1597,15 @@
             ? src.split('/preview')[0].split('/edit')[0].split('/view')[0].replace(/\/export.*/, '')
             : src;
 
-        // 모바일 브라우저는 PDF export URL을 인쇄하지 않고 곧바로 다운로드한다.
-        // 따라서 PDF export 대신 인쇄 가능한 미리보기 페이지를 열고 print()를 호출한다.
         var isMobile = window.matchMedia('(max-width: 768px)').matches
             || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
         if (isGoogleDoc) {
-            // 미리보기 페이지는 모바일에서도 인라인 렌더되어 브라우저 인쇄 기능 사용 가능
-            var pw = window.open(base + '/preview', '_blank');
-            if (pw) {
-                // cross-origin이라 직접 print() 호출은 차단될 수 있으나, 시도는 해 본다.
-                pw.onload = function() { try { pw.focus(); pw.print(); } catch (e) {} };
-            }
+            // Google Docs는 cross-origin이라 새 탭의 preview/PDF를 직접 print() 할 수 없다.
+            // PDF export 결과를 blob으로 받아 same-origin(blob URL)으로 만든 뒤
+            // 숨겨진 iframe에서 print()를 호출하면 인쇄 대화상자가 정상적으로 뜬다.
+            var pdfUrl = base + '/export?format=pdf&attachment=false';
+            printPdfViaBlob(pdfUrl);
             return;
         }
 
@@ -1621,6 +1618,48 @@
 
         // 데스크톱: 기존 동작 유지
         window.open(base + '/export?format=pdf&attachment=false', '_blank');
+    }
+
+    // PDF를 blob으로 받아 숨겨진 iframe에서 인쇄한다 (same-origin blob URL이라 print() 가능).
+    function printPdfViaBlob(pdfUrl) {
+        fetch(pdfUrl, { credentials: 'omit' })
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.blob();
+            })
+            .then(function(blob) {
+                var blobUrl = URL.createObjectURL(blob);
+                var iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                iframe.src = blobUrl;
+                iframe.onload = function() {
+                    setTimeout(function() {
+                        try {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                        } catch (e) {
+                            // 인쇄 호출 실패 시 새 탭으로 폴백
+                            window.open(blobUrl, '_blank');
+                        }
+                    }, 200);
+                    // 인쇄 후 정리
+                    setTimeout(function() {
+                        URL.revokeObjectURL(blobUrl);
+                        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+                    }, 60000);
+                };
+                document.body.appendChild(iframe);
+            })
+            .catch(function(err) {
+                console.warn('[IMTI] PDF blob print 실패, 새 탭으로 폴백:', err);
+                // 공개 문서가 아니거나 CORS 차단 시: 새 탭에서 PDF 열기
+                window.open(pdfUrl, '_blank');
+            });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
