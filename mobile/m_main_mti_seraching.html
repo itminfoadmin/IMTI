@@ -276,6 +276,37 @@
         .side-btn-icon { font-size: 1.05rem; }
         .side-btn:hover .side-btn-icon { filter: brightness(10); }
 
+        /* PDF 다운로드 확인 모달 */
+        .dl-modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,0.45);
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .dl-modal-overlay.show { display: flex; }
+        .dl-modal {
+            background: #fff; border-radius: 16px; padding: 28px 24px 20px;
+            max-width: 360px; width: 100%;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+            text-align: center;
+            animation: dlPop 0.18s ease;
+        }
+        @keyframes dlPop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .dl-modal-text {
+            font-size: 1.05rem; color: #212529; line-height: 1.5;
+            margin: 0 0 22px;
+        }
+        .dl-modal-btns { display: flex; gap: 10px; }
+        .dl-modal-btn {
+            flex: 1; padding: 12px 0; border: none; border-radius: 10px;
+            font-size: 0.98rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .dl-modal-cancel { background: #f1f3f5; color: #495057; }
+        .dl-modal-cancel:hover { background: #e9ecef; }
+        .dl-modal-ok { background: #343a40; color: #fff; }
+        .dl-modal-ok:hover { background: #212529; }
+
         .popup-btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .popup-btn-primary {
             flex: 1; padding: 11px; background: #343a40; color: #fff; border: none; border-radius: 8px; cursor: pointer;
@@ -608,7 +639,7 @@
         <button class="side-btn" onclick="openPopup('exp-write')" title="경험 공유"><span class="side-btn-icon">✏️</span></button>
         <button class="side-btn" onclick="openPopup('spread')" title="경험 확인"><span class="side-btn-icon">📋</span></button>
         <button class="side-btn" onclick="window.open('https://www.riss.kr/','_blank')" title="RISS"><span class="side-btn-icon">🔗</span></button>
-        <button class="side-btn" onclick="printCurrentDoc()" title="인쇄 화면"><span class="side-btn-icon">🖨️</span></button>
+        <button class="side-btn" id="download-doc-btn" onclick="askDownloadDoc()" title="PDF 다운로드"><span class="side-btn-icon">⬇️</span></button>
         <div class="zoom-group">
             <button class="side-btn zoom-btn" onclick="zoomDoc(-1)" title="축소"><span class="side-btn-icon">−</span></button>
             <button class="side-btn zoom-btn" onclick="zoomDoc(1)" title="확대"><span class="side-btn-icon">＋</span></button>
@@ -1575,11 +1606,9 @@
             });
     }
 
-    function printCurrentDoc() {
-        // 사용자가 인쇄를 누르는 즉시 새 창을 연다(비동기 처리 후 open 하면 팝업 차단됨).
-        var win = window.open('', '_blank');
-
-        // 현재 화면에 로드된 문서의 원본 URL을 가져온다.
+    // 현재 화면에 로드된 MTI 문서의 PDF 다운로드를 묻는 모달을 띄운다.
+    function askDownloadDoc() {
+        // 현재 화면에 로드된 문서 URL 가져오기
         var src = '';
         if (selectedResult && MODEL_URL[selectedResult]) {
             src = MODEL_URL[selectedResult];
@@ -1588,100 +1617,49 @@
             if (f && f.dataset.src) src = f.dataset.src;
         }
         if (!src) {
-            if (win) win.close();
-            alert('출력할 문서가 없습니다.');
+            alert('다운로드할 문서가 없습니다.');
             return;
         }
-
         var idMatch = src.match(/\/document\/d\/([^\/?#]+)/);
-
-        if (idMatch) {
-            // 구글 문서: 로그인 세션을 그대로 쓰는 PDF export를 blob으로 받아
-            // 같은 출처(blob:) PDF로 인라인 표시 → 자동 인쇄.
-            // (cross-origin iframe/탭은 부모에서 print() 할 수 없으므로 blob 방식이 유일하게 자동 인쇄 가능)
-            var docId  = idMatch[1];
-            var pdfUrl = 'https://docs.google.com/document/d/' + docId + '/export?format=pdf';
-
-            if (win) {
-                // 로딩 안내 표시
-                try {
-                    win.document.write('<!doctype html><meta charset="utf-8"><title>인쇄 준비 중…</title>'
-                        + '<body style="font-family:sans-serif;padding:40px;color:#333">문서를 불러오는 중입니다…</body>');
-                } catch (e) {}
-            }
-
-            fetch(pdfUrl, { credentials: 'include' })
-                .then(function(res) {
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    return res.blob();
-                })
-                .then(function(blob) {
-                    var blobUrl = URL.createObjectURL(blob);
-                    printInWindow(win, blobUrl);
-                })
-                .catch(function(err) {
-                    console.error('[print] PDF export 실패:', err);
-                    // 권한/CORS 등으로 실패하면 자동 인쇄가 불가능하다.
-                    // 사용자가 직접 인쇄할 수 있도록 인쇄 미리보기 페이지로 안내한다.
-                    if (win && !win.closed) {
-                        win.location.href = 'https://docs.google.com/document/d/' + docId + '/preview';
-                    }
-                    alert('자동 인쇄를 시작할 수 없어 문서 미리보기를 새 창에 열었습니다.\n새 창에서 Ctrl+P(⌘+P)로 인쇄해 주세요.');
-                });
+        var docId = idMatch ? idMatch[1] : '';
+        if (!docId) {
+            alert('문서 정보를 확인할 수 없습니다.');
             return;
         }
 
-        // 일반 URL(자체 호스팅 문서 등) — 인라인 표시 후 자동 인쇄
-        printInWindow(win, src);
+        // 모달에 문서 ID 기억시키고 표시
+        var modal = document.getElementById('download-modal');
+        if (modal) {
+            modal.dataset.docId = docId;
+            modal.dataset.modelName = selectedResult || 'MTI';
+            modal.classList.add('show');
+        }
     }
 
-    // 미리 열어둔 창에 문서를 로드하고, 로드 완료 후 인쇄 대화상자를 띄운다.
-    function printInWindow(win, url) {
-        if (!win) {
-            alert('인쇄 창을 열 수 없습니다. 팝업 차단을 해제한 뒤 다시 시도해 주세요.');
-            return;
-        }
-        var isBlob = url.indexOf('blob:') === 0;
+    // 모달 '예' 클릭 → PDF 다운로드 실행
+    function confirmDownloadDoc() {
+        var modal = document.getElementById('download-modal');
+        var docId = modal ? modal.dataset.docId : '';
+        var modelName = (modal && modal.dataset.modelName) ? modal.dataset.modelName : 'MTI';
+        closeDownloadModal();
+        if (!docId) return;
 
-        if (isBlob) {
-            // blob: PDF는 같은 출처이므로, 창 안에 PDF iframe을 만들고 그 iframe을 인쇄한다.
-            // (탭에 blob을 직접 띄우면 일부 브라우저가 다운로드로 처리하는 문제를 회피)
-            try {
-                win.document.open();
-                win.document.write(
-                    '<!doctype html><html><head><meta charset="utf-8"><title>인쇄</title>'
-                    + '<style>html,body{margin:0;height:100%}iframe{border:0;width:100%;height:100%}</style>'
-                    + '</head><body><iframe id="pf" src="' + url + '"></iframe>'
-                    + '<script>'
-                    + 'var f=document.getElementById("pf");'
-                    + 'var done=false;function go(){if(done)return;done=true;try{f.contentWindow.focus();f.contentWindow.print();}catch(e){try{window.focus();window.print();}catch(e2){}}}'
-                    + 'f.onload=function(){setTimeout(go,400);};'
-                    + 'setTimeout(go,2500);'
-                    + '<\/script></body></html>'
-                );
-                win.document.close();
-            } catch (e) {
-                console.error('[print] blob 인쇄 실패:', e);
-                win.location.href = url; // 폴백: 그냥 PDF 표시
-            }
-            return;
-        }
+        // 구글 문서 PDF export (attachment=true → 다운로드)
+        var pdfUrl = 'https://docs.google.com/document/d/' + docId
+                   + '/export?format=pdf&attachment=true';
 
-        // 일반 URL: 창에 직접 로드 후 인쇄
-        var printed = false;
-        function doPrint() {
-            if (printed) return;
-            try {
-                if (!win || win.closed) return;
-                var href = win.location.href;
-                if (href === 'about:blank' || href === '') return;
-            } catch (e) { /* cross-origin이면 접근 불가 → 진행 */ }
-            printed = true;
-            try { win.focus(); win.print(); } catch (e) { /* 사용자가 수동 인쇄 */ }
-        }
-        win.location.href = url;
-        win.onload = doPrint;
-        setTimeout(doPrint, 1500);
+        var a = document.createElement('a');
+        a.href = pdfUrl;
+        a.download = modelName + '.pdf';
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function closeDownloadModal() {
+        var modal = document.getElementById('download-modal');
+        if (modal) modal.classList.remove('show');
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -1766,8 +1744,18 @@
         if (drawer)   drawer.classList.remove('open');
         if (backdrop) backdrop.classList.remove('open');
     }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') imtiCloseMenu(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { imtiCloseMenu(); closeDownloadModal(); } });
 </script>
 <script>imtiRequireAuth(); imtiLoadNavbar("m_main_mti_seraching.html");</script>
+    <!-- PDF 다운로드 확인 모달 -->
+    <div id="download-modal" class="dl-modal-overlay" onclick="if(event.target===this)closeDownloadModal()">
+        <div class="dl-modal">
+            <p class="dl-modal-text">지금 보고 계신 MTI를 다운받으시겠습니까?</p>
+            <div class="dl-modal-btns">
+                <button class="dl-modal-btn dl-modal-cancel" onclick="closeDownloadModal()">아니요</button>
+                <button class="dl-modal-btn dl-modal-ok" onclick="confirmDownloadDoc()">예</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
