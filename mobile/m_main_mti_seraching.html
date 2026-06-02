@@ -1576,90 +1576,51 @@
     }
 
     function printCurrentDoc() {
+        // 사용자가 인쇄를 누르는 즉시 새 탭을 연다(비동기 처리 후 open 하면 팝업 차단됨).
+        var win = window.open('', '_blank');
+
         var src = '';
         if (selectedResult && MODEL_URL[selectedResult]) {
             src = MODEL_URL[selectedResult];
         } else {
             var f = document.querySelector('#iframe-container iframe.active');
-            if (f && f.dataset.isGuide === 'true') {
-                try { f.contentWindow.print(); } catch(e) {
-                    var pw = window.open('m_Main_mti_searching_guide.html', '_blank');
-                    if (pw) pw.onload = function() { pw.print(); };
-                }
-                return;
-            }
             if (f && f.dataset.src) src = f.dataset.src;
         }
-        if (!src) { alert('출력할 문서가 없습니다.'); return; }
+        if (!src) {
+            if (win) win.close();
+            alert('출력할 문서가 없습니다.');
+            return;
+        }
 
         var isGoogleDoc = src.includes('docs.google.com/document');
-        var base = isGoogleDoc
-            ? src.split('/preview')[0].split('/edit')[0].split('/view')[0].replace(/\/export.*/, '')
-            : src;
-
-        var isMobile = window.matchMedia('(max-width: 768px)').matches
-            || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
         if (isGoogleDoc) {
-            // Google Docs는 cross-origin이라 새 탭의 preview/PDF를 직접 print() 할 수 없다.
-            // PDF export 결과를 blob으로 받아 same-origin(blob URL)으로 만든 뒤
-            // 숨겨진 iframe에서 print()를 호출하면 인쇄 대화상자가 정상적으로 뜬다.
+            var base = src.split('/preview')[0].split('/edit')[0].split('/view')[0].replace(/\/export.*/, '');
             var pdfUrl = base + '/export?format=pdf&attachment=false';
-            printPdfViaBlob(pdfUrl);
+            printInWindow(win, pdfUrl);
             return;
         }
 
-        if (isMobile) {
-            // 일반 URL(자체 호스팅 문서 등): 새 탭에서 열고 사용자가 인쇄하도록 한다.
-            var w = window.open(src, '_blank');
-            if (w) { w.onload = function() { try { w.focus(); w.print(); } catch (e) {} }; }
-            return;
-        }
-
-        // 데스크톱: 기존 동작 유지
-        window.open(base + '/export?format=pdf&attachment=false', '_blank');
+        // 일반 URL(자체 호스팅 문서 등)
+        printInWindow(win, src);
     }
 
-    // PDF를 blob으로 받아 숨겨진 iframe에서 인쇄한다 (same-origin blob URL이라 print() 가능).
-    function printPdfViaBlob(pdfUrl) {
-        fetch(pdfUrl, { credentials: 'omit' })
-            .then(function(r) {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.blob();
-            })
-            .then(function(blob) {
-                var blobUrl = URL.createObjectURL(blob);
-                var iframe = document.createElement('iframe');
-                iframe.style.position = 'fixed';
-                iframe.style.right = '0';
-                iframe.style.bottom = '0';
-                iframe.style.width = '0';
-                iframe.style.height = '0';
-                iframe.style.border = '0';
-                iframe.src = blobUrl;
-                iframe.onload = function() {
-                    setTimeout(function() {
-                        try {
-                            iframe.contentWindow.focus();
-                            iframe.contentWindow.print();
-                        } catch (e) {
-                            // 인쇄 호출 실패 시 새 탭으로 폴백
-                            window.open(blobUrl, '_blank');
-                        }
-                    }, 200);
-                    // 인쇄 후 정리
-                    setTimeout(function() {
-                        URL.revokeObjectURL(blobUrl);
-                        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-                    }, 60000);
-                };
-                document.body.appendChild(iframe);
-            })
-            .catch(function(err) {
-                console.warn('[IMTI] PDF blob print 실패, 새 탭으로 폴백:', err);
-                // 공개 문서가 아니거나 CORS 차단 시: 새 탭에서 PDF 열기
-                window.open(pdfUrl, '_blank');
-            });
+    // 미리 열어둔 탭에 문서를 로드하고, 로드 완료 후 인쇄 대화상자를 띄운다.
+    // cross-origin(Google PDF 등)이면 print() 호출이 무시될 수 있으나, 그 경우에도
+    // 호스트 페이지가 인쇄되는 일은 없다 — 인쇄 대상은 항상 별도 탭의 문서다.
+    function printInWindow(win, url) {
+        if (!win) {
+            alert('인쇄 창을 열 수 없습니다. 팝업 차단을 해제한 뒤 다시 시도해 주세요.');
+            return;
+        }
+        win.location.href = url;
+        win.onload = function() {
+            try { win.focus(); win.print(); } catch (e) { /* 사용자가 수동 인쇄 */ }
+        };
+        // onload가 발생하지 않는 PDF 뷰어를 위한 보조 트리거
+        setTimeout(function() {
+            try { win.focus(); win.print(); } catch (e) {}
+        }, 1500);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
