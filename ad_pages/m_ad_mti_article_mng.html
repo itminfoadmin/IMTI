@@ -446,9 +446,15 @@
             font-size: 0.74rem;
             text-align: center;
         }
-        /* SAVE / DELETE leave the toolbar flow — they are pinned to the bottom */
-        .toolbar-right #btn-save,
-        .toolbar-right #btn-delete { flex: none; }
+        /* SAVE / DELETE sit together in their own row, above PRINT */
+        .toolbar-right .save-delete-group {
+            display: flex; gap: 8px; width: 100%;
+            order: 99;                 /* keep just above PRINT */
+            padding-top: 10px;
+            border-top: 2px solid #dee2e6;   /* separator from buttons above */
+        }
+        .toolbar-right .save-delete-group .btn { flex: 1 1 calc(50% - 4px); }
+        .toolbar-right #btn-print { order: 100; }
         /* Prev / Next side by side on their own row */
         #btn-prev, #btn-next { flex: 1 1 calc(50% - 4px); }
 
@@ -500,23 +506,6 @@
 
         /* Confirm dialog stays centred & sized for phones */
         .confirm-box { width: 88vw; max-width: 88vw; padding: 24px 22px; }
-
-        /* ── SAVE / DELETE pinned to the bottom of the screen ── */
-        .toolbar-right #btn-save,
-        .toolbar-right #btn-delete {
-            position: fixed;
-            bottom: 0;
-            z-index: 600;
-            margin: 0;
-            border-radius: 0;
-            padding: 15px 8px;
-            font-size: 0.82rem;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.12);
-        }
-        .toolbar-right #btn-save  { left: 0;  width: 50vw; }
-        .toolbar-right #btn-delete{ right: 0; width: 50vw; }
-        /* Reserve space so the fixed bar never covers the last form fields */
-        body { padding-bottom: 64px !important; }
     </style>
 
 </head>
@@ -578,9 +567,11 @@ fetch('m_ad_navbar.html')
             <button class="btn btn-nav" id="btn-prev" disabled>‹ Prev_Article</button>
             <button class="btn btn-nav" id="btn-next" disabled>Next_Article ›</button>
             <button class="btn btn-outline" id="btn-reload">↺ RELOAD</button>
-            <button class="btn btn-primary" id="btn-save"   disabled>✓ SAVE</button>
-            <button class="btn btn-danger"  id="btn-delete" disabled>✕ DELETE</button>
             <button class="btn btn-search"  id="btn-search">⌕ SEARCHING</button>
+            <div class="save-delete-group">
+                <button class="btn btn-primary" id="btn-save"   disabled>✓ SAVE</button>
+                <button class="btn btn-danger"  id="btn-delete" disabled>✕ DELETE</button>
+            </div>
             <button class="btn btn-print"   id="btn-print"  disabled>⎙ PRINT</button>
         </div>
     </div>
