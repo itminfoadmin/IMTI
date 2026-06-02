@@ -1648,13 +1648,15 @@
         var pdfUrl = 'https://docs.google.com/document/d/' + docId
                    + '/export?format=pdf&attachment=true';
 
-        var a = document.createElement('a');
-        a.href = pdfUrl;
-        a.download = modelName + '.pdf';
-        a.target = '_blank';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        // 새 탭(빈 화면)을 열지 않고, 숨긴 iframe으로 다운로드만 트리거한다.
+        var iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = pdfUrl;
+        document.body.appendChild(iframe);
+        // 다운로드가 시작될 시간을 준 뒤 정리
+        setTimeout(function() {
+            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        }, 60000);
     }
 
     function closeDownloadModal() {
