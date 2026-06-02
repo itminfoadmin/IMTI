@@ -1644,19 +1644,41 @@
         closeDownloadModal();
         if (!docId) return;
 
-        // 구글 문서 PDF export (attachment=true → 다운로드)
-        var pdfUrl = 'https://docs.google.com/document/d/' + docId
-                   + '/export?format=pdf&attachment=true';
+        var pdfUrl = 'https://docs.google.com/document/d/' + docId + '/export?format=pdf';
+        var fileName = modelName + '.pdf';
 
-        // 새 탭(빈 화면)을 열지 않고, 숨긴 iframe으로 다운로드만 트리거한다.
-        var iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = pdfUrl;
-        document.body.appendChild(iframe);
-        // 다운로드가 시작될 시간을 준 뒤 정리
-        setTimeout(function() {
-            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-        }, 60000);
+        function triggerBlobDownload(blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+        }
+
+        function fallbackDirect() {
+            // fetch가 막히면 직접 다운로드 링크로 폴백(빈 화면 없이 다운로드만 됨)
+            var a = document.createElement('a');
+            a.href = pdfUrl + '&attachment=true';
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // 공개 문서는 CORS fetch가 통과하므로 blob으로 받아 다운로드(빈 화면 없음)
+        fetch(pdfUrl)
+            .then(function(res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.blob();
+            })
+            .then(function(blob) { triggerBlobDownload(blob); })
+            .catch(function(err) {
+                console.error('[download] fetch 실패, 직접 링크로 폴백:', err);
+                fallbackDirect();
+            });
     }
 
     function closeDownloadModal() {
