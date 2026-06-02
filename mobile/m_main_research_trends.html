@@ -67,8 +67,8 @@
         .nav-drawer-account-actions .nav-btn-logout:hover { color: #d4452f; }
 
         /* ── iframe area ── */
-        .iframe-wrap { padding: 20px 20%; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        .iframe-inner { width: 100%; flex: 1; background: #fff; position: relative; min-height: 0; overflow: hidden; }
+        .iframe-wrap { padding: 20px 20%; position: relative; overflow: visible; display: block; }
+        .iframe-inner { width: 100%; background: #fff; position: relative; min-height: 0; overflow: visible; }
 
         /* ── preload overlay ── */
         #preload-overlay {
@@ -128,12 +128,12 @@
         }
         /* 단일 Looker 리포트 iframe: 일반 흐름에 두고 scale로 폭 맞춤 */
         iframe.report-frame {
-            position: relative !important;
+            position: static !important;
             top: auto !important; left: auto !important;
             visibility: visible !important;
             pointer-events: auto !important;
             z-index: 1;
-            overflow: hidden;
+            display: block;
         }
         /* iframe 영역 스크롤바 숨김 (페이지/내부 모두) */
         .iframe-wrap, .iframe-inner {
@@ -249,29 +249,27 @@ function sizeReportIframe() {
     if (!c) return;
     const f = c.querySelector('iframe.report-frame');
     if (!f) return;
-    c.style.overflow = 'hidden';   // 컨테이너 밖으로 넘치는 부분(스크롤바 포함) 잘라냄
 
-    const SB = 20;                 // 내부 스크롤바를 밀어낼 여유 폭(px, iframe 기준)
-    const availW = (window.innerWidth <= 768) ? (c.clientWidth || window.innerWidth) : c.clientWidth;
+    // 가용 폭 측정 (컨테이너 부모 기준)
+    const wrap = c.parentElement || c;
+    const availW = wrap.clientWidth || c.clientWidth || window.innerWidth;
     const scale  = availW / REPORT_W;
 
-    const fullW = REPORT_W + SB;   // iframe 실제(레이아웃) 폭
-    const fullH = REPORT_H;        // iframe 실제(레이아웃) 높이
-    f.style.width  = fullW + 'px';
-    f.style.height = fullH + 'px';
+    // iframe은 리포트 실제 크기 그대로 두고, scale로 축소만 한다.
+    f.style.width  = REPORT_W + 'px';
+    f.style.height = REPORT_H + 'px';
     f.style.transformOrigin = 'top left';
     f.style.transform = 'scale(' + scale + ')';
-    f.style.marginRight  = '0';
-    f.style.marginBottom = '0';
-    f.style.position = 'absolute';
-    f.style.top = '0';
-    f.style.left = '0';
+    f.style.position = 'static';
+    f.style.display = 'block';
+    f.style.margin = '0';
 
-    // 보이는 영역: 컨테이너 높이를 '축소된 실제 높이'로 명시 지정해
-    // 페이지 흐름이 정확한 콘텐츠 높이를 갖게 하고 body 스크롤이 생기도록 함
+    // scale 후 실제 차지하는 크기로 컨테이너 높이를 맞춰 잘림 방지
+    const scaledW = Math.round(REPORT_W * scale);
     const scaledH = Math.round(REPORT_H * scale);
     c.style.position = 'relative';
-    c.style.width    = Math.round(REPORT_W * scale) + 'px';
+    c.style.overflow = 'visible';
+    c.style.width    = scaledW + 'px';
     c.style.maxWidth = '100%';
     c.style.margin   = '0 auto';
     c.style.height   = scaledH + 'px';
