@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMTI - MTI Recommand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+
+:root{
+  --ink:#212529;
+  --text:#343a40;
+  --text-soft:#495057;
+  --muted:#868e96;
+  --line:#e9ecef;
+  --line-soft:#f1f3f5;
+  --bg:#fff;
+  --bg-soft:#f8f9fa;
+  --blue:#1a56db;
+  --terra:#d47878;    
+  --camel:#d49860;    
+  --terra-soft:#fbeeee;
+  --camel-soft:#faf1e6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+
+html{
+  font-size: calc(14px + (18 - 14) * ((100vw - 1000px) / (1920 - 1000)));
+  scrollbar-width:none; -ms-overflow-style:none;
+  height:100%; overflow:hidden;
+}
+html::-webkit-scrollbar{display:none}
+@media (max-width:1000px){ html{ font-size:13px; } }
+
+body{
+  font-family:'Noto Sans KR','DM Mono',sans-serif;
+  background:var(--bg); color:var(--text);
+  height:100vh; overflow:hidden; -webkit-font-smoothing:antialiased;
+  font-synthesis:none;
+  display:flex; flex-direction:column;
+}
+
+#navbar-placeholder{flex-shrink:0}
+.fixed-head{flex-shrink:0;background:var(--bg)}
+body.on-result .scroll-area{overflow:hidden}
+body.on-result .stage-wrap{margin-bottom:0}
+.scroll-area{
+  flex:1; min-height:0; overflow-y:auto; overflow-x:hidden;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.scroll-area::-webkit-scrollbar{display:none}
+
+
+.topnav{
+  background:#fff; padding:4vh 5% 1vh 5%;
+  display:flex; justify-content:space-between; align-items:flex-end; flex-shrink:0;
+}
+.logo-area{padding-left:5%;flex-shrink:0}
+.logo-img{height:4rem;width:auto;transition:transform .3s;cursor:pointer}
+.logo-img:hover{transform:scale(1.03)}
+.nav-right-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:12px;padding-right:5%}
+.nav-right-top{display:flex;gap:15px;align-items:center}
+.nav-email{font-family:'DM Mono';font-size:.8rem;color:var(--muted);font-weight:100}
+.nav-btn{background:none;border:none;cursor:pointer;font-size:.8rem;color:var(--muted);font-family:'DM Mono'}
+.nav-btn:hover{color:var(--blue);text-decoration:underline}
+.nav-right-bottom{display:flex;gap:20px}
+.nav-menu-item{
+  font-family:'Noto Sans KR';font-size:.85rem;color:var(--text-soft);
+  text-decoration:none;transition:.2s;background:none;border:none;padding:0;cursor:pointer;
+}
+.nav-menu-item:hover,.nav-menu-item.active{color:var(--ink);font-weight:700;border-bottom:2px solid var(--ink)}
+
+/* ---------- page intro ---------- */
+.page-head{
+  text-align:center; padding:2.4vh 5% 0;
+  max-width:880px; margin:0 auto;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+.page-head .sub{
+  color:var(--text-soft); font-size:.92rem; font-weight:700;
+  margin-top:1.6rem;
+}
+
+/* live status */
+.live{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto;font-size:.74rem;font-family:'DM Mono',monospace;color:var(--muted)}
+.live .dotlive{width:7px;height:7px;border-radius:50%;background:var(--camel);flex-shrink:0;animation:pulse 1.4s infinite}
+.live.ok .dotlive{background:#2f9e44;animation:none}
+.live.err .dotlive{background:var(--terra);animation:none}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.6)}}
+.reload{background:none;border:1px solid var(--line);border-radius:6px;font-family:'DM Mono';font-size:.7rem;color:var(--muted);padding:3px 9px;cursor:pointer;transition:.2s}
+.reload:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ---------- progress ---------- */
+.progress{display:flex;align-items:center;justify-content:center;margin:2vh 0 1.8vh;flex-wrap:wrap}
+.home-btn{
+  margin-left:18px;font-family:'Noto Sans KR';font-size:.78rem;font-weight:700;
+  color:var(--terra);background:var(--terra-soft);border:1.5px solid #f0d4d4;
+  border-radius:20px;padding:6px 16px;cursor:pointer;transition:.2s;
+}
+.home-btn:hover{background:var(--terra);color:#fff;border-color:var(--terra)}
+.home-btn:disabled{opacity:.4;cursor:not-allowed;background:var(--bg-soft);color:var(--muted);border-color:var(--line)}
+.home-btn:disabled:hover{background:var(--bg-soft);color:var(--muted);border-color:var(--line)}
+.step-dot{display:flex;align-items:center}
+.dot{
+  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  border:1.5px solid var(--line);background:#fff;color:var(--muted);
+  font-family:'DM Mono';font-size:.72rem;font-weight:500;transition:.4s cubic-bezier(.2,.8,.2,1);
+}
+.dot.active{border-color:var(--terra);background:var(--terra);color:#fff;transform:scale(1.08)}
+.dot.done{border-color:var(--terra);background:var(--terra-soft);color:var(--terra)}
+.bar{width:42px;height:1.5px;background:var(--line);transition:.4s}
+.bar.done{background:var(--terra)}
+@media(max-width:560px){.bar{width:20px}}
+
+/* ---------- stage card ---------- */
+.stage-wrap{max-width:1650px;margin:0 auto 4vh;padding:0 5%}
+.stage{
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 1px 0 rgba(0,0,0,.02),0 24px 50px -34px rgba(40,40,50,.4);
+  overflow:hidden;position:relative;min-height:240px;
+}
+.stage::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--terra),var(--camel));z-index:2}
+.panel{padding:2.4rem 2.8rem;display:none;animation:fade .45s ease both}
+.panel.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.panel.qpanel.show{
+  display:grid;
+  grid-template-columns: minmax(360px, 440px) 1fr;
+  column-gap: 3.2rem;
+  align-items: stretch;
+}
+.q-left{
+  display:flex; flex-direction:column; justify-content:center;
+  border-right:1px solid var(--line-soft); padding-right:2.6rem;
+}
+.q-left .q-help{margin-bottom:0}
+.panel.qpanel .right-col{display:flex;flex-direction:column;min-width:0}
+.panel.qpanel .opts{flex:1;align-content:start}
+.panel.qpanel .nav{margin-top:1.4rem}
+
+@media(max-width:760px){
+  .panel{padding:1.8rem 1.4rem}
+  .panel.qpanel.show{grid-template-columns:1fr; column-gap:0}
+  .q-left{border-right:none;padding-right:0;border-bottom:1px solid var(--line-soft);padding-bottom:1.1rem;margin-bottom:1.3rem;justify-content:flex-start}
+  .q-title{white-space:normal}
+  .opts,.opts.single-col{grid-template-columns:1fr}
+  .opt{white-space:normal}
+  .m-head{flex-direction:column;align-items:flex-start;gap:12px}
+  .doclink{align-self:stretch;justify-content:center}
+}
+
+.q-num{font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.2em;color:var(--terra);font-weight:500;text-transform:uppercase}
+.q-title{font-family:'Noto Sans KR';font-weight:900;font-size:1.32rem;color:var(--ink);margin:8px 0 5px;letter-spacing:-.02em;white-space:nowrap}
+.q-title b{color:var(--terra)}
+.q-help{color:var(--text-soft);font-size:.84rem;margin-bottom:1.6rem;font-weight:400}
+
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:9px 14px;align-items:start}
+.opts.single-col{grid-template-columns:1fr}
+.opt-col{display:flex;flex-direction:column;gap:9px;min-width:0}
+.opt{
+  text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:10px;
+  padding:13px 15px;cursor:pointer;font-family:'Noto Sans KR';font-size:.84rem;color:var(--text);
+  display:flex;align-items:center;gap:12px;transition:.2s cubic-bezier(.2,.8,.2,1);
+  white-space:nowrap;
+}
+.opt:hover{border-color:var(--terra);transform:translateX(3px);box-shadow:0 8px 22px -16px rgba(212,120,120,.7)}
+.opt .mk{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--line);flex:0 0 20px;display:grid;place-items:center;transition:.2s}
+.opt.sel{border-color:var(--terra);background:var(--terra-soft)}
+.opt.sel .mk{background:var(--terra);border-color:var(--terra)}
+.opt.sel .mk::after{content:"✓";color:#fff;font-size:11px;font-weight:700}
+.opt .lab{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opt .cnt{flex:0 0 auto;font-family:'DM Mono';font-size:.66rem;color:var(--muted);background:var(--bg-soft);border-radius:9px;padding:1px 8px}
+.opt.sel .cnt{background:#f3d9d9;color:var(--terra)}
+.opt.zero{}
+
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.9rem;gap:12px}
+.btn{font-family:'Noto Sans KR';font-weight:700;font-size:.82rem;border-radius:9px;padding:11px 24px;cursor:pointer;border:1.5px solid transparent;transition:.2s}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--text-soft);color:var(--text)}
+.btn-ghost.hide{visibility:hidden}
+.btn-primary{background:var(--terra);color:#fff}
+.btn-primary:hover{background:#c46868;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.hint{font-family:'DM Mono';font-size:.7rem;color:var(--camel);text-align:center;flex:1}
+
+/* states */
+.center-state{text-align:center;padding:2.4rem 1.2rem}
+.spinner{width:38px;height:38px;border:3px solid var(--line-soft);border-top-color:var(--terra);border-radius:50%;margin:0 auto 16px;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.center-state h3{font-family:'Noto Sans KR';font-weight:900;font-size:1.15rem;margin-bottom:8px;color:var(--ink)}
+.center-state p{color:var(--text-soft);font-size:.82rem;max-width:520px;margin:0 auto 6px}
+.center-state .err-detail{font-family:'DM Mono';font-size:.7rem;color:var(--terra);background:var(--terra-soft);border-radius:7px;padding:10px 13px;margin:14px auto 0;max-width:560px;text-align:left;word-break:break-all}
+.center-state .urls{font-size:.74rem;color:var(--text-soft);margin-top:14px;text-align:left;max-width:560px;margin-inline:auto}
+.center-state .urls code{display:block;background:var(--bg-soft);padding:6px 9px;border-radius:5px;margin:5px 0;font-size:.66rem;word-break:break-all;font-family:'DM Mono'}
+
+/* results */
+.result-panel.show{
+  display:flex; flex-direction:column;
+  height: calc(100vh - var(--fixed-offset, 280px));
+  max-height: 78vh;
+  padding-top:2rem; padding-bottom:1.4rem;
+}
+.result-head{flex-shrink:0}
+.result-nav{flex-shrink:0; margin-top:1.2rem}
+.results-scroll{
+  flex:1; min-height:0; overflow-y:auto; overflow-x:hidden;
+  margin-top:6px; padding-right:6px;
+  scrollbar-width:thin;
+}
+.results-scroll::-webkit-scrollbar{width:8px}
+.results-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+.results-scroll .match:first-child{margin-top:4px}
+
+.result-eyebrow{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.result-eyebrow .q-num{flex-shrink:0}
+.result-desc{font-family:'Noto Sans KR';font-size:.8rem;color:var(--text-soft);font-weight:400}
+.result-title-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:6px}
+.result-title-row .q-title{margin:0;flex-shrink:0}
+.result-title-row .choices{margin:0}
+
+.choices{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0 6px}
+.chip{font-family:'DM Mono';font-size:.7rem;background:var(--terra-soft);color:var(--terra);border-radius:18px;padding:5px 12px;font-weight:500;border:1px solid #f0d4d4}
+.chip.empty{background:var(--bg-soft);color:var(--muted);border-color:var(--line)}
+
+.match{border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:14px;overflow:hidden;transition:.25s}
+.match:hover{box-shadow:0 12px 30px -24px rgba(40,40,50,.6)}
+.match.top{border-color:var(--terra);box-shadow:0 0 0 1.5px var(--terra) inset}
+.m-head{display:flex;align-items:center;gap:15px;padding:18px 20px}
+.score-ring{--p:0;flex:0 0 50px;width:50px;height:50px;border-radius:50%;background:conic-gradient(var(--terra) calc(var(--p)*1%),var(--bg-soft) 0);display:grid;place-items:center;position:relative}
+.score-ring::before{content:"";position:absolute;inset:5px;background:#fff;border-radius:50%}
+.score-ring span{position:relative;font-family:'DM Mono';font-weight:500;font-size:.82rem;color:var(--terra)}
+.m-meta{flex:1;min-width:0}
+.m-title{font-family:'Noto Sans KR';font-weight:700;font-size:1rem;line-height:1.35;color:var(--ink)}
+.m-author{font-family:'DM Mono';font-size:.72rem;color:var(--camel);font-weight:500;margin-top:2px}
+.m-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.tag{font-size:.68rem;padding:3px 9px;border-radius:5px;background:var(--bg-soft);color:var(--text-soft)}
+.tag.hit{background:var(--terra-soft);color:var(--terra);font-weight:700}
+.m-toggle{flex:0 0 auto;color:var(--muted);font-size:20px;transition:.3s;user-select:none;line-height:1}
+.match.open .m-toggle{transform:rotate(45deg);color:var(--terra)}
+.badge-best{position:absolute;top:-1px;left:16px;background:var(--terra);color:#fff;font-family:'DM Mono';font-size:.6rem;letter-spacing:.16em;font-weight:500;padding:4px 10px;border-radius:0 0 7px 7px;text-transform:uppercase}
+.m-body{max-height:0;overflow:hidden;transition:max-height .45s ease}
+.match.open .m-body{max-height:900px}
+.m-body-inner{padding:3px 20px 20px;border-top:1px dashed var(--line)}
+.m-body-inner h4{font-family:'DM Mono';font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--camel);margin:16px 0 6px;font-weight:500}
+.m-body-inner p{font-size:.82rem;color:var(--text-soft);line-height:1.7}
+.id-line{font-family:'DM Mono';font-size:.66rem;color:var(--muted);margin-top:4px}
+.doclink{flex:0 0 auto;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;font-family:'Noto Sans KR';font-size:.8rem;font-weight:700;color:#fff;background:var(--blue);padding:9px 17px;border-radius:8px;text-decoration:none;border:none;cursor:pointer;transition:.2s}
+.doclink:hover{background:#1647b5;transform:translateY(-1px)}
+.doclink.disabled{background:var(--bg-soft);color:var(--muted);pointer-events:none;cursor:default}
+.match.top .m-head{padding-top:26px}
+.empty-state{text-align:center;padding:2.2rem .6rem;color:var(--text-soft);font-size:.85rem}
+.empty-state .big{font-size:2.4rem;margin-bottom:10px}
+
+/* ---------- Google Docs Modal ---------- */
+.doc-modal{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;padding:3vh 3vw}
+.doc-modal.show{display:flex;animation:fade .25s ease both}
+.doc-modal-backdrop{position:absolute;inset:0;background:rgba(20,22,28,.55);backdrop-filter:blur(2px)}
+.doc-modal-box{position:relative;z-index:1;width:min(1000px,94vw);height:min(88vh,900px);background:#fff;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px -20px rgba(20,22,28,.5)}
+.doc-modal-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--bg-soft)}
+.doc-modal-title{font-family:'Noto Sans KR';font-weight:700;font-size:.92rem;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-modal-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.doc-zoom{display:flex;align-items:center;gap:4px;background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;padding:2px 4px}
+.zoom-btn{width:24px;height:24px;border:none;background:none;color:var(--text-soft);font-size:1rem;font-weight:700;cursor:pointer;border-radius:5px;line-height:1;display:grid;place-items:center;transition:.15s}
+.zoom-btn:hover{background:#e4e0d8;color:var(--ink)}
+.zoom-level{font-family:'DM Mono';font-size:.7rem;color:var(--text-soft);min-width:38px;text-align:center}
+.doc-modal-print{font-family:'Noto Sans KR';font-size:.76rem;font-weight:700;color:var(--blue);background:none;border:1.5px solid var(--blue);border-radius:7px;padding:5px 12px;cursor:pointer;white-space:nowrap;transition:.2s}
+.doc-modal-print:hover{background:var(--blue);color:#fff}
+.doc-modal-close{border:none;background:none;font-size:1.1rem;color:var(--muted);cursor:pointer;line-height:1;padding:4px 6px;border-radius:6px;transition:.2s}
+.doc-modal-close:hover{background:#eceae4;color:var(--ink)}
+.doc-modal-body{flex:1;min-height:0;position:relative;background:#f1f3f5;overflow:hidden}
+.doc-zoom-wrap{position:absolute;top:0;left:0;width:100%;height:100%;transform-origin:top left;transition:transform .15s ease}
+.doc-modal-body iframe{width:100%;height:100%;border:none;opacity:0;transition:opacity .3s;background:#fff}
+.doc-modal-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-family:'DM Mono';font-size:.78rem}
+
+.page-foot{text-align:center;padding:0 5%;color:var(--muted);font-family:'DM Mono';font-size:.7rem;letter-spacing:.04em}
+.page-foot b{color:var(--terra);font-weight:500}
+</style>
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+
+<div class="fixed-head">
+  <div class="page-head">
+    <div class="live" id="live" style="display:none">
+      <span class="dotlive"></span>
+      <span id="liveText">MTI_DB에서 데이터를 불러오는 중…</span>
+      <button class="reload" id="reloadBtn" style="display:none" onclick="loadAll()">↻ 새로고침</button>
+    </div>
+    <div class="page-foot">MTI-DB 실시간 연동(전체 <b id="count">…</b>개 모형)</div>
+    <div class="sub">연구 결과를 바탕으로 수업 모형(MTI)을 추천해 드립니다.</div>
+  </div>
+  <div class="progress" id="progress"></div>
+</div>
+
+<main class="scroll-area">
+<div class="stage-wrap">
+  <div class="stage">
+    <!-- LOADING -->
+    <div class="panel show" data-step="load">
+      <div class="center-state">
+        <div class="spinner"></div>
+        <h3>데이터를 불러오는 중입니다</h3>
+        <p>MTI_DB의 모형·대상·역량 데이터를 합치고 있어요. 잠시만 기다려 주세요.</p>
+      </div>
+    </div>
+
+    <!-- ERROR -->
+    <div class="panel" data-step="error">
+      <div class="center-state">
+        <h3 style="color:var(--terra)">데이터를 불러오지 못했어요</h3>
+        <p>MTI_DB 시트 주소에 직접 접근하지 못했습니다. 보통 시트가 <b>'웹에 게시'</b>되어 있지 않거나, 브라우저 보안 정책(CORS)에 막힌 경우입니다.</p>
+        <div class="err-detail" id="errDetail"></div>
+        <div class="urls">
+          <b>확인 방법</b> — 구글 시트에서 <b>파일 › 공유 › 웹에 게시</b>가 되어 있는지 확인하세요. 아래 주소를 브라우저에 직접 붙여넣어 CSV가 보이면 정상입니다:
+          <code id="urlList"></code>
+        </div>
+        <button class="btn btn-primary" style="margin-top:18px" onclick="loadAll()">다시 시도</button>
+      </div>
+    </div>
+
+    <!-- STEP 1 : domain -->
+    <div class="panel qpanel" data-step="0">
+      <div class="q-left">
+        <div class="q-num">Question 01</div>
+        <div class="q-title">어떤 <b>영역</b>의 수업을 준비하고 있나요?</div>
+        <div class="q-help">수업 영역을 선택해주세요.</div>
+      </div>
+      <div class="right-col">
+        <div class="opts" data-group="domain" data-mode="single"></div>
+        <div class="nav">
+          <button class="btn btn-ghost hide">이전</button>
+          <span class="hint" data-hint></span>
+          <button class="btn btn-primary" data-next disabled>다음</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 : participants -->
+    <div class="panel qpanel" data-step="1">
+      <div class="q-left">
+        <div class="q-num">Question 02</div>
+        <div class="q-title">수업 대상은 누구인가요? <b>(대상)</b></div>
+        <div class="q-help">대상 학습자를 선택해 주세요. </div>
+      </div>
+      <div class="right-col">
+        <div class="opts" data-group="participants" data-mode="single"></div>
+        <div class="nav">
+          <button class="btn btn-ghost" data-prev>이전</button>
+          <span class="hint" data-hint></span>
+          <button class="btn btn-primary" data-next>건너뛰기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 : orientation -->
+    <div class="panel qpanel" data-step="2">
+      <div class="q-left">
+        <div class="q-num">Question 03</div>
+        <div class="q-title">어떠한 <b>학습을 지향하나요?</div>
+        <div class="q-help">수업의 과정에서 학습자가 <br> 어떠한 학습 양식의 경험을 원하시나요?</div>
+      </div>
+      <div class="right-col">
+        <div class="opts" data-group="orientation" data-mode="single"></div>
+        <div class="nav">
+          <button class="btn btn-ghost" data-prev>이전</button>
+          <span class="hint" data-hint></span>
+          <button class="btn btn-primary" data-next>건너뛰기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 : competencies -->
+    <div class="panel qpanel" data-step="3">
+      <div class="q-left">
+        <div class="q-num">Question 04</div>
+        <div class="q-title">어떤 <b>역량</b>을 기르고 싶으신가요?</div>
+        <div class="q-help">중요하게 생각하는 역량을 선택해 주세요. <br> (복수 선택 가능)</div>
+      </div>
+      <div class="right-col">
+        <div class="opts" data-group="competencies" data-mode="multi"></div>
+        <div class="nav">
+          <button class="btn btn-ghost" data-prev>이전</button>
+          <span class="hint" data-hint></span>
+          <button class="btn btn-primary" data-finish>결과 보기 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="panel result-panel" data-step="4">
+      <div class="result-head">
+        <div class="result-eyebrow">
+          <span class="q-num">Result</span>
+          <span class="result-desc">선택하신 조건과의 일치도가 높은 순서으로 정렬했습니다.</span>
+        </div>
+        <div class="result-title-row">
+          <div class="q-title">추천 수업 모형</div>
+          <div class="choices" id="choiceChips"></div>
+        </div><br>
+      </div>
+      <div id="results" class="results-scroll"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- Google Docs Preview Modal -->
+<div class="doc-modal" id="docModal" aria-hidden="true">
+  <div class="doc-modal-backdrop" onclick="closeDocModal()"></div>
+  <div class="doc-modal-box" role="dialog" aria-modal="true">
+    <div class="doc-modal-head">
+      <span class="doc-modal-title" id="docModalTitle">수업 모형</span>
+      <div class="doc-modal-actions">
+        <div class="doc-zoom">
+          <button class="zoom-btn" id="zoomOut" onclick="zoomDoc(-1)" aria-label="축소">－</button>
+          <span class="zoom-level" id="zoomLevel">100%</span>
+          <button class="zoom-btn" id="zoomIn" onclick="zoomDoc(1)" aria-label="확대">＋</button>
+        </div>
+        <button class="doc-modal-print" id="docModalPrint" onclick="printDoc()">🖨 인쇄</button>
+        <button class="doc-modal-close" onclick="closeDocModal()" aria-label="닫기">✕</button>
+      </div>
+    </div>
+    <div class="doc-modal-body" id="docModalBody">
+      <div class="doc-modal-loading" id="docModalLoading"><div class="spinner"></div><span>MTI를 불러오는 중…</span></div>
+      <div class="doc-zoom-wrap" id="docZoomWrap">
+        <iframe id="docModalFrame" title="수업 모형 문서" referrerpolicy="no-referrer"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const SHEET_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub";
+const CSV = {
+  models:       SHEET_BASE + "?gid=389975124&single=true&output=csv",
+  competencies: SHEET_BASE + "?gid=0&single=true&output=csv",
+  participants: SHEET_BASE + "?gid=1818365513&single=true&output=csv"
+};
+
+const PART_ORDER = ["영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","특수학습자","영재학습자","성인학습자"];
+const DOMAIN_ORDER = ["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"];
+
+const AFFINITY_CHAINS = {
+  participants: [
+    ["특수학습자","영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","영재학습자","성인학습자"]
+  ],
+  orientation: [
+    ["재현 학습","과제 수행 학습","문제 해결 학습","탐구 학습"],
+    ["유사 경험 학습","정서 매개 학습"],
+    ["상기적 결합 학습","재현 학습","환류 학습"]
+  ],
+  competencies: [
+    ["학업 성취","컴퓨팅 사고력","창의적 문제 해결 능력","논리적 사고력","문제 해결 능력","창의적 사고 능력"],
+    ["인공지능 소양","디지털 문화 소양"],
+    ["학습 동기(흥미)","수업 만족"]
+  ]
+};
+const _norm = s => (s||'').replace(/\s+/g,'').toLowerCase();
+
+function _idxInChain(chain, val){
+  const t=_norm(val);
+  for(let i=0;i<chain.length;i++){ if(_norm(chain[i])===t) return i; }
+  return -1;
+}
+
+function pairAffinity(group, selected, candidate){
+  const chains = AFFINITY_CHAINS[group]; if(!chains) return _norm(selected)===_norm(candidate)?1:0;
+  if(_norm(selected)===_norm(candidate)) return 1;
+  let best = 0;
+  chains.forEach(chain=>{
+    const si=_idxInChain(chain,selected), ci=_idxInChain(chain,candidate);
+    if(si>=0 && ci>=0){
+      const span = chain.length-1 || 1;
+      const sc = Math.max(0, 1 - Math.abs(si-ci)/span);
+      if(sc>best) best=sc;
+    }
+  });
+  return best;
+}
+
+function groupAffinity(group, selected, modelVals){
+  let best=0;
+  (modelVals||[]).forEach(v=>{ const s=pairAffinity(group,selected,v); if(s>best) best=s; });
+  return best;
+}
+
+
+function partAffinity(selected, modelParts){
+  return groupAffinity('participants', selected, modelParts);
+}
+
+
+const LAYOUT = {
+  domain: {
+    col1: ["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"],
+    col2: []
+  },
+  participants: {
+    col1: ["영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생"],
+    col2: ["특수학습자","영재학습자","성인학습자"]
+  },
+  orientation: {
+    col1: ["과제 수행 학습","동료 상호작용 학습","문제 해결 학습","상기적 결합 학습","유사 경험 학습","재현 학습"],
+    col2: ["정서 매개 학습","탐구 학습","환류 학습"]
+  },
+  competencies: {
+    col1: ["컴퓨팅 사고력","디지털 문화 소양","인공지능 소양","학업 성취","학습 동기(흥미)","수업 만족"],
+    col2: ["논리적 사고력","창의적 사고 능력","문제 해결 능력","창의적 문제 해결 능력","기타"]
+  }
+};
+
+let MODELS = [];
+let OPTIONS = {domain:[],orientation:[],participants:[],competencies:[]};
+const state = { domain:null, orientation:null, participants:null, competencies:[] };
+let step = 0;
+
+function fetchCSV(url){
+  return new Promise((resolve,reject)=>{
+    Papa.parse(url, { download:true, header:true, skipEmptyLines:true,
+      complete:r=>resolve(r.data), error:err=>reject(err) });
+  });
+}
+function pick(row, ...cands){
+  const keys=Object.keys(row);
+  for(const c of cands){const k=keys.find(k=>k.replace(/\(input\)/gi,'').trim().toLowerCase()===c.toLowerCase());if(k)return(row[k]||'').toString().trim();}
+  for(const c of cands){const k=keys.find(k=>k.toLowerCase().includes(c.toLowerCase()));if(k)return(row[k]||'').toString().trim();}
+  return '';
+}
+const clean = s => (s||'').toString().replace(/\s*대상$/,'').replace(/\s*지향$/,'').replace(/\s*영역$/,'').trim();
+
+async function loadAll(){
+  showStep('load');
+  setLive('loading','MTI-DB에서 데이터를 불러오는 중…');
+  document.getElementById('reloadBtn').style.display='none';
+  try{
+    const [mRows,cRows,pRows] = await Promise.all([fetchCSV(CSV.models),fetchCSV(CSV.competencies),fetchCSV(CSV.participants)]);
+    const compMap={},partMap={};
+    cRows.forEach(r=>{const id=pick(r,'mti_id');const v=clean(pick(r,'competencies','competency','역량'));if(id&&v)(compMap[id]=compMap[id]||[]).push(v);});
+    pRows.forEach(r=>{const id=pick(r,'mti_id');const v=clean(pick(r,'participants','participant','대상'));if(id&&v)(partMap[id]=partMap[id]||[]).push(v);});
+    MODELS = mRows.map(r=>{
+      const id=pick(r,'mti_id'); const name=pick(r,'mti_leg_name','name','모형명','model_name');
+      if(!id && !name) return null;
+      return {
+        mitNum:pick(r,'mit_num','mti_num','mit_id'), id, name,
+        domain:clean(pick(r,'domain','영역')),
+        orientation:clean(pick(r,'orientation','지향')),
+        docsUrl:pick(r,'mti_docs_url','docs_url','url','link'),
+        participants:[...new Set(partMap[id]||[])],
+        competencies:[...new Set(compMap[id]||[])]
+      };
+    }).filter(m=>m&&m.name);
+    if(MODELS.length===0) throw new Error("불러온 행은 있으나 모형 데이터를 해석하지 못했습니다. 컬럼 이름을 확인해 주세요.");
+    buildOptions(); renderOptions();
+    document.getElementById('count').textContent = MODELS.length;
+    setLive('ok', MODELS.length + "개 모형 연동 완료");
+    document.getElementById('reloadBtn').style.display='inline-block';
+    goto(0);
+  }catch(err){
+    console.error(err);
+    document.getElementById('errDetail').textContent = (err && (err.message||err.toString())) || '알 수 없는 오류';
+    document.getElementById('urlList').innerHTML = Object.values(CSV).join('<br><br>');
+    setLive('err','데이터 로드 실패');
+    document.getElementById('reloadBtn').style.display='inline-block';
+    showStep('error');
+  }
+}
+function setLive(kind,text){
+  const el=document.getElementById('live');
+  el.className='live'+(kind==='ok'?' ok':kind==='err'?' err':'');
+  // 평소엔 숨기고, 오류일 때만 노출
+  el.style.display = (kind==='err') ? 'flex' : 'none';
+  document.getElementById('liveText').textContent=text;
+}
+
+const uniq = a => [...new Set(a.filter(Boolean))];
+
+function normName(s){ return (s||'').replace(/\s+/g,'').toLowerCase(); }
+
+let OPTIONS_COL = {}; // group -> {col1:[...], col2:[...]}
+function buildOptions(){
+  const avail = {
+    domain: uniq(MODELS.map(m=>m.domain)),
+    orientation: uniq(MODELS.map(m=>m.orientation)),
+    participants: uniq(MODELS.flatMap(m=>m.participants)),
+    competencies: uniq(MODELS.flatMap(m=>m.competencies))
+  };
+  OPTIONS_COL = {};
+  Object.keys(avail).forEach(group=>{
+    const lay = LAYOUT[group] || {col1:[], col2:[]};
+    const used = new Set();
+    const place = listSpec => {
+      const out = [];
+      listSpec.forEach(spec=>{
+        // 지정한 이름과 같은(정규화 비교) 실제 옵션을 찾아 배치
+        const match = avail[group].find(v=>normName(v)===normName(spec));
+        if(match && !used.has(match)){ out.push(match); used.add(match); }
+        else if(!match && spec==="기타"){ out.push("기타"); } // 미리 비워둔 '기타' 자리(없어도 표시)
+      });
+      return out;
+    };
+    const col1 = place(lay.col1);
+    let col2 = place(lay.col2);
+    // LAYOUT에 없던 새 항목은 col2 끝에 가나다순으로 덧붙임
+    const leftover = avail[group].filter(v=>!used.has(v)).sort((a,b)=>a.localeCompare(b,'ko'));
+    col2 = col2.concat(leftover);
+    OPTIONS_COL[group] = {col1, col2};
+    // 평면 순서(점수/누적계산용): col1 먼저, 그 다음 col2
+    OPTIONS[group] = col1.concat(col2).filter(v=>v!=="기타" || avail[group].includes("기타"));
+  });
+}
+
+const GROUP_STEP = { domain:0, participants:1, orientation:2, competencies:3 };
+function modelsFilteredBefore(group){
+  const st = GROUP_STEP[group];
+  return MODELS.filter(m=>{
+    if(st>0 && state.domain && m.domain!==state.domain) return false;
+    if(st>1 && state.participants && !m.participants.includes(state.participants)) return false;
+    if(st>2 && state.orientation && m.orientation!==state.orientation) return false;
+    return true;
+  });
+}
+function countFor(group,val){
+  const pool = modelsFilteredBefore(group);
+  return pool.filter(m=>Array.isArray(m[group])?m[group].includes(val):m[group]===val).length;
+}
+function makeOptBtn(group, mode, val){
+  const btn=document.createElement('button'); btn.className='opt'; btn.dataset.val=val;
+  btn.innerHTML='<span class="mk"></span><span class="lab">'+val+'</span><span class="cnt">'+countFor(group,val)+'</span>';
+  btn.addEventListener('click',()=>{
+    if(mode==='single'){ state[group]=state[group]===val?null:val; }
+    else{ const i=state[group].indexOf(val); if(i>=0) state[group].splice(i,1); else state[group].push(val); }
+    syncOpts(); updateNav();
+  });
+  return btn;
+}
+function renderOptions(){
+  document.querySelectorAll('.opts').forEach(box=>{
+    const group=box.dataset.group, mode=box.dataset.mode; box.innerHTML='';
+    const cols = OPTIONS_COL[group] || {col1:OPTIONS[group]||[], col2:[]};
+    const c1=document.createElement('div'); c1.className='opt-col';
+    const c2=document.createElement('div'); c2.className='opt-col';
+    cols.col1.forEach(v=>c1.appendChild(makeOptBtn(group,mode,v)));
+    cols.col2.forEach(v=>c2.appendChild(makeOptBtn(group,mode,v)));
+    box.appendChild(c1);
+    if(cols.col2.length) box.appendChild(c2); else box.classList.add('single-col');
+  });
+  syncOpts();
+}
+
+function refreshCounts(){
+  document.querySelectorAll('.opts').forEach(box=>{
+    const group=box.dataset.group;
+    box.querySelectorAll('.opt').forEach(btn=>{
+      const val=btn.dataset.val;
+      const n=countFor(group,val);
+      const cnt=btn.querySelector('.cnt');
+      if(cnt) cnt.textContent = n;
+    });
+  });
+}
+function syncOpts(){
+  document.querySelectorAll('.opts').forEach(box=>{
+    const group=box.dataset.group, mode=box.dataset.mode;
+    box.querySelectorAll('.opt').forEach(btn=>{
+      const val=btn.dataset.val;
+      const on = mode==='single'?state[group]===val:state[group].includes(val);
+      btn.classList.toggle('sel',on);
+    });
+  });
+}
+
+const LABELS=['영역','대상','지향','역량','결과'];
+function renderProgress(){
+  const p=document.getElementById('progress'); p.innerHTML='';
+  LABELS.forEach((lab,i)=>{
+    const w=document.createElement('div'); w.className='step-dot';
+    const d=document.createElement('div'); d.className='dot'; d.dataset.i=i; d.textContent=i+1; w.appendChild(d);
+    if(i<LABELS.length-1){const b=document.createElement('div');b.className='bar';b.dataset.i=i;w.appendChild(b);}
+    p.appendChild(w);
+  });
+
+  const home=document.createElement('button');
+  home.id='homeBtn'; home.className='home-btn'; home.textContent='처음으로';
+  home.addEventListener('click', ()=>{ if(step!==0) restartAll(); });
+  p.appendChild(home);
+}
+function syncProgress(){
+  document.querySelectorAll('.dot').forEach(d=>{const i=+d.dataset.i;d.classList.toggle('active',i===step);d.classList.toggle('done',i<step);d.innerHTML=i<step?'✓':(i+1);});
+  document.querySelectorAll('.bar').forEach(b=>b.classList.toggle('done',+b.dataset.i<step));
+  const home=document.getElementById('homeBtn');
+  if(home) home.disabled = (step===0);
+}
+function updateNav(){
+  const panel=document.querySelector('.panel[data-step="'+step+'"]'); if(!panel)return;
+  const hint=panel.querySelector('[data-hint]'), next=panel.querySelector('[data-next]');
+  if(step===0){const ok=!!state.domain;if(next)next.disabled=!ok;if(hint)hint.textContent=ok?'':'영역을 선택해 주세요';}
+  if(step===1){if(next)next.textContent=state.participants?'다음':'건너뛰기';}
+  if(step===2){if(next)next.textContent=state.orientation?'다음':'건너뛰기';}
+  if(step===3){if(hint)hint.textContent=state.competencies.length?(state.competencies.length+'개 선택됨'):'선택하지 않으면 앞 조건만으로 추천합니다';}
+}
+function showStep(name){ document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('show',p.dataset.step===String(name))); }
+function goto(s){
+  step=s; showStep(step);
+  document.getElementById('progress').style.visibility='visible';
+  syncProgress(); updateNav(); refreshCounts();
+  if(step===4) renderResults();
+  document.body.classList.toggle('on-result', step===4);
+  const sa=document.querySelector('.scroll-area');
+  if(sa) sa.scrollTo({top:0, behavior:'smooth'});
+}
+
+function scoreModel(m){
+  let score=0,max=0; const hits={domain:false,orient:false,part:false,comps:[]};
+  max+=45; if(state.domain&&m.domain===state.domain){score+=45;hits.domain=true;}
+  max+=20;
+  if(!state.participants){ score+=10; }
+  else{
+    score += 20*groupAffinity('participants', state.participants, m.participants);
+    if(m.participants.includes(state.participants)) hits.part=true; // 완전 일치만 태그 표시
+  }
+  max+=15;
+  if(!state.orientation){ score+=7.5; }
+  else{
+    score += 15*groupAffinity('orientation', state.orientation, [m.orientation]);
+    if(m.orientation===state.orientation) hits.orient=true;
+  }
+  max+=20;
+  if(state.competencies.length===0){ score+=10; }
+  else{
+    let sum=0;
+    state.competencies.forEach(sel=>{ sum += groupAffinity('competencies', sel, m.competencies); });
+    score += 20*(sum/state.competencies.length);
+    hits.comps = m.competencies.filter(c=>state.competencies.includes(c)); // 완전 일치만 태그 표시
+  }
+  return {pct:Math.round(score/max*100),hits};
+}
+function esc(s){return(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function renderResults(){
+  const cc=document.getElementById('choiceChips'); cc.innerHTML='';
+  const chip=(t,e)=>{const s=document.createElement('span');s.className='chip'+(e?' empty':'');s.textContent=t;cc.appendChild(s);};
+  chip('영역 · '+(state.domain||'전체'),!state.domain);
+  chip('지향 · '+(state.orientation||'무관'),!state.orientation);
+  chip('대상 · '+(state.participants||'무관'),!state.participants);
+  if(state.competencies.length) state.competencies.forEach(c=>chip('역량 · '+c));
+  else chip('역량 · 무관',true);
+
+  const ranked=MODELS.map(m=>({m,...scoreModel(m)})).sort((a,b)=>b.pct-a.pct);
+  const box=document.getElementById('results'); box.innerHTML='';
+  const visible=ranked.filter(r=>r.pct>0);
+  if(!visible.length){ box.innerHTML='<div class="empty-state"><div class="big">🔍</div>조건에 맞는 MTI를 찾지 못했습니다.<br>조건을 줄여서 다시 시도해 보세요.</div>'; return; }
+  visible.forEach((r,idx)=>{
+    const m=r.m, isTop=idx===0;
+    const wrap=document.createElement('div'); wrap.className='match'+(isTop?' top':'');
+    // 사용자가 선택한 조건과 실제로 매칭된 태그만 표시
+    const tags=[
+      r.hits.domain && m.domain ? '<span class="tag hit">'+esc(m.domain)+'</span>' : '',
+      r.hits.orient && m.orientation ? '<span class="tag hit">'+esc(m.orientation)+'</span>' : '',
+      ...(r.hits.part && state.participants ? ['<span class="tag hit">'+esc(state.participants)+'</span>'] : []),
+      ...r.hits.comps.map(c=>'<span class="tag hit">'+esc(c)+'</span>')
+    ].filter(Boolean).join('');
+    const doc=m.docsUrl
+      ? '<button class="doclink" onclick="openDocModal(this.dataset.url, this.dataset.name)" data-url="'+esc(m.docsUrl)+'" data-name="'+esc(m.name)+'">수업 모형 확인하기</button>'
+      : '<button class="doclink disabled" disabled>상세 자료 링크 없음</button>';
+    wrap.innerHTML=
+      (isTop?'<span class="badge-best">Best Match</span>':'')+
+      '<div class="m-head">'+
+        '<div class="score-ring" style="--p:'+r.pct+'" title="일치도 '+r.pct+'%"></div>'+
+        '<div class="m-meta">'+
+          '<div class="m-title">'+esc(m.name)+'</div>'+
+          (tags?'<div class="m-tags">'+tags+'</div>':'')+
+        '</div>'+
+        doc+
+      '</div>';
+    box.appendChild(wrap);
+  });
+}
+
+function restartAll(){
+  state.domain=null;state.orientation=null;state.participants=null;state.competencies=[];
+  syncOpts(); goto(0);
+}
+
+/* Google Docs URL 변환 */
+function docBase(url){
+  try{ const m=url.match(/(https:\/\/docs\.google\.com\/document\/d\/[^/]+)/); if(m) return m[1]; }catch(e){}
+  return null;
+}
+function toDocPreview(url){ const b=docBase(url); return b ? b+'/preview' : url; }
+function toDocPdf(url){ const b=docBase(url); return b ? b+'/export?format=pdf&attachment=false' : url; }
+
+let _currentDocUrl = '';
+let _zoom = 1;                 // 1 = 100%
+let _viewMode = 'preview';     // 'preview' | 'pdf'
+
+function applyZoom(){
+  const wrap=document.getElementById('docZoomWrap');
+  const lvl=document.getElementById('zoomLevel');
+  if(wrap){
+    wrap.style.transform = 'scale('+_zoom+')';
+    wrap.style.width = (100/_zoom)+'%';
+    wrap.style.height = (100/_zoom)+'%';
+  }
+  if(lvl) lvl.textContent = Math.round(_zoom*100)+'%';
+}
+function zoomDoc(dir){
+  _zoom = Math.min(2.5, Math.max(0.5, +(_zoom + dir*0.1).toFixed(2)));
+  applyZoom();
+}
+function loadFrame(src){
+  const frame=document.getElementById('docModalFrame');
+  const loading=document.getElementById('docModalLoading');
+  loading.style.display='flex';
+  frame.style.opacity='0';
+  frame.onload=()=>{ loading.style.display='none'; frame.style.opacity='1'; };
+  frame.src = src;
+}
+function openDocModal(url, name){
+  if(!url) return;
+  _currentDocUrl = url;
+  _zoom = 1; _viewMode='preview';
+  applyZoom();
+  document.getElementById('docModalTitle').textContent = name || '수업 모형';
+  loadFrame(toDocPreview(url));
+  const modal=document.getElementById('docModal');
+  modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+}
+function closeDocModal(){
+  const modal=document.getElementById('docModal');
+  const frame=document.getElementById('docModalFrame');
+  modal.classList.remove('show'); modal.setAttribute('aria-hidden','true');
+  frame.src='about:blank';
+  document.body.style.overflow='';
+}
+
+function printDoc(){
+  if(!_currentDocUrl) return;
+  window.open(toDocPdf(_currentDocUrl), '_blank');
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDocModal(); });
+
+document.querySelectorAll('[data-next]').forEach(b=>b.addEventListener('click',()=>goto(step+1)));
+document.querySelectorAll('[data-prev]').forEach(b=>b.addEventListener('click',()=>goto(step-1)));
+document.querySelectorAll('[data-finish]').forEach(b=>b.addEventListener('click',()=>goto(4)));
+document.querySelectorAll('[data-restart]').forEach(b=>b.addEventListener('click',restartAll));
+
+renderProgress();
+document.getElementById('progress').style.visibility='hidden';
+loadAll();
+</script>
+
+<script src="common.js"></script>
+<script>
+  if (typeof imtiRequireAuth === 'function') imtiRequireAuth();
+  if (typeof imtiLoadNavbar === 'function') imtiLoadNavbar("main_recommand_mti.html");
+</script>
+</body>
+</html>
