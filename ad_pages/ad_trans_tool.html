@@ -53,6 +53,8 @@
 
     .img-area { flex: 1; min-height: 0; border: 1px dashed var(--gray-light); border-radius: 3px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fcfcfd; padding: 35px 0; }
     .img-area img { height: 100%; width: 100%; object-fit: contain; }
+    .img-area img.pannable { cursor: grab; }
+    .img-area img.panning { cursor: grabbing; }
     .img-placeholder { text-align: center; padding: 30px; }
     .img-placeholder .ico { font-family: 'Playfair Display', serif; font-size: 2.4rem; color: var(--rose); margin-bottom: 12px; }
     .img-placeholder .main { font-size: 0.92rem; color: var(--ink-soft); font-weight: 500; }
@@ -179,6 +181,8 @@ let paused = false;
 let pauseResolvers = [];
 let koFontSize = 1.08; // rem, controlled by zoom buttons
 let imgScale = 1;      // image zoom controlled by image +/- buttons
+let imgPanX = 0, imgPanY = 0;   // image pan offset (px) from hand tool
+let panning = false, panStartX = 0, panStartY = 0, panOriginX = 0, panOriginY = 0;
 
 function setProg(show, text, pct) {
     els.vprogTrack.classList.toggle('show', show);
@@ -197,14 +201,48 @@ function showImage(url) {
     if (currentUrl) URL.revokeObjectURL(currentUrl);
     currentUrl = url;
     imgScale = 1;
-    els.imgArea.innerHTML = '<img src="' + url + '" alt="" style="transform:scale(1); transition:transform 0.15s;">';
+    imgPanX = 0; imgPanY = 0;
+    els.imgArea.innerHTML = '<img src="' + url + '" alt="" style="transform:translate(0px,0px) scale(1); transition:transform 0.15s;">';
     els.imgZoomOutBtn.disabled = false;
     els.imgZoomInBtn.disabled = false;
+    setupPan();
+}
+function applyImgTransform(animate) {
+    const img = els.imgArea.querySelector('img');
+    if (!img) return;
+    img.style.transition = animate ? 'transform 0.15s' : 'none';
+    img.style.transform = 'translate(' + imgPanX + 'px,' + imgPanY + 'px) scale(' + imgScale + ')';
+    img.classList.toggle('pannable', imgScale > 1);
+    if (imgScale <= 1) img.classList.remove('panning');
 }
 function applyImgZoom() {
-    const img = els.imgArea.querySelector('img');
-    if (img) img.style.transform = 'scale(' + imgScale + ')';
+    if (imgScale <= 1) { imgPanX = 0; imgPanY = 0; }  // recenter when not zoomed in
+    applyImgTransform(true);
 }
+function setupPan() {
+    const img = els.imgArea.querySelector('img');
+    if (!img) return;
+    img.addEventListener('mousedown', (e) => {
+        if (imgScale <= 1) return;
+        panning = true;
+        panStartX = e.clientX; panStartY = e.clientY;
+        panOriginX = imgPanX; panOriginY = imgPanY;
+        img.classList.add('panning');
+        e.preventDefault();
+    });
+}
+window.addEventListener('mousemove', (e) => {
+    if (!panning) return;
+    imgPanX = panOriginX + (e.clientX - panStartX);
+    imgPanY = panOriginY + (e.clientY - panStartY);
+    applyImgTransform(false);
+});
+window.addEventListener('mouseup', () => {
+    if (!panning) return;
+    panning = false;
+    const im = els.imgArea.querySelector('img');
+    if (im) im.classList.remove('panning');
+});
 function setResultEmpty() { els.resultBox.innerHTML = ''; els.resultBox.appendChild(els.resultEmpty); }
 function setStatusR(text, kind) {
     els.statusMsgR.textContent = text || '';
@@ -476,6 +514,8 @@ els.resetBtn.addEventListener('click', () => {
     els.imgZoomOutBtn.disabled = true;
     els.imgZoomInBtn.disabled = true;
     imgScale = 1;
+    imgPanX = 0; imgPanY = 0;
+    panning = false;
     clearStatusL(); clearStatusR();
 });
 
