@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMTI - Image Translator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=Gowun+Batang:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ad_common.css">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --ink: #343a40; --ink-soft: #495057; --gray: #6c757d; --gray-light: #adb5bd;
+        --line: #e9ecef; --bg: #fff; --rose: #d47878; --amber: #d49860;
+        --rose-soft: #faf0f0; --err: #e03131; --ok: #2f9e44;
+    }
+    html { font-size: 15px; }
+    body {
+        font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--ink);
+        height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+        -webkit-font-smoothing: antialiased; font-synthesis: none;
+    }
+    .wrap { flex: 1; min-height: 0; padding: 26px 5% 18px 5%; display: flex; flex-direction: column; gap: 12px; }
+
+    .topbar { display: flex; justify-content: flex-end; align-items: center; flex-shrink: 0; }
+    .model-state { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--gray-light); display: flex; align-items: center; gap: 8px; }
+    .model-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-light); flex-shrink: 0; }
+    .model-dot.loading { background: var(--amber); animation: pulse 1.2s infinite; }
+    .model-dot.ready { background: var(--ok); }
+    .model-dot.err { background: var(--err); }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+    /* 3 columns: image | vertical progress | result */
+    .cols { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 26px 1fr; gap: 22px; }
+    @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+    .col { display: flex; flex-direction: column; min-height: 0; }
+    .col-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; gap: 10px; height: 38px; min-height: 38px; }
+    .col-label { font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); flex-shrink: 0; }
+    .col-label::before { content: '> '; color: var(--gray-light); }
+    .status-msg { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.04em; color: var(--amber); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; min-width: 0; }
+    .status-msg.err { color: var(--err); }
+    .status-msg.ok { color: var(--ok); }
+    .head-spacer { flex: 1; min-width: 0; }
+    .btns { display: flex; gap: 8px; flex-wrap: nowrap; flex-shrink: 0; }
+
+    .btn { padding: 8px 13px; border: none; border-radius: 3px; background: var(--ink); color: #fff; font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.1s; white-space: nowrap; }
+    .btn:hover:not(:disabled) { background: var(--rose); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn:disabled { background: var(--line); color: var(--gray-light); cursor: not-allowed; }
+    .btn.ghost { background: #868e96; }
+    .btn.ghost:hover:not(:disabled) { background: var(--ink); }
+
+    .img-area { flex: 1; min-height: 0; border: 1px dashed var(--gray-light); border-radius: 3px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fcfcfd; padding: 35px 0; }
+    .img-area img { height: 100%; width: 100%; object-fit: contain; }
+    .img-placeholder { text-align: center; padding: 30px; }
+    .img-placeholder .ico { font-family: 'Playfair Display', serif; font-size: 2.4rem; color: var(--rose); margin-bottom: 12px; }
+    .img-placeholder .main { font-size: 0.92rem; color: var(--ink-soft); font-weight: 500; }
+    .img-placeholder .hint { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--gray-light); letter-spacing: 0.06em; margin-top: 8px; line-height: 1.7; }
+
+    /* vertical progress between the two boxes; matches image box height */
+    .vprog-col { display: flex; flex-direction: column; }
+    .vprog-spacer { height: 38px; min-height: 38px; margin-bottom: 12px; flex-shrink: 0; } /* aligns with col-head height */
+    .vprog { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .vprog-track { flex: 1; width: 8px; background: var(--line); border-radius: 99px; overflow: hidden; position: relative; opacity: 0; transition: opacity 0.2s; }
+    .vprog-track.show { opacity: 1; }
+    .vprog-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: var(--gray-light); border-radius: 99px; transition: height 0.3s ease; }
+    .vprog-text { display: none; }
+
+    .result-box { flex: 1; min-height: 0; border: 1px dashed var(--gray-light); border-radius: 3px; padding: 35px 120px; overflow-y: auto; scrollbar-width: thin; background: repeating-linear-gradient(0deg, transparent, transparent 27px, #f8f9fa 27px, #f8f9fa 28px); }
+    .result-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
+    .result-empty .big { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.3rem; color: var(--gray-light); }
+    .result-empty .sm { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--gray-light); max-width: 320px; line-height: 1.8; }
+    .res-ko { font-family: 'Gowun Batang', serif; font-size: 1.08rem; font-weight: 700; color: var(--ink); line-height: 2; white-space: pre-wrap; }
+    .res-ko[contenteditable="true"] { outline: none; background: #fffef8; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--amber); padding: 8px 10px; }
+    .res-run { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--amber); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+    <div class="topbar">
+        <div class="model-state">
+            <span class="model-dot" id="modelDot"></span>
+            <span id="modelText">번역 모델 미로딩</span>
+        </div>
+    </div>
+
+    <div class="cols">
+        <!-- LEFT: image -->
+        <div class="col">
+            <div class="col-head">
+                <span class="col-label">Source Image</span>
+                <span class="status-msg" id="statusMsgL"></span>
+                <span class="head-spacer"></span>
+                <div class="btns">
+                    <button class="btn" id="pasteBtn">붙여넣기</button>
+                    <button class="btn" id="pauseBtn" disabled>멈춤</button>
+                    <button class="btn ghost" id="imgZoomOutBtn" disabled>&minus; 이미지</button>
+                    <button class="btn ghost" id="imgZoomInBtn" disabled>&plus; 이미지</button>
+                    <button class="btn ghost" id="resetBtn">초기화</button>
+                </div>
+            </div>
+            <div class="img-area" id="imgArea">
+                <div class="img-placeholder" id="imgPlaceholder">
+                    <div class="ico">&#9112;</div>
+                    <div class="main">복사한 이미지를 붙여넣으세요</div>
+                    <div class="hint">위 "붙여넣기" 버튼 또는 Ctrl+V (Mac: &#8984;+V)<br>붙여넣으면 자동으로 번역이 시작됩니다</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MIDDLE: vertical progress -->
+        <div class="vprog-col">
+            <div class="vprog-spacer"></div>
+            <div class="vprog">
+                <div class="vprog-text" id="vprogText"></div>
+                <div class="vprog-track" id="vprogTrack"><div class="vprog-fill" id="vprogFill"></div></div>
+            </div>
+        </div>
+
+        <!-- RIGHT: result -->
+        <div class="col">
+            <div class="col-head">
+                <span class="col-label">Korean Translation</span>
+                <span class="status-msg" id="statusMsgR"></span>
+                <span class="head-spacer"></span>
+                <div class="btns">
+                    <button class="btn ghost" id="zoomOutBtn">&minus; 축소</button>
+                    <button class="btn ghost" id="zoomInBtn">&plus; 확대</button>
+                    <button class="btn ghost" id="editBtn" disabled>편집</button>
+                    <button class="btn ghost" id="copyBtn" disabled>복사</button>
+                </div>
+            </div>
+            <div class="result-box" id="resultBox">
+                <div class="result-empty" id="resultEmpty">
+                    <div class="big">No translation yet.</div>
+                    <div class="sm">왼쪽에 이미지를 붙여넣으면 글자를 읽어 여기에 한국어로 표시됩니다. 모든 처리는 브라우저 안에서 이루어집니다.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="ad_common.js"></script>
+<script>
+window.__pageInit = function() {
+
+const els = {
+    pasteBtn: document.getElementById('pasteBtn'),
+    pauseBtn: document.getElementById('pauseBtn'),
+    imgZoomOutBtn: document.getElementById('imgZoomOutBtn'),
+    imgZoomInBtn: document.getElementById('imgZoomInBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    zoomOutBtn: document.getElementById('zoomOutBtn'),
+    zoomInBtn: document.getElementById('zoomInBtn'),
+    editBtn: document.getElementById('editBtn'),
+    copyBtn: document.getElementById('copyBtn'),
+    imgArea: document.getElementById('imgArea'),
+    imgPlaceholder: document.getElementById('imgPlaceholder'),
+    resultBox: document.getElementById('resultBox'),
+    resultEmpty: document.getElementById('resultEmpty'),
+    statusMsgL: document.getElementById('statusMsgL'),
+    statusMsgR: document.getElementById('statusMsgR'),
+    vprogTrack: document.getElementById('vprogTrack'),
+    vprogFill: document.getElementById('vprogFill'),
+    vprogText: document.getElementById('vprogText'),
+    modelDot: document.getElementById('modelDot'),
+    modelText: document.getElementById('modelText'),
+};
+
+let currentUrl = null;
+let worker = null, workerReady = false, workerLoading = false;
+const pending = new Map();
+let msgId = 0, queueResolvers = [];
+let busy = false;
+let paused = false;
+let pauseResolvers = [];
+let koFontSize = 1.08; // rem, controlled by zoom buttons
+let imgScale = 1;      // image zoom controlled by image +/- buttons
+
+function setProg(show, text, pct) {
+    els.vprogTrack.classList.toggle('show', show);
+    els.vprogText.classList.toggle('show', show);
+    if (text != null) els.vprogText.textContent = text;
+    if (pct != null) els.vprogFill.style.height = Math.max(0, Math.min(100, pct)) + '%';
+}
+function setModel(state, text) {
+    els.modelDot.className = 'model-dot' + (state ? ' ' + state : '');
+    els.modelText.textContent = text;
+}
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+}
+function showImage(url) {
+    if (currentUrl) URL.revokeObjectURL(currentUrl);
+    currentUrl = url;
+    imgScale = 1;
+    els.imgArea.innerHTML = '<img src="' + url + '" alt="" style="transform:scale(1); transition:transform 0.15s;">';
+    els.imgZoomOutBtn.disabled = false;
+    els.imgZoomInBtn.disabled = false;
+}
+function applyImgZoom() {
+    const img = els.imgArea.querySelector('img');
+    if (img) img.style.transform = 'scale(' + imgScale + ')';
+}
+function setResultEmpty() { els.resultBox.innerHTML = ''; els.resultBox.appendChild(els.resultEmpty); }
+function setStatusR(text, kind) {
+    els.statusMsgR.textContent = text || '';
+    els.statusMsgR.className = 'status-msg' + (kind ? ' ' + kind : '');
+}
+function clearStatusR() { setStatusR('', ''); }
+function setStatusL(text, kind) {
+    els.statusMsgL.textContent = text || '';
+    els.statusMsgL.className = 'status-msg' + (kind ? ' ' + kind : '');
+}
+function clearStatusL() { setStatusL('', ''); }
+function setResultKo(ko) { els.resultBox.innerHTML = '<div class="res-ko" style="font-size:' + koFontSize + 'rem">' + escapeHtml(ko) + '</div>'; }
+
+function applyKoZoom() {
+    const el = els.resultBox.querySelector('.res-ko');
+    if (el) el.style.fontSize = koFontSize + 'rem';
+}
+
+// resolves once when not paused; if paused, waits until resume
+function waitIfPaused() {
+    if (!paused) return Promise.resolve();
+    return new Promise(res => pauseResolvers.push(res));
+}
+function setPaused(p) {
+    paused = p;
+    els.pauseBtn.textContent = p ? '진행' : '멈춤';
+    if (p) {
+        setStatusL('일시정지됨 · 진행을 누르면 계속', 'err');
+    } else {
+        if (busy) setStatusL('진행 중…'); else clearStatusL();
+        pauseResolvers.forEach(fn => fn()); pauseResolvers = [];
+    }
+}
+
+function ensureWorker() {
+    if (worker) return;
+    const workerCode = [
+        'let translator = null;',
+        'async function init() {',
+        '  const mod = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2");',
+        '  mod.env.allowLocalModels = false;',
+        '  self.postMessage({ type: "status", text: "모델 다운로드 중" });',
+        '  translator = await mod.pipeline("translation", "Xenova/nllb-200-distilled-600M", {',
+        '    progress_callback: (p) => {',
+        '      if (p.status === "progress" && p.total) {',
+        '        const pct = Math.round((p.loaded / p.total) * 100);',
+        '        self.postMessage({ type: "dl", pct });',
+        '      }',
+        '    }',
+        '  });',
+        '  self.postMessage({ type: "ready" });',
+        '}',
+        'self.onmessage = async (e) => {',
+        '  const d = e.data;',
+        '  if (d.type === "init") { try { await init(); } catch (err) { self.postMessage({ type: "error", error: String(err) }); } return; }',
+        '  if (d.type === "translate") {',
+        '    try {',
+        '      const out = await translator(d.text, { src_lang: "eng_Latn", tgt_lang: "kor_Hang" });',
+        '      const ko = Array.isArray(out) ? out[0].translation_text : out.translation_text;',
+        '      self.postMessage({ type: "result", id: d.id, ko });',
+        '    } catch (err) {',
+        '      self.postMessage({ type: "result", id: d.id, ko: "", error: String(err) });',
+        '    }',
+        '  }',
+        '};'
+    ].join('\n');
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    worker = new Worker(URL.createObjectURL(blob), { type: 'module' });
+    worker.onmessage = (e) => {
+        const m = e.data;
+        if (m.type === 'status') { setModel('loading', '모델 다운로드 중'); setProg(true, '모델 준비 중', 0); }
+        else if (m.type === 'dl') { setModel('loading', '모델 다운로드 ' + m.pct + '%'); setProg(true, '모델 ' + m.pct + '%', m.pct); }
+        else if (m.type === 'ready') { workerReady = true; workerLoading = false; setModel('ready', '번역 모델 준비됨 (로컬)'); queueResolvers.forEach(fn => fn()); queueResolvers = []; }
+        else if (m.type === 'error') { workerLoading = false; setModel('err', '모델 로딩 실패'); setProg(true, '로딩 실패', 0); queueResolvers.forEach(fn => fn()); queueResolvers = []; }
+        else if (m.type === 'result') { const p = pending.get(m.id); if (p) { pending.delete(m.id); p.resolve(m.ko); } }
+    };
+}
+function loadModel() {
+    if (workerReady) return Promise.resolve();
+    if (workerLoading) return new Promise(res => queueResolvers.push(res));
+    workerLoading = true;
+    setModel('loading', '모델 초기화 중');
+    ensureWorker();
+    worker.postMessage({ type: 'init' });
+    return new Promise(res => queueResolvers.push(res));
+}
+function translate(text) {
+    return new Promise((resolve) => {
+        const id = ++msgId;
+        pending.set(id, { resolve });
+        worker.postMessage({ type: 'translate', id, text });
+    });
+}
+
+async function ocrImage(url) {
+    const { data } = await Tesseract.recognize(url, 'eng', {
+        logger: msg => {
+            if (msg.status === 'recognizing text') {
+                setProg(true, 'OCR ' + Math.round(msg.progress * 100) + '%', 20 + msg.progress * 40);
+            }
+        }
+    });
+    return (data.text || '').trim();
+}
+
+async function process(url) {
+    if (busy) return;
+    busy = true;
+    paused = false;
+    pauseResolvers.forEach(fn => fn()); pauseResolvers = [];
+    els.pauseBtn.textContent = '멈춤';
+    clearStatusL();
+    els.pauseBtn.disabled = false;
+    els.editBtn.disabled = true;
+    els.copyBtn.disabled = true;
+    els.editBtn.textContent = '편집';
+    showImage(url);
+    setStatusR('처리 중…'); clearStatusL();
+    setResultEmpty();
+    setProg(true, '모델 준비 중', 5);
+
+    await loadModel();
+    if (!workerReady) { setStatusR('모델 로딩 실패 · 새로고침 후 재시도', 'err'); setProg(false); busy = false; els.pauseBtn.disabled = true; return; }
+
+    setProg(true, 'OCR 중', 20);
+    setStatusR('글자 인식 중…');
+    let en = '';
+    try { en = await ocrImage(url); } catch (e) { en = ''; }
+
+    if (!en) {
+        setStatusR('이미지에서 글자를 찾지 못했습니다', 'err');
+        setResultEmpty();
+        setProg(false); busy = false; els.pauseBtn.disabled = true; return;
+    }
+
+    setProg(true, '번역 중', 65);
+    setStatusR('번역 중…');
+
+    // Split OCR text into paragraphs on blank lines; within each paragraph,
+    // collapse line breaks into one continuous line. Keep blank line between paragraphs.
+    const paragraphs = en.split(/\n\s*\n/).map(p => p.replace(/\s*\n\s*/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+
+    const koParas = [];
+    let done = 0;
+    const totalUnits = paragraphs.reduce((acc, p) => acc + (p.match(/[^.!?]+[.!?]*/g) || [p]).length, 0) || 1;
+
+    for (const para of paragraphs) {
+        const sentences = para.match(/[^.!?]+[.!?]*/g) || [para];
+        const koParts = [];
+        for (const s of sentences) {
+            const t = s.trim();
+            if (!t) continue;
+            await waitIfPaused();           // pause/resume gate (sentence-level)
+            koParts.push(await translate(t));
+            done++;
+            setProg(true, '번역', 65 + (done / totalUnits) * 35);
+        }
+        koParas.push(koParts.join(' '));
+    }
+    setResultKo(koParas.join('\n\n'));      // show everything at once when finished
+    setProg(true, '완료', 100);
+    setStatusR('번역 완료', 'ok');
+    setTimeout(() => { setProg(false); clearStatusR(); }, 1500);
+    busy = false;
+    els.pauseBtn.disabled = true;
+    setPaused(false);
+    els.editBtn.disabled = false;
+    els.copyBtn.disabled = false;
+}
+
+async function pasteFromButton() {
+    if (busy) return;
+    if (!navigator.clipboard || !navigator.clipboard.read) {
+        setStatusL('버튼 붙여넣기 미지원 · Ctrl+V 사용', 'err');
+        return;
+    }
+    try {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+            const type = item.types.find(t => t.startsWith('image/'));
+            if (type) { const blob = await item.getType(type); clearStatusL(); process(URL.createObjectURL(blob)); return; }
+        }
+        setStatusL('클립보드에 이미지가 없습니다 · 먼저 복사하세요', 'err');
+    } catch (e) {
+        setStatusL('클립보드 접근 거부됨 · Ctrl+V 로 붙여넣기', 'err');
+    }
+}
+els.pasteBtn.addEventListener('click', pasteFromButton);
+
+window.addEventListener('paste', (e) => {
+    if (busy) return;
+    const items = (e.clipboardData || window.clipboardData).items;
+    for (const it of items) {
+        if (it.type.startsWith('image/')) {
+            const blob = it.getAsFile();
+            if (blob) { process(URL.createObjectURL(blob)); e.preventDefault(); return; }
+        }
+    }
+});
+
+els.pauseBtn.addEventListener('click', () => {
+    if (!busy) return;
+    setPaused(!paused);
+});
+
+els.imgZoomInBtn.addEventListener('click', () => {
+    imgScale = Math.min(5, imgScale + 0.25);
+    applyImgZoom();
+});
+els.imgZoomOutBtn.addEventListener('click', () => {
+    imgScale = Math.max(0.25, imgScale - 0.25);
+    applyImgZoom();
+});
+
+els.zoomInBtn.addEventListener('click', () => {
+    koFontSize = Math.min(2.2, koFontSize + 0.12);
+    applyKoZoom();
+});
+els.zoomOutBtn.addEventListener('click', () => {
+    koFontSize = Math.max(0.6, koFontSize - 0.12);
+    applyKoZoom();
+});
+
+els.editBtn.addEventListener('click', () => {
+    const el = els.resultBox.querySelector('.res-ko');
+    if (!el) return;
+    const editing = el.getAttribute('contenteditable') === 'true';
+    if (editing) {
+        el.removeAttribute('contenteditable');
+        els.editBtn.textContent = '편집';
+    } else {
+        el.setAttribute('contenteditable', 'true');
+        els.editBtn.textContent = '편집 완료';
+        el.focus();
+    }
+});
+
+els.copyBtn.addEventListener('click', async () => {
+    const el = els.resultBox.querySelector('.res-ko');
+    if (!el) return;
+    const text = el.innerText;
+    try {
+        await navigator.clipboard.writeText(text);
+        const orig = els.copyBtn.textContent;
+        els.copyBtn.textContent = '복사됨';
+        setTimeout(() => { els.copyBtn.textContent = orig; }, 1200);
+    } catch (e) {
+        // fallback: select the text so the user can copy manually
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel.removeAllRanges(); sel.addRange(range);
+        els.copyBtn.textContent = '직접 복사(Ctrl+C)';
+        setTimeout(() => { els.copyBtn.textContent = '복사'; }, 1800);
+    }
+});
+
+els.resetBtn.addEventListener('click', () => {
+    if (currentUrl) { URL.revokeObjectURL(currentUrl); currentUrl = null; }
+    els.imgArea.innerHTML = '';
+    els.imgArea.appendChild(els.imgPlaceholder);
+    setResultEmpty();
+    setProg(false);
+    setPaused(false);
+    els.pauseBtn.disabled = true;
+    els.editBtn.disabled = true;
+    els.copyBtn.disabled = true;
+    els.editBtn.textContent = '편집';
+    els.imgZoomOutBtn.disabled = true;
+    els.imgZoomInBtn.disabled = true;
+    imgScale = 1;
+    clearStatusL(); clearStatusR();
+});
+
+}; // end window.__pageInit
+</script>
+</body>
+</html>
