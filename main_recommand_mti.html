@@ -179,7 +179,8 @@ body.on-result .stage-wrap{margin-bottom:0}
 .opt.sel .mk{background:var(--terra);border-color:var(--terra)}
 .opt.sel .mk::after{content:"✓";color:#fff;font-size:11px;font-weight:700}
 .opt .lab{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.opt .cnt{flex:0 0 auto;font-family:'DM Mono';font-size:.66rem;color:var(--muted);background:var(--bg-soft);border-radius:9px;padding:1px 8px}
+.opt .cnt{flex:0 0 auto;font-family:'DM Mono';font-size:.66rem;color:var(--muted);background:var(--bg-soft);border-radius:9px;padding:1px 8px;opacity:0;visibility:hidden;transition:opacity .2s}
+.opt:hover .cnt{opacity:1;visibility:visible}
 .opt.sel .cnt{background:#f3d9d9;color:var(--terra)}
 .opt.zero{}
 
@@ -761,7 +762,8 @@ function renderResults(){
 
   const ranked=MODELS.map(m=>({m,...scoreModel(m)})).sort((a,b)=>b.pct-a.pct);
   const box=document.getElementById('results'); box.innerHTML='';
-  const visible=ranked.filter(r=>r.pct>0);
+  const matched=ranked.filter(r=>r.pct>=60);
+  const visible=matched.length>=20?matched.slice(0,20):matched;
   if(!visible.length){ box.innerHTML='<div class="empty-state"><div class="big">🔍</div>조건에 맞는 MTI를 찾지 못했습니다.<br>조건을 줄여서 다시 시도해 보세요.</div>'; return; }
   visible.forEach((r,idx)=>{
     const m=r.m, isTop=idx===0;
