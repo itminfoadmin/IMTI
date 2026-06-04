@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>뮤직 비디오 메이커 · MP3 → 영상</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --bg: #0e0e10;
+        --panel: #17171b;
+        --panel-2: #1e1e24;
+        --line: #2a2a31;
+        --ink: #f4f4f5;
+        --ink-soft: #b8b8c0;
+        --gray: #76767f;
+        --accent: #ff4d4d;
+        --accent-soft: #2a1416;
+        --ok: #4ade80;
+    }
+    html { font-size: 15px; }
+    body {
+        font-family: 'Noto Sans KR', sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        background-image: radial-gradient(circle at 15% 0%, #1a1320 0%, transparent 45%),
+                          radial-gradient(circle at 85% 100%, #101820 0%, transparent 45%);
+        background-attachment: fixed;
+    }
+
+    /* ---------- header ---------- */
+    header {
+        position: sticky; top: 0; z-index: 50;
+        display: flex; align-items: center; gap: 20px;
+        padding: 16px 5%;
+        background: rgba(14,14,16,0.82);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--line);
+    }
+    .logo {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
+        display: flex; align-items: center; gap: 9px; flex-shrink: 0;
+        cursor: default;
+    }
+    .logo .play {
+        width: 30px; height: 30px; border-radius: 8px;
+        background: var(--accent);
+        display: grid; place-items: center;
+        box-shadow: 0 4px 16px -4px var(--accent);
+    }
+    .logo .play::before {
+        content: ''; width: 0; height: 0;
+        border-left: 9px solid #fff;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        margin-left: 2px;
+    }
+    .logo span { color: var(--accent); }
+    .logo .tag {
+        font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 400;
+        color: var(--gray); letter-spacing: 0.04em; margin-left: 2px;
+    }
+
+    /* ---------- layout ---------- */
+    .stage {
+        max-width: 1180px; margin: 0 auto;
+        padding: 40px 5% 90px 5%;
+        display: grid; grid-template-columns: 1fr; gap: 30px;
+    }
+
+    .sec-head {
+        display: flex; align-items: baseline; justify-content: space-between;
+        margin-bottom: 4px; gap: 12px;
+    }
+    .sec-title {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em;
+    }
+    .sec-sub { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray); letter-spacing: 0.04em; }
+
+    /* ---------- preview frame ---------- */
+    .preview-frame {
+        position: relative; width: 100%; aspect-ratio: 16/9;
+        border-radius: 16px; overflow: hidden;
+        background: #000;
+        border: 1px solid var(--line);
+        box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9);
+    }
+    .preview-frame canvas { width: 100%; height: 100%; display: block; }
+    .preview-empty {
+        position: absolute; inset: 0; display: grid; place-items: center;
+        text-align: center; color: var(--gray);
+        font-family: 'DM Mono', monospace; font-size: 0.8rem; letter-spacing: 0.04em;
+        background: repeating-linear-gradient(45deg, #121216 0 10px, #15151a 10px 20px);
+        pointer-events: none;
+    }
+    .preview-empty.hide { display: none; }
+    .preview-empty .pe-big {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
+        font-size: 1.25rem; color: var(--ink-soft); margin-bottom: 8px;
+    }
+
+    /* transport bar under preview */
+    .transport {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        margin-top: 16px; padding: 12px 14px;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+    }
+    .play-btn {
+        width: 46px; height: 46px; flex-shrink: 0; border-radius: 11px;
+        background: var(--accent); border: none; color: #fff; cursor: pointer;
+        display: grid; place-items: center; font-size: 1.1rem;
+        box-shadow: 0 6px 18px -8px var(--accent);
+        transition: filter 0.16s, transform 0.1s;
+    }
+    .play-btn:hover { filter: brightness(1.1); }
+    .play-btn:active { transform: translateY(1px); }
+    .play-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .seek { flex: 1; min-width: 160px; accent-color: var(--accent); cursor: pointer; height: 4px; }
+    .time-label {
+        font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--ink-soft);
+        letter-spacing: 0.04em; white-space: nowrap; min-width: 92px; text-align: right;
+    }
+
+    /* ---------- panels ---------- */
+    .panel {
+        border: 1px solid var(--line); border-radius: 16px;
+        background: var(--panel); padding: 18px;
+        box-shadow: 0 18px 50px -30px rgba(0,0,0,0.8);
+    }
+    .panel + .panel { margin-top: 0; }
+    .panel-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+        font-size: 1.15rem; margin-bottom: 4px;
+        display: flex; align-items: center; gap: 9px;
+    }
+    .panel-title .num {
+        width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+        background: var(--accent-soft); color: var(--accent);
+        display: grid; place-items: center; font-family: 'DM Mono', monospace;
+        font-size: 0.8rem; font-weight: 500;
+    }
+    .panel-sub { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--gray); margin-bottom: 16px; letter-spacing: 0.03em; line-height: 1.7; }
+
+    /* dropzone */
+    .drop {
+        border: 1px dashed var(--line); border-radius: 13px;
+        padding: 30px 20px; text-align: center; cursor: pointer;
+        background: var(--panel-2); transition: border-color 0.18s, background 0.18s;
+    }
+    .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .drop .d-big {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
+        font-size: 1.1rem; color: var(--ink-soft); margin-bottom: 6px;
+    }
+    .drop .d-sm { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray); }
+    .drop.loaded { border-style: solid; border-color: var(--ok); background: var(--panel-2); }
+    .drop.loaded .d-big { color: var(--ok); }
+
+    /* form fields */
+    .field { margin-bottom: 15px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+        display: block; font-size: 0.84rem; color: var(--ink-soft);
+        margin-bottom: 7px; font-weight: 500;
+    }
+    .field input[type="text"], .field textarea, .field select {
+        width: 100%; padding: 11px 13px; background: var(--bg);
+        border: 1px solid var(--line); border-radius: 9px; color: var(--ink);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.92rem; outline: none;
+        transition: border-color 0.16s;
+    }
+    .field textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+    .field-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .field-row .field { flex: 1; min-width: 150px; margin-bottom: 0; }
+    .field .hint { font-family: 'DM Mono', monospace; font-size: 0.64rem; color: var(--gray); margin-top: 6px; }
+
+    /* color row */
+    .color-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+    .swatch {
+        width: 38px; height: 38px; border-radius: 9px; cursor: pointer;
+        border: 2px solid var(--line); transition: transform 0.1s, border-color 0.16s;
+    }
+    .swatch:hover { transform: scale(1.08); }
+    .swatch.active { border-color: var(--ink); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+    input[type="color"] { width: 44px; height: 38px; padding: 2px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); cursor: pointer; }
+
+    /* style chips */
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+        padding: 9px 15px; border-radius: 99px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-size: 0.85rem; transition: background 0.16s, color 0.16s, border-color 0.16s;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--ink); }
+    .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -4px var(--accent); }
+
+    /* image thumb */
+    .img-thumb {
+        margin-top: 12px; border-radius: 11px; overflow: hidden; border: 1px solid var(--line);
+        background: #000; display: none; max-height: 220px;
+    }
+    .img-thumb.show { display: block; }
+    .img-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 220px; }
+
+    /* export */
+    .export-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .btn-primary {
+        flex: 1; min-width: 200px; padding: 15px 22px; border: none; border-radius: 12px;
+        background: var(--accent); color: #fff; cursor: pointer;
+        font-family: 'Noto Sans KR', sans-serif; font-size: 1.05rem; font-weight: 700;
+        box-shadow: 0 8px 24px -8px var(--accent);
+        display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+        transition: filter 0.16s, transform 0.1s;
+    }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary[disabled] { opacity: 0.45; cursor: not-allowed; filter: none; }
+    .btn-ghost {
+        padding: 15px 20px; border-radius: 12px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.95rem; font-weight: 600;
+        transition: background 0.16s, color 0.16s;
+    }
+    .btn-ghost:hover { background: var(--line); color: var(--ink); }
+    .btn-ghost[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+    /* recording progress */
+    .rec-status {
+        margin-top: 16px; padding: 14px 16px; border-radius: 12px;
+        background: var(--panel-2); border: 1px solid var(--line);
+        display: none; align-items: center; gap: 14px;
+    }
+    .rec-status.show { display: flex; }
+    .rec-dot {
+        width: 12px; height: 12px; border-radius: 50%; background: var(--accent);
+        flex-shrink: 0; animation: pulse 1s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .rec-text { flex: 1; min-width: 0; }
+    .rec-text .rt-main { font-size: 0.9rem; color: var(--ink); margin-bottom: 6px; }
+    .rec-text .rt-sub { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--gray); }
+    .progress-track { width: 100%; height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 8px; }
+    .progress-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 99px; transition: width 0.2s; }
+
+    /* result */
+    .result {
+        margin-top: 16px; padding: 16px; border-radius: 12px;
+        background: var(--accent-soft); border: 1px solid var(--accent);
+        display: none;
+    }
+    .result.show { display: block; }
+    .result .r-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700;
+        font-size: 1.05rem; color: var(--ink); margin-bottom: 10px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .result .r-sub { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--ink-soft); line-height: 1.7; margin-bottom: 14px; }
+    .result a.download {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 12px 22px; border-radius: 11px; text-decoration: none;
+        background: var(--ink); color: var(--bg); font-weight: 700; font-size: 0.95rem;
+        transition: filter 0.16s, transform 0.1s;
+    }
+    .result a.download:hover { filter: brightness(0.92); }
+    .result a.download:active { transform: translateY(1px); }
+
+    .upload-hint {
+        font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--gray);
+        line-height: 1.8; margin-top: 14px; padding: 12px 14px;
+        border-left: 2px solid var(--line); background: var(--panel-2); border-radius: 0 9px 9px 0;
+    }
+    .upload-hint b { color: var(--ink-soft); font-weight: 500; }
+
+    .warn {
+        font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #ffb3b3;
+        background: var(--accent-soft); border: 1px solid var(--accent);
+        border-radius: 9px; padding: 10px 13px; line-height: 1.7; margin-bottom: 16px;
+        display: none;
+    }
+    .warn.show { display: block; }
+
+    /* toast */
+    .toast {
+        position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+        background: var(--panel-2); border: 1px solid var(--line);
+        color: var(--ink); padding: 12px 20px; border-radius: 99px;
+        font-family: 'DM Mono', monospace; font-size: 0.78rem;
+        opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 300;
+        box-shadow: 0 16px 40px -16px rgba(0,0,0,0.8);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err { border-color: var(--accent); color: #ffb3b3; }
+
+    @media (max-width: 600px) {
+        .field-row { flex-direction: column; gap: 12px; }
+        .btn-primary, .btn-ghost { min-width: 100%; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <span class="play"></span>
+        뮤직<span>비디오</span> 메이커
+        <span class="tag">MP3 → MP4</span>
+    </div>
+</header>
+
+<div class="stage">
+
+    <!-- ===== 1) MP3 ===== -->
+    <section class="panel">
+        <div class="panel-title"><span class="num">1</span> 음악 파일 (MP3)</div>
+        <div class="panel-sub">유튜브에 올릴 음원을 선택하세요. 영상 길이는 음악 길이에 자동으로 맞춰집니다.</div>
+        <div class="drop" id="drop">
+            <div class="d-big" id="dropBig">＋ MP3 파일 선택 또는 끌어놓기</div>
+            <div class="d-sm" id="dropSm">.mp3 · .wav · .m4a · .ogg 지원</div>
+        </div>
+        <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.ogg" style="display:none;">
+    </section>
+
+    <!-- ===== preview ===== -->
+    <section class="preview-shell">
+        <div class="sec-head">
+            <div class="sec-title">미리보기</div>
+            <div class="sec-sub">1920 × 1080 · 16:9</div>
+        </div>
+        <div class="preview-frame">
+            <canvas id="canvas" width="1920" height="1080"></canvas>
+            <div class="preview-empty" id="previewEmpty">
+                <div>
+                    <div class="pe-big">MP3 파일을 올려주세요</div>
+                    <div>위에서 음악을 추가하면 여기에서 영상이 미리 보입니다</div>
+                </div>
+            </div>
+        </div>
+        <div class="transport">
+            <button class="play-btn" id="playBtn" disabled>▶</button>
+            <input type="range" class="seek" id="seek" min="0" max="100" value="0" step="0.1" disabled>
+            <span class="time-label" id="timeLabel">0:00 / 0:00</span>
+        </div>
+    </section>
+
+    <!-- ===== 2) 정보 ===== -->
+    <section class="panel">
+        <div class="panel-title"><span class="num">2</span> 화면에 표시할 정보</div>
+        <div class="panel-sub">제목·아티스트는 영상 위에 텍스트로 표시됩니다.</div>
+        <div class="field">
+            <label>제목 (곡명)</label>
+            <input type="text" id="songTitle" placeholder="예: 봄날의 멜로디" maxlength="60">
+        </div>
+        <div class="field">
+            <label>아티스트 / 부제</label>
+            <input type="text" id="songArtist" placeholder="예: 홍길동" maxlength="60">
+        </div>
+    </section>
+
+    <!-- ===== 3) 배경 ===== -->
+    <section class="panel">
+        <div class="panel-title"><span class="num">3</span> 배경 디자인</div>
+        <div class="panel-sub">색상과 스타일로 배경을 만드세요.</div>
+
+        <div class="field">
+            <label>배경 색상</label>
+            <div class="color-grid" id="colorGrid">
+                <div class="swatch active" data-color="#0e0e10" style="background:#0e0e10;"></div>
+                <div class="swatch" data-color="#1a1320" style="background:#1a1320;"></div>
+                <div class="swatch" data-color="#101820" style="background:#101820;"></div>
+                <div class="swatch" data-color="#2a1416" style="background:#2a1416;"></div>
+                <div class="swatch" data-color="#13241a" style="background:#13241a;"></div>
+                <div class="swatch" data-color="#23203a" style="background:#23203a;"></div>
+                <input type="color" id="customColor" value="#ff4d4d" title="직접 색 선택">
+            </div>
+        </div>
+
+        <div class="field">
+            <label>시각 효과 스타일</label>
+            <div class="chips" id="styleChips">
+                <div class="chip active" data-style="bars">막대 스펙트럼</div>
+                <div class="chip" data-style="wave">파형</div>
+                <div class="chip" data-style="circle">원형 스펙트럼</div>
+                <div class="chip" data-style="pulse">펄스 글로우</div>
+                <div class="chip" data-style="none">없음 (정적)</div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>포인트 색상 (시각 효과 색)</label>
+            <input type="color" id="accentColor" value="#ff4d4d">
+            <div class="hint">스펙트럼·파형·텍스트 강조에 쓰입니다</div>
+        </div>
+    </section>
+
+    <!-- ===== 4) 내보내기 ===== -->
+    <section class="panel">
+        <div class="panel-title"><span class="num">4</span> 영상 만들기</div>
+        <div class="panel-sub">버튼을 누르면 음악 전체 길이만큼 실시간으로 녹화합니다. 녹화 중에는 탭을 그대로 두세요.</div>
+
+        <div class="warn" id="codecWarn"></div>
+
+        <div class="field-row" style="margin-bottom:16px;">
+            <div class="field">
+                <label>해상도</label>
+                <select id="resSelect">
+                    <option value="1920x1080">1080p (1920×1080) · 권장</option>
+                    <option value="1280x720">720p (1280×720) · 빠름</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>형식</label>
+                <select id="fmtSelect"></select>
+            </div>
+        </div>
+
+        <div class="export-row">
+            <button class="btn-primary" id="renderBtn" disabled>🎬 영상 만들기 시작</button>
+            <button class="btn-ghost" id="stopBtn" disabled>■ 중지</button>
+        </div>
+
+        <div class="rec-status" id="recStatus">
+            <div class="rec-dot"></div>
+            <div class="rec-text">
+                <div class="rt-main" id="recMain">녹화 중…</div>
+                <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+                <div class="rt-sub" id="recSub">0:00 / 0:00</div>
+            </div>
+        </div>
+
+        <div class="result" id="result">
+            <div class="r-title">✓ 영상이 완성되었습니다</div>
+            <div class="r-sub" id="resultSub"></div>
+            <a class="download" id="downloadLink" download>⬇ 영상 다운로드</a>
+        </div>
+
+        <div class="upload-hint">
+            <b>유튜브 업로드 방법</b><br>
+            ① 다운로드한 영상 파일을 저장합니다.<br>
+            ② <b>youtube.com</b> 우측 상단 ＋ 만들기 → <b>동영상 업로드</b> 클릭<br>
+            ③ 방금 받은 파일을 끌어놓고 제목·설명 입력 → 게시<br>
+            <br>
+            <b>참고</b> · 이 도구는 브라우저 안에서 영상을 만듭니다. 일부 브라우저는 WebM 형식으로 저장되며, 유튜브는 WebM 업로드를 그대로 지원합니다. MP4가 필요하면 형식에서 MP4를 선택하세요(지원 시 표시됩니다).
+        </div>
+    </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ---------- elements ----------
+    const els = {
+        canvas: document.getElementById('canvas'),
+        previewEmpty: document.getElementById('previewEmpty'),
+        playBtn: document.getElementById('playBtn'),
+        seek: document.getElementById('seek'),
+        timeLabel: document.getElementById('timeLabel'),
+        drop: document.getElementById('drop'),
+        dropBig: document.getElementById('dropBig'),
+        dropSm: document.getElementById('dropSm'),
+        fileInput: document.getElementById('fileInput'),
+        songTitle: document.getElementById('songTitle'),
+        songArtist: document.getElementById('songArtist'),
+        colorGrid: document.getElementById('colorGrid'),
+        customColor: document.getElementById('customColor'),
+        styleChips: document.getElementById('styleChips'),
+        accentColor: document.getElementById('accentColor'),
+        resSelect: document.getElementById('resSelect'),
+        fmtSelect: document.getElementById('fmtSelect'),
+        renderBtn: document.getElementById('renderBtn'),
+        stopBtn: document.getElementById('stopBtn'),
+        recStatus: document.getElementById('recStatus'),
+        recMain: document.getElementById('recMain'),
+        recSub: document.getElementById('recSub'),
+        progressFill: document.getElementById('progressFill'),
+        result: document.getElementById('result'),
+        resultSub: document.getElementById('resultSub'),
+        downloadLink: document.getElementById('downloadLink'),
+        codecWarn: document.getElementById('codecWarn'),
+        toast: document.getElementById('toast'),
+    };
+
+    const ctx = els.canvas.getContext('2d');
+
+    // ---------- state ----------
+    let audioFile = null;
+    let audioEl = null;          // HTMLAudioElement for preview + recording
+    let audioObjectUrl = null;
+    let bgColor = '#0e0e10';
+    let accent = '#ff4d4d';
+    let vizStyle = 'bars';
+    let duration = 0;
+    let animId = null;
+
+    // Web Audio for analyser
+    let audioCtx = null;
+    let analyser = null;
+    let srcNode = null;
+    let outGain = null;          // controls speaker output (muted during recording)
+    let freqData = null;
+    let timeData = null;
+    let audioGraphBuilt = false;
+
+    // recording
+    let recorder = null;
+    let recChunks = [];
+    let recording = false;
+    let recStartTime = 0;
+
+    // ---------- toast ----------
+    let toastTimer = null;
+    function showToast(msg, isErr) {
+        els.toast.textContent = msg;
+        els.toast.classList.toggle('err', !!isErr);
+        els.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => els.toast.classList.remove('show'), 3200);
+    }
+
+    function fmtTime(s) {
+        if (!isFinite(s) || s < 0) s = 0;
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return m + ':' + String(sec).padStart(2, '0');
+    }
+
+    // ---------- codec / format detection ----------
+    const formatOptions = [];
+    function detectFormats() {
+        const candidates = [
+            { label: 'MP4 (H.264)', mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', ext: 'mp4' },
+            { label: 'MP4', mime: 'video/mp4', ext: 'mp4' },
+            { label: 'WebM (VP9)', mime: 'video/webm;codecs=vp9,opus', ext: 'webm' },
+            { label: 'WebM (VP8)', mime: 'video/webm;codecs=vp8,opus', ext: 'webm' },
+            { label: 'WebM', mime: 'video/webm', ext: 'webm' },
+        ];
+        const seenExt = {};
+        candidates.forEach(c => {
+            if (typeof MediaRecorder === 'undefined') return;
+            if (MediaRecorder.isTypeSupported(c.mime)) {
+                // keep first working option per label-family; show MP4 + WebM distinctly
+                formatOptions.push(c);
+            }
+        });
+        // build select, de-duplicating by ext while keeping the richest label first
+        els.fmtSelect.innerHTML = '';
+        const added = {};
+        formatOptions.forEach(c => {
+            if (added[c.ext]) return;
+            added[c.ext] = true;
+            const opt = document.createElement('option');
+            opt.value = c.mime;
+            opt.textContent = c.label;
+            opt.dataset.ext = c.ext;
+            els.fmtSelect.appendChild(opt);
+        });
+
+        if (formatOptions.length === 0) {
+            els.codecWarn.textContent = '이 브라우저는 영상 녹화(MediaRecorder)를 지원하지 않습니다. 최신 Chrome 또는 Edge를 사용해 주세요.';
+            els.codecWarn.classList.add('show');
+            els.renderBtn.disabled = true;
+        } else if (!added['mp4']) {
+            els.codecWarn.innerHTML = '이 브라우저는 MP4 직접 녹화를 지원하지 않아 <b>WebM</b>으로 저장됩니다. 유튜브는 WebM 업로드를 지원하므로 그대로 올리면 됩니다. (Chrome 최신 버전에서 MP4 옵션이 나타날 수 있습니다.)';
+            els.codecWarn.classList.add('show');
+        }
+    }
+    detectFormats();
+
+    // ---------- audio loading ----------
+    function loadAudioFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith('audio/') && !/\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(file.name)) {
+            showToast('오디오 파일이 아닙니다', true); return;
+        }
+        audioFile = file;
+        if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
+        audioObjectUrl = URL.createObjectURL(file);
+
+        if (!audioEl) {
+            audioEl = new Audio();
+            audioEl.addEventListener('loadedmetadata', () => {
+                duration = audioEl.duration;
+                els.seek.max = duration;
+                els.seek.disabled = false;
+                els.playBtn.disabled = false;
+                els.renderBtn.disabled = (formatOptions.length === 0);
+                updateTimeLabel();
+            });
+            audioEl.addEventListener('timeupdate', () => {
+                if (!recording) { els.seek.value = audioEl.currentTime; updateTimeLabel(); }
+            });
+            audioEl.addEventListener('ended', () => {
+                if (!recording) { els.playBtn.textContent = '▶'; }
+            });
+        }
+        audioEl.src = audioObjectUrl;
+        audioEl.load();
+
+        // auto-fill title from filename if empty
+        if (!els.songTitle.value.trim()) {
+            els.songTitle.value = file.name.replace(/\.[^.]+$/, '');
+        }
+        els.drop.classList.add('loaded');
+        els.dropBig.textContent = '✓ ' + file.name;
+        els.dropSm.textContent = '다른 파일로 바꾸려면 다시 클릭하세요';
+        els.previewEmpty.classList.add('hide');
+        showToast('음악을 불러왔습니다');
+        startPreviewLoop();
+    }
+
+    function updateTimeLabel() {
+        const cur = audioEl ? audioEl.currentTime : 0;
+        els.timeLabel.textContent = fmtTime(cur) + ' / ' + fmtTime(duration);
+    }
+
+    // build Web Audio graph (once). Must be after a user gesture.
+    function buildAudioGraph() {
+        if (audioGraphBuilt || !audioEl) return;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            srcNode = audioCtx.createMediaElementSource(audioEl);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            outGain = audioCtx.createGain();
+            outGain.gain.value = 1;
+            srcNode.connect(analyser);
+            analyser.connect(outGain);
+            outGain.connect(audioCtx.destination);
+            freqData = new Uint8Array(analyser.frequencyBinCount);
+            timeData = new Uint8Array(analyser.fftSize);
+            audioGraphBuilt = true;
+        } catch (e) {
+            console.warn('audio graph error', e);
+        }
+    }
+
+    // ---------- preview / play ----------
+    els.playBtn.addEventListener('click', () => {
+        if (!audioEl) return;
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        buildAudioGraph();
+        if (audioEl.paused) { audioEl.play(); els.playBtn.textContent = '⏸'; }
+        else { audioEl.pause(); els.playBtn.textContent = '▶'; }
+    });
+    els.seek.addEventListener('input', () => {
+        if (audioEl) { audioEl.currentTime = parseFloat(els.seek.value); updateTimeLabel(); }
+    });
+
+    // ---------- background image ----------
+    // ---------- color & style selectors ----------
+    els.colorGrid.addEventListener('click', (e) => {
+        const sw = e.target.closest('.swatch');
+        if (!sw) return;
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+        bgColor = sw.dataset.color;
+    });
+    els.customColor.addEventListener('input', () => {
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+        bgColor = els.customColor.value;
+    });
+    els.styleChips.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        vizStyle = chip.dataset.style;
+    });
+    els.accentColor.addEventListener('input', () => { accent = els.accentColor.value; });
+
+    // ---------- drawing ----------
+    function drawFrame() {
+        const W = els.canvas.width, H = els.canvas.height;
+
+        // background fill
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, W, H);
+
+        // subtle radial accent glow on plain background
+        const g = ctx.createRadialGradient(W * 0.5, H * 0.42, 0, W * 0.5, H * 0.42, W * 0.7);
+        g.addColorStop(0, hexA(accent, 0.10));
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+
+        // analyser data
+        let level = 0;
+        if (analyser) {
+            analyser.getByteFrequencyData(freqData);
+            analyser.getByteTimeDomainData(timeData);
+            let sum = 0;
+            for (let i = 0; i < freqData.length; i++) sum += freqData[i];
+            level = sum / freqData.length / 255; // 0..1
+        }
+
+        drawVisualizer(W, H, level);
+        drawText(W, H, level);
+    }
+
+    function drawVisualizer(W, H, level) {
+        if (!analyser || vizStyle === 'none') return;
+        ctx.save();
+
+        if (vizStyle === 'bars') {
+            const n = 48;
+            const gap = 6;
+            const totalGap = gap * (n - 1);
+            const bw = (W * 0.8 - totalGap) / n;
+            const startX = W * 0.1;
+            const baseY = H * 0.82;
+            const step = Math.floor(freqData.length / n);
+            for (let i = 0; i < n; i++) {
+                const v = freqData[i * step] / 255;
+                const bh = Math.max(4, v * H * 0.34);
+                const x = startX + i * (bw + gap);
+                const grad = ctx.createLinearGradient(0, baseY - bh, 0, baseY);
+                grad.addColorStop(0, accent);
+                grad.addColorStop(1, hexA(accent, 0.35));
+                ctx.fillStyle = grad;
+                roundRectFill(x, baseY - bh, bw, bh, Math.min(bw / 2, 5));
+            }
+        } else if (vizStyle === 'wave') {
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = accent;
+            ctx.shadowColor = accent;
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            const cy = H * 0.7;
+            const amp = H * 0.16;
+            const len = timeData.length;
+            for (let i = 0; i < len; i++) {
+                const x = (i / (len - 1)) * W;
+                const y = cy + ((timeData[i] - 128) / 128) * amp;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        } else if (vizStyle === 'circle') {
+            const cx = W * 0.5, cy = H * 0.52;
+            const baseR = Math.min(W, H) * 0.16;
+            const n = 72;
+            const step = Math.floor(freqData.length / n);
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = accent;
+            for (let i = 0; i < n; i++) {
+                const v = freqData[i * step] / 255;
+                const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
+                const r1 = baseR + 10;
+                const r2 = baseR + 10 + v * Math.min(W, H) * 0.18;
+                ctx.globalAlpha = 0.45 + v * 0.55;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(ang) * r1, cy + Math.sin(ang) * r1);
+                ctx.lineTo(cx + Math.cos(ang) * r2, cy + Math.sin(ang) * r2);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+            ctx.beginPath();
+            ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+            ctx.strokeStyle = hexA(accent, 0.5);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (vizStyle === 'pulse') {
+            const cx = W * 0.5, cy = H * 0.5;
+            const r = Math.min(W, H) * (0.18 + level * 0.22);
+            const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            g.addColorStop(0, hexA(accent, 0.55));
+            g.addColorStop(0.6, hexA(accent, 0.18));
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function drawText(W, H, level) {
+        const title = els.songTitle.value.trim();
+        const artist = els.songArtist.value.trim();
+        if (!title && !artist) return;
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 24;
+
+        const cy = H * 0.5;
+
+        if (title) {
+            const fs = Math.round(W * 0.052);
+            ctx.font = '800 ' + fs + "px 'Bricolage Grotesque', sans-serif";
+            ctx.fillStyle = '#f4f4f5';
+            ctx.fillText(title, W / 2, cy - (artist ? fs * 0.45 : 0));
+        }
+        if (artist) {
+            const fs2 = Math.round(W * 0.026);
+            ctx.font = "500 " + fs2 + "px 'DM Mono', monospace";
+            ctx.fillStyle = accent;
+            ctx.fillText(artist, W / 2, cy + (title ? fs2 * 1.4 : 0));
+        }
+        ctx.restore();
+    }
+
+    function roundRectFill(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    function hexA(hex, a) {
+        const h = hex.replace('#', '');
+        const r = parseInt(h.substring(0, 2), 16);
+        const g = parseInt(h.substring(2, 4), 16);
+        const b = parseInt(h.substring(4, 6), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
+
+    // continuous preview render loop
+    function startPreviewLoop() {
+        if (animId) return;
+        const loop = () => { drawFrame(); animId = requestAnimationFrame(loop); };
+        animId = requestAnimationFrame(loop);
+    }
+
+    // ---------- recording ----------
+    function setCanvasSize() {
+        const res = els.resSelect.value.split('x');
+        els.canvas.width = parseInt(res[0], 10);
+        els.canvas.height = parseInt(res[1], 10);
+    }
+
+    async function startRecording() {
+        if (!audioEl || recording) return;
+        if (formatOptions.length === 0) { showToast('이 브라우저는 녹화를 지원하지 않습니다', true); return; }
+
+        setCanvasSize();
+        els.result.classList.remove('show');
+
+        // ensure audio graph is ready and resumed (user gesture present)
+        buildAudioGraph();
+        if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
+
+        // build combined stream: canvas video + audio
+        const fps = 30;
+        const canvasStream = els.canvas.captureStream(fps);
+
+        // route audio into a destination we can record (with a boost so the
+        // recorded track isn't too quiet)
+        let audioStream;
+        try {
+            const recDest = audioCtx.createMediaStreamDestination();
+            const recGain = audioCtx.createGain();
+            recGain.gain.value = 1.6;   // amplify recorded audio
+            analyser.connect(recGain);  // analyser already gets the source; tap it for recording
+            recGain.connect(recDest);
+            audioStream = recDest.stream;
+        } catch (e) {
+            showToast('오디오 스트림 생성 실패', true); return;
+        }
+
+        const mixed = new MediaStream();
+        canvasStream.getVideoTracks().forEach(t => mixed.addTrack(t));
+        audioStream.getAudioTracks().forEach(t => mixed.addTrack(t));
+
+        const mime = els.fmtSelect.value;
+        const ext = els.fmtSelect.options[els.fmtSelect.selectedIndex].dataset.ext;
+
+        try {
+            recorder = new MediaRecorder(mixed, { mimeType: mime, videoBitsPerSecond: 8000000 });
+        } catch (e) {
+            try { recorder = new MediaRecorder(mixed); }
+            catch (e2) { showToast('녹화 시작 실패: ' + e2.message, true); return; }
+        }
+
+        recChunks = [];
+        recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size > 0) recChunks.push(ev.data); };
+        recorder.onstop = () => finishRecording(ext);
+
+        // start from the beginning
+        audioEl.currentTime = 0;
+        recording = true;
+        recStartTime = performance.now();
+
+        recorder.start(200);
+        await audioEl.play();
+        els.playBtn.textContent = '⏸';
+
+        // UI
+        els.renderBtn.disabled = true;
+        els.stopBtn.disabled = false;
+        els.recStatus.classList.add('show');
+        els.recMain.textContent = '녹화 중… (음악이 끝나면 자동 종료)';
+
+        monitorRecording();
+
+        // auto-stop slightly after audio ends
+        audioEl.onended = () => { if (recording) stopRecording(); };
+    }
+
+    function monitorRecording() {
+        if (!recording) return;
+        const cur = audioEl.currentTime;
+        const pct = duration ? Math.min(100, (cur / duration) * 100) : 0;
+        els.progressFill.style.width = pct + '%';
+        els.recSub.textContent = fmtTime(cur) + ' / ' + fmtTime(duration) + '  ·  ' + Math.round(pct) + '%';
+        els.seek.value = cur;
+        requestAnimationFrame(monitorRecording);
+    }
+
+    function stopRecording() {
+        if (!recording) return;
+        recording = false;
+        try { recorder.stop(); } catch (e) {}
+        try { audioEl.pause(); } catch (e) {}
+        audioEl.onended = null;
+        els.playBtn.textContent = '▶';
+        els.stopBtn.disabled = true;
+        els.recMain.textContent = '영상 인코딩 마무리 중…';
+    }
+
+    function finishRecording(ext) {
+        const blob = new Blob(recChunks, { type: recChunks[0] ? recChunks[0].type : 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const title = els.songTitle.value.trim();
+        const artist = els.songArtist.value.trim();
+        let baseName = title || 'music_video';
+        if (title && artist) baseName = title + '-' + artist;
+        baseName = baseName.replace(/[\\/:*?"<>|]+/g, '_');
+        const fname = baseName + '.' + ext;
+
+        els.downloadLink.href = url;
+        els.downloadLink.download = fname;
+        const sizeMB = (blob.size / 1048576).toFixed(1);
+        els.resultSub.textContent = '파일명: ' + fname + '  ·  크기: ' + sizeMB + ' MB  ·  길이: ' + fmtTime(duration);
+        els.result.classList.add('show');
+        els.recStatus.classList.remove('show');
+        els.progressFill.style.width = '0%';
+
+        els.renderBtn.disabled = false;
+        showToast('영상이 완성되었습니다 · 다운로드하세요');
+        els.result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // ---------- file / drop wiring ----------
+    function wireDrop(dropEl, inputEl, onFile, accept) {
+        dropEl.addEventListener('click', () => inputEl.click());
+        inputEl.addEventListener('change', () => { if (inputEl.files[0]) onFile(inputEl.files[0]); });
+        ['dragenter', 'dragover'].forEach(ev =>
+            dropEl.addEventListener(ev, (e) => { e.preventDefault(); dropEl.classList.add('over'); }));
+        ['dragleave', 'drop'].forEach(ev =>
+            dropEl.addEventListener(ev, (e) => { e.preventDefault(); dropEl.classList.remove('over'); }));
+        dropEl.addEventListener('drop', (e) => {
+            const f = e.dataTransfer.files[0];
+            if (f) onFile(f);
+        });
+    }
+    wireDrop(els.drop, els.fileInput, loadAudioFile);
+
+    els.renderBtn.addEventListener('click', startRecording);
+    els.stopBtn.addEventListener('click', stopRecording);
+
+    // draw an initial idle frame so canvas isn't pure black behind placeholder
+    drawFrame();
+
+    // warn if not running over a real browser context for captureStream
+    if (!HTMLCanvasElement.prototype.captureStream) {
+        els.codecWarn.textContent = '이 브라우저는 Canvas 영상 캡처를 지원하지 않습니다. 최신 Chrome 또는 Edge에서 열어주세요.';
+        els.codecWarn.classList.add('show');
+        els.renderBtn.disabled = true;
+    }
+})();
+</script>
+</body>
+</html>
