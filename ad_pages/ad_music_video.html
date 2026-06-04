@@ -849,7 +849,9 @@
         const idx = currentIndex();
         const has = current != null;
         const inLib = idx !== -1;
-        els.playPauseBtn.disabled = !has;
+        // play button is usable when something is loaded OR the library has items
+        // (so the very first press can start from the top of the library)
+        els.playPauseBtn.disabled = !has && library.length === 0;
         els.prevBtn.disabled = !inLib || (idx <= 0 && !repeat && !shuffle);
         els.nextBtn.disabled = !inLib || (idx >= library.length - 1 && !repeat && !shuffle);
         els.posLabel.textContent = inLib ? (idx + 1) + ' / ' + library.length : (has ? '목록에 없음' : '—');
@@ -869,6 +871,8 @@
         if (n !== -1) play(library[n].id);
     });
     els.playPauseBtn.addEventListener('click', () => {
+        // nothing loaded yet → start the library from the top (first item)
+        if (current == null) { userInteracted = true; playAll(); return; }
         if (!ytReady || !ytPlayer) { if (current) play(current); return; }
         const st = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
         if (st === (YT.PlayerState ? YT.PlayerState.PLAYING : 1)) {
@@ -1104,7 +1108,7 @@
             library.unshift({ no: '', title: name, url: pending.url, time: time, id: id });
             renderGrid(); updateControls();
         }
-        play(id, name);
+        // note: do NOT auto-play the newly added video — just add it to the library
 
         if (!writeUrl) {
             showToast('임시로 표시했습니다 · 시트 저장은 Apps Script URL이 필요합니다', true);
