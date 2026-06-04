@@ -2,7 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, shrink-to-fit=no">
+<meta name="HandheldFriendly" content="true">
+<meta name="MobileOptimized" content="width">
+<meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#0e0e10">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,8 +16,16 @@
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     /* never let any element push past the device width */
-    html, body { max-width: 100%; overflow-x: hidden; }
-    img, iframe, video, svg, input, pre { max-width: 100%; }
+    html, body {
+        width: 100%; max-width: 100%;
+        overflow-x: hidden; overflow-x: clip;
+        position: relative;
+    }
+    img, iframe, video, svg, input, pre, button { max-width: 100%; }
+    /* any element that wants a min-width must still respect the viewport */
+    input, button, textarea, select { min-width: 0; }
+    /* long unbroken strings (titles, links) must never push the page wider */
+    body { overflow-wrap: anywhere; word-break: break-word; }
     :root {
         --bg: #0e0e10;
         --panel: #17171b;
@@ -84,6 +95,7 @@
     /* ---------- layout ---------- */
     .stage {
         max-width: 1180px; width: 100%; margin: 0 auto;
+        overflow-x: clip;
         padding: calc(40px + var(--safe-top)) calc(5% + var(--safe-right)) calc(80px + var(--safe-bottom)) calc(5% + var(--safe-left));
         display: grid; grid-template-columns: 1fr; gap: 30px;
     }
@@ -281,7 +293,7 @@
     /* add-by-link row */
     .addrow { display: flex; gap: 9px; margin: 16px 0 4px; flex-wrap: wrap; }
     .addrow input {
-        flex: 1; min-width: 240px;
+        flex: 1 1 100%; min-width: 0;
         padding: 11px 14px;
         background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
         color: var(--ink); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none;
@@ -462,6 +474,11 @@
 
     @media (max-width: 540px) {
         .ctrl-search .cs-tx { display: none; }
+
+        /* make sure no horizontal flex row can overflow the screen */
+        .midbar, .sec-head, .now-meta, .ms-foot, .lib-cols { flex-wrap: wrap; }
+        .midbar #addBtn { flex: 1 1 100%; }
+        .header, header { flex-wrap: wrap; }
 
         /* tighten outer spacing on phones */
         .stage {
