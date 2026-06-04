@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스트림 데스크 · 영상 뷰어</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --bg: #0e0e10;
+        --panel: #17171b;
+        --panel-2: #1e1e24;
+        --line: #2a2a31;
+        --ink: #f4f4f5;
+        --ink-soft: #b8b8c0;
+        --gray: #76767f;
+        --accent: #ff4d4d;
+        --accent-soft: #2a1416;
+        --ok: #4ade80;
+    }
+    html { font-size: 15px; }
+    body {
+        font-family: 'Noto Sans KR', sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        background-image: radial-gradient(circle at 15% 0%, #1a1320 0%, transparent 45%),
+                          radial-gradient(circle at 85% 100%, #101820 0%, transparent 45%);
+        background-attachment: fixed;
+    }
+
+    /* ---------- header ---------- */
+    header {
+        position: sticky; top: 0; z-index: 50;
+        display: flex; align-items: center; gap: 20px;
+        padding: 16px 5%;
+        background: rgba(14,14,16,0.82);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--line);
+    }
+    .logo {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
+        display: flex; align-items: center; gap: 9px; flex-shrink: 0;
+        cursor: default;
+    }
+    .logo .play {
+        width: 30px; height: 30px; border-radius: 8px;
+        background: var(--accent);
+        display: grid; place-items: center;
+        box-shadow: 0 4px 16px -4px var(--accent);
+    }
+    .logo .play::before {
+        content: ''; width: 0; height: 0;
+        border-left: 9px solid #fff;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        margin-left: 2px;
+    }
+    .logo span { color: var(--accent); }
+
+    /* ---------- layout ---------- */
+    .stage {
+        max-width: 1180px; margin: 0 auto;
+        padding: 40px 5% 80px 5%;
+        display: grid; grid-template-columns: 1fr; gap: 30px;
+    }
+
+    /* ---------- player + controls (top) ---------- */
+    .player-shell { }
+    .player-frame {
+        position: relative; width: 100%; aspect-ratio: 16/9;
+        border-radius: 16px; overflow: hidden;
+        background: #000;
+        border: 1px solid var(--line);
+        box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9);
+    }
+    .player-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+    .player-placeholder {
+        position: absolute; inset: 0; display: grid; place-items: center;
+        text-align: center; color: var(--gray);
+        font-family: 'DM Mono', monospace; font-size: 0.8rem; letter-spacing: 0.04em;
+        background: repeating-linear-gradient(45deg, #121216 0 10px, #15151a 10px 20px);
+    }
+    .player-placeholder.hide { display: none; }
+    .player-placeholder .pl-big {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
+        font-size: 1.25rem; color: var(--ink-soft); margin-bottom: 8px;
+    }
+    .embed-error {
+        position: absolute; inset: 0; display: none;
+        align-items: center; justify-content: center; gap: 22px;
+        background: #1d1d1f; padding: 0 8%;
+    }
+    .embed-error.show { display: flex; }
+    .embed-error .ee-ic {
+        width: 74px; height: 74px; flex-shrink: 0; border-radius: 50%;
+        border: 4px solid #8a8a90; color: #8a8a90;
+        display: grid; place-items: center; font-size: 2.4rem; font-weight: 700;
+    }
+    .embed-error .ee-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700;
+        font-size: 1.3rem; color: #f0f0f2; margin-bottom: 8px;
+    }
+    .embed-error .ee-msg { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.6; margin-bottom: 10px; max-width: 360px; }
+    .embed-error .ee-link { color: #cfcfd6; font-size: 0.9rem; text-decoration: underline; }
+    .embed-error .ee-link:hover { color: var(--accent); }
+    .now-title {
+        margin-top: 16px;
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 600; font-size: 1.25rem; line-height: 1.35;
+    }
+    .now-meta {
+        margin-top: 6px; font-family: 'DM Mono', monospace;
+        font-size: 0.72rem; letter-spacing: 0.05em; color: var(--gray);
+        display: flex; align-items: center; gap: 8px;
+    }
+
+    /* control bar under player */
+    /* add bar above the video */
+    .addbar { display: flex; flex-direction: column; gap: 0; }
+    .toggle-add {
+        width: 100%; margin: 16px 0 0; padding: 13px;
+        border: 1px solid var(--line); border-radius: 11px; cursor: pointer;
+        background: var(--panel-2); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 1rem; font-weight: 600;
+        transition: filter 0.16s, transform 0.1s, background 0.16s, color 0.16s;
+    }
+    .toggle-add:hover { background: var(--line); color: var(--ink); }
+    .toggle-add:active { transform: translateY(1px); }
+    .toggle-add.open { background: var(--panel-2); color: var(--ink-soft); border: 1px solid var(--line); }
+    .addpanel { margin-top: 10px; }
+    .addrow .icon-only { padding: 11px 13px; min-width: 44px; font-size: 1.05rem; }
+
+    /* controls + library wrapped in one bordered box */
+    .playlist-box {
+        border: 1px solid var(--line); border-radius: 16px;
+        background: var(--panel); padding: 14px;
+        box-shadow: 0 18px 50px -30px rgba(0,0,0,0.8);
+    }
+    .controls {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        padding: 10px 12px; margin-bottom: 12px;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 11px;
+    }
+    .playlist-box .grid { margin-top: 0; }
+    .ctrl-btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+        padding: 9px 14px; min-width: 44px;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 9px;
+        color: var(--ink); cursor: pointer; font-size: 1rem;
+        font-family: 'Noto Sans KR', sans-serif;
+        transition: background 0.16s, border-color 0.16s, transform 0.1s, color 0.16s;
+    }
+    .ctrl-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .ctrl-btn:active { transform: translateY(1px); }
+    .ctrl-btn.label { font-family: 'DM Mono', monospace; font-size: 0.74rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .ctrl-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .ctrl-btn[disabled]:hover { background: var(--panel); border-color: var(--line); color: var(--ink); }
+    .ctrl-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -4px var(--accent); }
+    .ctrl-btn.icon-svg { padding: 8px 12px; }
+    .ctrl-btn.icon-svg svg { display: block; }
+    .ctrl-spacer { flex: 1; }
+    .pos-label {
+        font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray);
+        letter-spacing: 0.05em; white-space: nowrap;
+    }
+
+    /* ---------- search button inside the control bar ---------- */
+    .midbar {
+        display: flex; gap: 9px; align-items: center;
+        margin: 12px 0 0;
+    }
+    .midbar #addBtn {
+        flex: 1; padding: 11px 18px; border: none; border-radius: 9px;
+        background: var(--ink); color: var(--bg);
+        font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 500;
+        letter-spacing: 0.05em; cursor: pointer;
+        transition: background 0.16s, color 0.16s, transform 0.1s;
+    }
+    .midbar #addBtn:hover { background: var(--accent); color: #fff; }
+    .midbar #addBtn:active { transform: translateY(1px); }
+    .midbar .ctrl-search { margin-left: 0; }
+    .ctrl-search.top {
+        width: 100%; justify-content: center; margin: 16px 0 0;
+        padding: 13px; font-size: 1rem; border-radius: 11px;
+    }
+
+    .ctrl-search {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 9px 16px; margin-left: 4px;
+        background: var(--accent); border: 1px solid var(--accent); border-radius: 9px;
+        color: #fff; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; font-size: 0.9rem;
+        box-shadow: 0 6px 18px -8px var(--accent);
+        transition: filter 0.16s, transform 0.1s;
+    }
+    .ctrl-search:hover { filter: brightness(1.1); }
+    .ctrl-search:active { transform: translateY(1px); }
+    .ctrl-search .cs-ic { font-size: 1.05rem; }
+    .ctrl-search .cs-tx { font-weight: 600; }
+
+    /* section heading */
+    .sec-head {
+        display: flex; align-items: baseline; justify-content: space-between;
+        margin-bottom: 4px; gap: 12px;
+    }
+    .sec-title {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em;
+    }
+    .sec-sub { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray); letter-spacing: 0.04em; }
+
+    .hint { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--gray); margin-top: 10px; line-height: 1.7; }
+
+    /* add-by-link row */
+    .addrow { display: flex; gap: 9px; margin: 16px 0 4px; flex-wrap: wrap; }
+    .addrow input {
+        flex: 1; min-width: 240px;
+        padding: 11px 14px;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+        color: var(--ink); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none;
+        transition: border-color 0.18s;
+    }
+    .addrow input::placeholder { color: var(--gray); }
+    .addrow input:focus { border-color: var(--accent); }
+    .addrow button {
+        padding: 11px 20px; border: none; border-radius: 8px;
+        background: var(--ink); color: var(--bg);
+        font-family: 'DM Mono', monospace; font-size: 0.74rem; font-weight: 500;
+        letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+        transition: background 0.18s, color 0.18s, transform 0.1s;
+    }
+    .addrow button:hover { background: var(--accent); color: #fff; }
+    .addrow button:active { transform: translateY(1px); }
+    .addrow button.ghost {
+        background: var(--panel-2); color: var(--ink-soft); border: 1px solid var(--line);
+        text-transform: none; letter-spacing: 0.03em;
+    }
+    .addrow button.ghost:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* small modals */
+    .modal-overlay {
+        position: fixed; inset: 0; z-index: 200;
+        background: rgba(6,6,8,0.66); backdrop-filter: blur(6px);
+        display: none; align-items: flex-start; justify-content: center;
+        padding: 8vh 16px; opacity: 0; transition: opacity 0.2s;
+    }
+    .modal-overlay.show { display: flex; opacity: 1; }
+    .modal-sm {
+        width: 100%; max-width: 460px;
+        background: var(--panel); border: 1px solid var(--line);
+        border-radius: 18px; overflow: hidden;
+        box-shadow: 0 40px 100px -30px rgba(0,0,0,0.9);
+        transform: translateY(16px); transition: transform 0.22s ease;
+    }
+    .modal-sm.wide { max-width: 620px; }
+    .modal-overlay.show .modal-sm { transform: none; }
+    .ms-head {
+        display: flex; align-items: center; gap: 14px;
+        padding: 16px 18px; border-bottom: 1px solid var(--line);
+    }
+    .ms-head .ms-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+        font-size: 1.15rem; flex: 1;
+    }
+    .modal-close {
+        width: 32px; height: 32px; border-radius: 9px;
+        background: var(--panel-2); border: 1px solid var(--line);
+        color: var(--ink-soft); cursor: pointer; font-size: 1.05rem;
+        display: grid; place-items: center; transition: background 0.16s, color 0.16s;
+    }
+    .modal-close:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .ms-body { padding: 18px; display: flex; gap: 14px; }
+    .ms-thumb { width: 132px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: #000; aspect-ratio: 16/9; }
+    .ms-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ms-field { flex: 1; min-width: 0; }
+    .ms-field label { display: block; font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 8px; }
+    .ms-field input {
+        width: 100%; padding: 11px 13px; background: var(--bg);
+        border: 1px solid var(--line); border-radius: 9px; color: var(--ink);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.92rem; outline: none;
+        transition: border-color 0.16s;
+    }
+    .ms-field input:focus { border-color: var(--accent); }
+    .ms-row2 { margin-top: 9px; }
+    .ms-row2 input { font-family: 'DM Mono', monospace; font-size: 0.82rem; }
+    .ms-meta { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--gray); margin-top: 9px; letter-spacing: 0.03em; }
+    .ms-foot {
+        display: flex; justify-content: flex-end; gap: 9px;
+        padding: 14px 18px; border-top: 1px solid var(--line);
+    }
+    .ms-cancel, .ms-save {
+        padding: 10px 18px; border-radius: 9px; cursor: pointer;
+        font-family: 'DM Mono', monospace; font-size: 0.74rem; letter-spacing: 0.05em; text-transform: uppercase;
+        transition: background 0.16s, color 0.16s, filter 0.16s, transform 0.1s;
+    }
+    .ms-cancel { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft); }
+    .ms-cancel:hover { background: var(--line); color: var(--ink); }
+    .ms-save { background: var(--accent); border: 1px solid var(--accent); color: #fff; }
+    .ms-save.big { font-size: 1rem; padding: 12px 28px; text-transform: none; letter-spacing: 0.02em; font-weight: 600; }
+    .ms-save:hover { filter: brightness(1.1); }
+    .ms-save:active, .ms-cancel:active { transform: translateY(1px); }
+    .ms-body.howto { display: block; font-size: 0.86rem; line-height: 1.7; color: var(--ink-soft); max-height: 60vh; overflow-y: auto; }
+    .ms-body.howto p { margin-bottom: 12px; }
+    .ms-body.howto ol { margin: 0 0 14px 1.1em; display: flex; flex-direction: column; gap: 7px; }
+    .ms-body.howto code { font-family: 'DM Mono', monospace; background: var(--bg); padding: 1px 5px; border-radius: 5px; font-size: 0.82em; }
+    .ms-body.howto .howto-note { font-size: 0.74rem; color: var(--gray); }
+    #gasCode {
+        background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+        padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 0.72rem;
+        line-height: 1.55; color: var(--ink-soft); white-space: pre; overflow-x: auto; margin-bottom: 12px;
+    }
+    .lib-loading, .lib-error {
+        grid-column: 1 / -1; text-align: center; padding: 50px 20px;
+        border: 1px dashed var(--line); border-radius: 16px; background: var(--panel);
+        font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--gray); line-height: 1.9;
+    }
+    .lib-error { border-color: var(--accent); color: #ffb3b3; }
+    .spinner {
+        width: 26px; height: 26px; margin: 0 auto 14px;
+        border: 3px solid var(--line); border-top-color: var(--accent);
+        border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* grid of cards */
+    .grid {
+        display: flex; flex-direction: column; gap: 8px; margin-top: 22px;
+    }
+    .card.row {
+        display: flex; align-items: center; gap: 14px;
+        background: var(--panel); border: 1px solid var(--line);
+        border-radius: 11px; padding: 12px 14px; cursor: pointer; position: relative;
+        transition: border-color 0.16s, background 0.16s, transform 0.1s;
+    }
+    .card.row:hover { border-color: var(--accent); background: var(--panel-2); transform: translateX(2px); }
+    .card-no {
+        flex-shrink: 0; width: 38px; text-align: center;
+        font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--gray);
+    }
+    .card-main { flex: 1; min-width: 0; }
+    .card-title {
+        font-size: 0.95rem; font-weight: 500; line-height: 1.4;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .card-time {
+        flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 0.8rem;
+        color: var(--ink-soft); min-width: 48px; text-align: right;
+    }
+    .card.row .del, .card.row .edit {
+        flex-shrink: 0; padding: 7px 11px; border-radius: 8px;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.72rem; white-space: nowrap;
+        transition: color 0.16s, background 0.16s, border-color 0.16s;
+    }
+    .card.row .del:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .card.row .edit:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+    /* column header for the list */
+    .lib-cols {
+        display: flex; align-items: center; gap: 14px;
+        padding: 0 14px 6px; margin-top: 20px;
+        font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.06em;
+        text-transform: uppercase; color: var(--gray); border-bottom: 1px solid var(--line);
+    }
+    .lib-cols .c-no { width: 38px; text-align: center; }
+    .lib-cols .c-name { flex: 1; }
+    .lib-cols .c-time { min-width: 48px; text-align: right; }
+    .lib-cols .c-spacer { width: 58px; }
+    .lib-cols.hide { display: none; }
+
+    /* empty state */
+    .empty {
+        grid-column: 1 / -1;
+        text-align: center; padding: 70px 20px;
+        border: 1px dashed var(--line); border-radius: 16px;
+        background: var(--panel);
+    }
+    .empty .big {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
+        font-size: 1.4rem; color: var(--ink-soft); margin-bottom: 10px;
+    }
+    .empty .sm { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--gray); line-height: 1.9; max-width: 440px; margin: 0 auto; }
+
+    /* toast */
+    .toast {
+        position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+        background: var(--panel-2); border: 1px solid var(--line);
+        color: var(--ink); padding: 12px 20px; border-radius: 99px;
+        font-family: 'DM Mono', monospace; font-size: 0.78rem;
+        opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 300;
+        box-shadow: 0 16px 40px -16px rgba(0,0,0,0.8);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err { border-color: var(--accent); color: #ffb3b3; }
+
+    @media (max-width: 540px) {
+        .ctrl-search .cs-tx { display: none; }
+        .controls { gap: 7px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+    <!-- ===== 1) add bar (above the video) ===== -->
+    <div class="addbar">
+        <button id="toggleAddBtn" class="toggle-add">＋ 영상 검색 및 추가하기</button>
+
+        <div class="addpanel" id="addPanel" style="display:none;">
+            <div class="addrow">
+                <input id="linkInput" type="text" placeholder="유튜브 링크/ID 붙여넣기…  (예: https://youtu.be/dQw4w9WgXcQ)" autocomplete="off">
+                <button class="ghost icon-only" id="searchLaunch" title="유튜브 검색 (유튜브 열기)">&#9906;</button>
+                <button id="reloadLibBtn" class="ghost" title="보관함 새로고침 (시트 다시 불러오기)">&#8635; 새로고침</button>
+                <button id="previewBtn" class="ghost" title="붙여넣은 주소 미리보기">▶ 미리보기</button>
+                <button id="addBtn" class="ghost" title="보관함에 담기">＋ 담기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 2) player (video) ===== -->
+    <div class="player-shell" id="playerShell">
+        <div class="player-frame">
+            <iframe id="player" src="https://www.youtube-nocookie.com/embed/?enablejsapi=1&rel=0" title="플레이어"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            <div class="player-placeholder" id="playerPlaceholder">
+                <div>
+                    <div class="pl-big">재생 중인 영상이 없습니다</div>
+                    <div>검색하거나 보관함의 영상을 선택하세요</div>
+                </div>
+            </div>
+            <div class="embed-error" id="embedErr">
+                <div class="ee-ic">!</div>
+                <div class="ee-box">
+                    <div class="ee-title">동영상을 재생할 수 없음</div>
+                    <div class="ee-msg"></div>
+                    <a class="ee-link" href="https://www.youtube.com" target="_blank" rel="noopener">YouTube에서 보기 ↗</a>
+                </div>
+            </div>
+        </div>
+        <div class="now-title" id="nowTitle" style="display:none;"></div>
+        <div class="now-meta" id="nowMeta" style="display:none;"></div>
+    </div>
+
+    <!-- ===== 3) playlist: controls + library in one bordered box ===== -->
+    <div class="playlist-box">
+        <!-- control bar: sequential / shuffle continuous playback of the library -->
+        <div class="controls">
+            <button class="ctrl-btn" id="prevBtn" title="이전 영상" disabled>&#9664;&#9664;</button>
+            <button class="ctrl-btn" id="playPauseBtn" title="재생" disabled>&#9654;</button>
+            <button class="ctrl-btn" id="nextBtn" title="다음 영상" disabled>&#9654;&#9654;</button>
+            <button class="ctrl-btn icon-svg" id="shuffleBtn" title="셔플">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 3h5v5"></path><path d="M4 20 21 3"></path>
+                    <path d="M21 16v5h-5"></path><path d="m15 15 6 6"></path><path d="M4 4l5 5"></path>
+                </svg>
+            </button>
+            <div class="ctrl-spacer"></div>
+            <span class="pos-label" id="posLabel">—</span>
+        </div>
+
+        <!-- hidden write-url config (kept for wiring) -->
+        <div class="addrow" id="writeUrlRow" style="display:none;">
+            <input id="writeUrlInput" type="text" autocomplete="off">
+            <button id="saveWriteUrlBtn" class="ghost">URL 적용</button>
+            <button id="howtoBtn" class="ghost" title="시트 쓰기 설정 방법">설정 방법 ?</button>
+        </div>
+        <span id="countLabel" style="display:none;"></span>
+
+        <div class="grid" id="grid"></div>
+    </div>
+</div>
+
+<!-- ===== title-prompt modal ===== -->
+<div class="modal-overlay" id="titleModal" aria-hidden="true">
+    <div class="modal-sm" role="dialog" aria-modal="true" aria-label="노래 제목 입력">
+        <div class="ms-head">
+            <div class="ms-title">노래 제목 입력</div>
+            <button class="modal-close" id="titleClose" title="닫기">&times;</button>
+        </div>
+        <div class="ms-body">
+            <div class="ms-thumb"><img id="titleThumb" src="" alt=""></div>
+            <div class="ms-field">
+                <label for="titleInput">이 영상의 노래 제목을 입력하세요</label>
+                <input id="titleInput" type="text" placeholder="예: 최유리 - 숲" autocomplete="off">
+                <div class="ms-row2">
+                    <input id="timeInput" type="text" placeholder="재생시간(선택) 예: 3:51" autocomplete="off">
+                </div>
+                <div class="ms-meta" id="titleMeta"></div>
+            </div>
+        </div>
+        <div class="ms-foot">
+            <button class="ms-cancel" id="titleCancel">취소</button>
+            <button class="ms-save big" id="titleSave">저장</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== how-to modal ===== -->
+<div class="modal-overlay" id="howtoModal" aria-hidden="true">
+    <div class="modal-sm wide" role="dialog" aria-modal="true" aria-label="시트 쓰기 설정 방법">
+        <div class="ms-head">
+            <div class="ms-title">구글 시트 쓰기 설정 방법</div>
+            <button class="modal-close" id="howtoClose" title="닫기">&times;</button>
+        </div>
+        <div class="ms-body howto">
+            <p>주신 CSV 주소는 <b>읽기 전용</b>이라 행을 추가할 수 없습니다. 시트에 저장하려면 아래처럼 Apps Script 웹앱을 한 번 배포해 그 URL을 위 칸에 넣어주세요.</p>
+            <ol>
+                <li>구글 시트에서 <b>확장 프로그램 → Apps Script</b> 열기</li>
+                <li>아래 코드를 붙여넣고 저장</li>
+                <li><b>배포 → 새 배포 → 유형: 웹 앱</b>, 액세스 권한을 <b>모든 사용자</b>로 설정</li>
+                <li>생성된 <code>…/exec</code> URL을 복사해 위 “Apps Script 웹앱 URL” 칸에 붙여넣고 “URL 적용”</li>
+            </ol>
+            <pre id="gasCode"></pre>
+            <p class="howto-note">※ 웹앱은 CORS 때문에 브라우저에서 응답을 직접 읽기 어려워, 저장은 no-cors 방식으로 전송하고 잠시 후 CSV를 다시 읽어 반영합니다.</p>
+        </div>
+        <div class="ms-foot">
+            <button class="ms-save" id="howtoCopy">코드 복사</button>
+            <button class="ms-cancel" id="howtoDone">닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== delete-confirm modal ===== -->
+<div class="modal-overlay" id="delModal" aria-hidden="true">
+    <div class="modal-sm" role="dialog" aria-modal="true" aria-label="삭제 확인">
+        <div class="ms-head">
+            <div class="ms-title">삭제할까요?</div>
+            <button class="modal-close" id="delClose" title="닫기">&times;</button>
+        </div>
+        <div class="ms-body" style="display:block;">
+            <p style="font-size:0.9rem;line-height:1.6;color:var(--ink-soft);">아래 영상을 보관함(시트)에서 삭제합니다. 되돌릴 수 없습니다.</p>
+            <p id="delName" style="margin-top:10px;font-weight:600;font-size:0.95rem;word-break:break-all;"></p>
+        </div>
+        <div class="ms-foot">
+            <button class="ms-cancel" id="delCancel">취소</button>
+            <button class="ms-save" id="delConfirm" style="background:var(--accent);border-color:var(--accent);">삭제</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== edit modal (title + time) ===== -->
+<div class="modal-overlay" id="editModal" aria-hidden="true">
+    <div class="modal-sm" role="dialog" aria-modal="true" aria-label="수정">
+        <div class="ms-head">
+            <div class="ms-title">수정</div>
+            <button class="modal-close" id="editClose" title="닫기">&times;</button>
+        </div>
+        <div class="ms-body">
+            <div class="ms-thumb"><img id="editThumb" src="" alt=""></div>
+            <div class="ms-field">
+                <label for="editTitle">노래 제목</label>
+                <input id="editTitle" type="text" placeholder="예: 최유리 - 숲" autocomplete="off">
+                <div class="ms-row2">
+                    <input id="editTime" type="text" placeholder="재생시간 예: 3:51" autocomplete="off">
+                </div>
+            </div>
+        </div>
+        <div class="ms-foot">
+            <button class="ms-cancel" id="editCancel">취소</button>
+            <button class="ms-save big" id="editSave">저장</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+    const els = {
+        grid: document.getElementById('grid'),
+        playerShell: document.getElementById('playerShell'),
+        player: document.getElementById('player'),
+        playerPlaceholder: document.getElementById('playerPlaceholder'),
+        embedErr: document.getElementById('embedErr'),
+        nowTitle: document.getElementById('nowTitle'),
+        nowMeta: document.getElementById('nowMeta'),
+        countLabel: document.getElementById('countLabel'),
+        toast: document.getElementById('toast'),
+        // controls
+        prevBtn: document.getElementById('prevBtn'),
+        nextBtn: document.getElementById('nextBtn'),
+        playPauseBtn: document.getElementById('playPauseBtn'),
+        shuffleBtn: document.getElementById('shuffleBtn'),
+        posLabel: document.getElementById('posLabel'),
+        // search launch (popup) + add-by-link
+        searchLaunch: document.getElementById('searchLaunch'),
+        toggleAddBtn: document.getElementById('toggleAddBtn'),
+        addPanel: document.getElementById('addPanel'),
+        linkInput: document.getElementById('linkInput'),
+        reloadLibBtn: document.getElementById('reloadLibBtn'),
+        previewBtn: document.getElementById('previewBtn'),
+        addBtn: document.getElementById('addBtn'),
+        writeUrlInput: document.getElementById('writeUrlInput'),
+        saveWriteUrlBtn: document.getElementById('saveWriteUrlBtn'),
+        howtoBtn: document.getElementById('howtoBtn'),
+        // title modal
+        titleModal: document.getElementById('titleModal'),
+        titleClose: document.getElementById('titleClose'),
+        titleThumb: document.getElementById('titleThumb'),
+        titleInput: document.getElementById('titleInput'),
+        timeInput: document.getElementById('timeInput'),
+        titleMeta: document.getElementById('titleMeta'),
+        titleCancel: document.getElementById('titleCancel'),
+        titleSave: document.getElementById('titleSave'),
+        // howto modal
+        howtoModal: document.getElementById('howtoModal'),
+        howtoClose: document.getElementById('howtoClose'),
+        howtoDone: document.getElementById('howtoDone'),
+        howtoCopy: document.getElementById('howtoCopy'),
+        gasCode: document.getElementById('gasCode'),
+        // delete modal
+        delModal: document.getElementById('delModal'),
+        delClose: document.getElementById('delClose'),
+        delCancel: document.getElementById('delCancel'),
+        delConfirm: document.getElementById('delConfirm'),
+        delName: document.getElementById('delName'),
+        // edit modal
+        editModal: document.getElementById('editModal'),
+        editClose: document.getElementById('editClose'),
+        editCancel: document.getElementById('editCancel'),
+        editSave: document.getElementById('editSave'),
+        editThumb: document.getElementById('editThumb'),
+        editTitle: document.getElementById('editTitle'),
+        editTime: document.getElementById('editTime'),
+    };
+
+    // ---- data source ----
+    // Read-only published CSV (no, music_name, music_url, music_time)
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSa64ck2MF5_7njlI0WUbTk0hwSa0zyvxCBc4LCLUSVkXyh0GWscVM7fgz6knRdTcjkKAzfTk4c1bTV/pub?gid=0&single=true&output=csv';
+    let writeUrl = 'https://script.google.com/macros/s/AKfycbyQk_oF7zGVUyP5QunQ8qRBcuQ7wfnOMraGjtI-IHq5_fXqTztad3zwpHdA7KWgpKnE/exec';            // Apps Script web-app /exec URL
+    let pending = null;           // {id, url} awaiting a title in the modal
+
+    // library mirrors the sheet: [{no, title, url, time, id}]
+    let library = [];
+    let current = null;
+    let toastTimer = null;
+    let shuffle = false;
+    let repeat = false;           // repeat the whole list
+    let ytPlayer = null;          // YouTube IFrame API player (for auto-advance)
+    let ytReady = false;
+    let userInteracted = false;   // suppress auto-scroll until the user acts
+    ['pointerdown','keydown'].forEach(ev =>
+        window.addEventListener(ev, () => { userInteracted = true; }, { once: true }));
+    // keep the page pinned to the top during initial load (iframe API can scroll)
+    (function pinTop() {
+        let until = Date.now() + 1600;
+        function tick() {
+            if (!userInteracted && window.scrollY > 0) window.scrollTo(0, 0);
+            if (Date.now() < until && !userInteracted) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    })();
+
+    const GAS_CODE =
+'function doPost(e) {\n' +
+'  var ss = SpreadsheetApp.getActiveSpreadsheet();\n' +
+'  var sheet = ss.getSheetByName("music_list") || ss.getSheets()[0];\n' +
+'  var data = JSON.parse(e.postData.contents);\n' +
+'\n' +
+'  if (data.action === "delete") {            // delete a row by URL (or no)\n' +
+'    var values = sheet.getDataRange().getValues();\n' +
+'    for (var i = values.length - 1; i >= 1; i--) {  // skip header (row 1)\n' +
+'      if (String(values[i][2]) === String(data.music_url) ||\n' +
+'          (data.no && String(values[i][0]) === String(data.no))) {\n' +
+'        sheet.deleteRow(i + 1);\n' +
+'      }\n' +
+'    }\n' +
+'    renumber(sheet);\n' +
+'    return ContentService.createTextOutput(JSON.stringify({ ok: true }))\n' +
+'      .setMimeType(ContentService.MimeType.JSON);\n' +
+'  }\n' +
+'\n' +
+'  var last = sheet.getLastRow();             // row 1 is the header\n' +
+'  sheet.appendRow([last, data.music_name, data.music_url, data.music_time || ""]);\n' +
+'  return ContentService.createTextOutput(JSON.stringify({ ok: true, no: last }))\n' +
+'    .setMimeType(ContentService.MimeType.JSON);\n' +
+'}\n' +
+'\n' +
+'function renumber(sheet) {                    // keep "no" column sequential\n' +
+'  var n = sheet.getLastRow() - 1;\n' +
+'  if (n > 0) {\n' +
+'    var seq = [];\n' +
+'    for (var i = 1; i <= n; i++) seq.push([i]);\n' +
+'    sheet.getRange(2, 1, n, 1).setValues(seq);\n' +
+'  }\n' +
+'}';
+
+    function showToast(msg, isErr) {
+        els.toast.textContent = msg;
+        els.toast.className = 'toast show' + (isErr ? ' err' : '');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { els.toast.className = 'toast'; }, 2400);
+    }
+
+    function parseVideoId(raw) {
+        const s = (raw || '').trim();
+        if (!s) return null;
+        if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
+        let m;
+        m = s.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);            if (m) return m[1];
+        m = s.match(/[?&]v=([a-zA-Z0-9_-]{11})/);                 if (m) return m[1];
+        m = s.match(/\/(?:embed|shorts|live|v)\/([a-zA-Z0-9_-]{11})/); if (m) return m[1];
+        return null;
+    }
+
+    function decodeEntities(str) {
+        const t = document.createElement('textarea');
+        t.innerHTML = str || '';
+        return t.value;
+    }
+
+    /* ---------- player + controls (YouTube IFrame API) ---------- */
+    // Using the IFrame API lets us detect when a track ends and auto-advance
+    // through the library list, honoring shuffle/repeat.
+    function onYTReady() {
+        ytReady = true;
+        ytPlayer = new YT.Player('player', {
+            events: {
+                onStateChange: (e) => {
+                    if (e.data === YT.PlayerState.ENDED) advanceAuto();
+                    if (e.data === YT.PlayerState.PLAYING) hideEmbedError();
+                    syncPreviewBtn(e.data);
+                },
+                onError: (e) => {
+                    // 101 / 150: owner disabled embedding; 2: bad id; 5: html5; 100: removed
+                    handlePlaybackError(e.data);
+                }
+            }
+        });
+    }
+    // expose for the API callback
+    window.onYouTubeIframeAPIReady = onYTReady;
+
+    function handlePlaybackError(code) {
+        const blocked = (code === 101 || code === 150);
+        const item = library.find(v => v.id === current);
+        const msg = blocked
+            ? '이 영상은 게시자가 외부 재생(임베드)을 막아 두었습니다.'
+            : (code === 100 ? '이 영상은 삭제되었거나 비공개입니다.' : '이 영상을 재생할 수 없습니다.');
+        showEmbedError(msg, current);
+
+        // during continuous playback, skip blocked/unplayable items automatically
+        const idx = currentIndex();
+        if (idx !== -1 && (shuffle || repeat || idx < library.length - 1)) {
+            showToast('재생할 수 없어 다음 곡으로 넘어갑니다');
+            setTimeout(() => {
+                const n = nextIndex(idx);
+                if (n !== -1 && library[n] && library[n].id !== current) play(library[n].id);
+            }, 1200);
+        } else {
+            showToast(blocked ? '외부 재생이 막힌 영상입니다' : '재생할 수 없는 영상입니다', true);
+        }
+    }
+
+    function showEmbedError(msg, id) {
+        els.embedErr.querySelector('.ee-msg').textContent = msg;
+        const link = els.embedErr.querySelector('.ee-link');
+        link.href = id ? 'https://www.youtube.com/watch?v=' + id : 'https://www.youtube.com';
+        els.embedErr.classList.add('show');
+    }
+    function hideEmbedError() { els.embedErr.classList.remove('show'); }
+
+    // reflect playback state on the preview button and the control play/pause button
+    function syncPreviewBtn(state) {
+        const playing = (state === (window.YT && YT.PlayerState ? YT.PlayerState.PLAYING : 1));
+        if (playing) {
+            els.previewBtn.innerHTML = '⏹ 멈춤';
+            els.previewBtn.classList.add('active');
+            els.previewBtn.title = '재생 멈춤';
+        } else {
+            els.previewBtn.innerHTML = '▶ 미리보기';
+            els.previewBtn.classList.remove('active');
+            els.previewBtn.title = '붙여넣은 주소 미리보기';
+        }
+        // control-bar play/pause button
+        if (els.playPauseBtn) {
+            if (playing) {
+                els.playPauseBtn.innerHTML = '&#10074;&#10074;';   // pause bars
+                els.playPauseBtn.classList.add('active');
+                els.playPauseBtn.title = '멈춤';
+            } else {
+                els.playPauseBtn.innerHTML = '&#9654;';            // play triangle
+                els.playPauseBtn.classList.remove('active');
+                els.playPauseBtn.title = '재생';
+            }
+        }
+    }
+
+    function play(id, title) {
+        const keepY = window.scrollY;
+        current = id;
+        hideEmbedError();
+        els.playerPlaceholder.classList.add('hide');
+        if (ytReady && ytPlayer && ytPlayer.loadVideoById) {
+            ytPlayer.loadVideoById(id);
+        } else {
+            // fallback before API loads
+            els.player.src = 'https://www.youtube-nocookie.com/embed/' + id +
+                '?autoplay=1&rel=0&enablejsapi=1';
+        }
+        const item = library.find(v => v.id === id);
+        els.nowTitle.textContent = title || (item && item.title) || '';
+        updateControls();
+        // the iframe can grab focus and nudge the page; hold the original position
+        keepScroll(keepY);
+    }
+
+    // briefly pin the scroll position (player load/focus can scroll the page)
+    function keepScroll(y) {
+        let n = 0;
+        (function restore() {
+            if (Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
+            if (n++ < 12) requestAnimationFrame(restore);
+        })();
+    }
+
+    function currentIndex() {
+        return library.findIndex(v => v.id === current);
+    }
+
+    // pick the next index given shuffle/repeat; returns -1 if nothing to play
+    function nextIndex(idx) {
+        if (!library.length) return -1;
+        if (shuffle) {
+            if (library.length === 1) return repeat ? idx : -1;
+            let n; do { n = Math.floor(Math.random() * library.length); } while (n === idx);
+            return n;
+        }
+        if (idx < library.length - 1) return idx + 1;
+        return repeat ? 0 : -1;   // wrap only if repeat is on
+    }
+
+    function advanceAuto() {
+        const idx = currentIndex();
+        if (idx === -1) return;
+        if (repeat && !shuffle && library.length === 1) { play(library[0].id); return; }
+        const n = nextIndex(idx);
+        if (n !== -1) play(library[n].id);
+    }
+
+    function updateControls() {
+        const idx = currentIndex();
+        const has = current != null;
+        const inLib = idx !== -1;
+        els.playPauseBtn.disabled = !has;
+        els.prevBtn.disabled = !inLib || (idx <= 0 && !repeat && !shuffle);
+        els.nextBtn.disabled = !inLib || (idx >= library.length - 1 && !repeat && !shuffle);
+        els.posLabel.textContent = inLib ? (idx + 1) + ' / ' + library.length : (has ? '목록에 없음' : '—');
+    }
+
+    els.prevBtn.addEventListener('click', () => {
+        const idx = currentIndex();
+        if (idx === -1) return;
+        if (shuffle) { const n = nextIndex(idx); if (n !== -1) play(library[n].id); return; }
+        if (idx > 0) play(library[idx - 1].id);
+        else if (repeat) play(library[library.length - 1].id);
+    });
+    els.nextBtn.addEventListener('click', () => {
+        const idx = currentIndex();
+        if (idx === -1) return;
+        const n = nextIndex(idx);
+        if (n !== -1) play(library[n].id);
+    });
+    els.playPauseBtn.addEventListener('click', () => {
+        if (!ytReady || !ytPlayer) { if (current) play(current); return; }
+        const st = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
+        if (st === (YT.PlayerState ? YT.PlayerState.PLAYING : 1)) {
+            ytPlayer.pauseVideo();
+        } else if (current) {
+            ytPlayer.playVideo();
+        }
+    });
+    els.shuffleBtn.addEventListener('click', () => {
+        shuffle = !shuffle;
+        els.shuffleBtn.classList.toggle('active', shuffle);
+        showToast(shuffle ? '셔플 켜짐' : '셔플 꺼짐');
+        updateControls();
+    });
+
+    // start playing the whole library from the top
+    function playAll() {
+        if (!library.length) { showToast('보관함이 비어 있습니다', true); return; }
+        const startIdx = shuffle ? Math.floor(Math.random() * library.length) : 0;
+        play(library[startIdx].id);
+    }
+
+    /* ---------- library grid (sheet-backed) ---------- */
+    let deleteTargetId = null;
+
+    function requestDelete(id, ev) {
+        if (ev) ev.stopPropagation();
+        const item = library.find(v => v.id === id);
+        if (!item) return;
+        deleteTargetId = id;
+        els.delName.textContent = item.title || '유튜브 영상';
+        openModal(els.delModal);
+    }
+
+    function doDelete(id) {
+        const item = library.find(v => v.id === id);
+        // optimistic: drop from the list immediately
+        library = library.filter(v => v.id !== id);
+        renderGrid(); updateControls();
+
+        if (!writeUrl || !item) { showToast('삭제했습니다'); return; }
+        // delete exactly one row by its sheet number (no); url is only a fallback
+        fetch(writeUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'delete', no: item.no, music_url: item.url })
+        }).then(() => {
+            showToast('시트에서 삭제했습니다');
+            setTimeout(() => loadLibrary(null, true), 1800);
+        }).catch(() => {
+            showToast('삭제 요청을 보냈습니다');
+            setTimeout(() => loadLibrary(null, true), 1800);
+        });
+    }
+
+    /* ---------- edit (title + time) ---------- */
+    let editTargetId = null;
+    function requestEdit(id) {
+        const item = library.find(v => v.id === id);
+        if (!item) return;
+        editTargetId = id;
+        els.editThumb.src = 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg';
+        els.editTitle.value = item.title === '유튜브 영상' ? '' : (item.title || '');
+        els.editTime.value = item.time || '';
+        openModal(els.editModal);
+        setTimeout(() => els.editTitle.focus(), 60);
+    }
+    function saveEdit() {
+        if (!editTargetId) return;
+        const item = library.find(v => v.id === editTargetId);
+        if (!item) { closeModal(els.editModal); return; }
+        const name = els.editTitle.value.trim();
+        if (!name) { showToast('노래 제목을 입력하세요', true); els.editTitle.focus(); return; }
+        const time = els.editTime.value.trim();
+        // optimistic update
+        item.title = name; item.time = time;
+        renderGrid();
+        closeModal(els.editModal);
+        const target = editTargetId; editTargetId = null;
+
+        if (!writeUrl || !item.no) { showToast('수정했습니다'); return; }
+        fetch(writeUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'update', no: item.no, music_url: item.url, music_name: name, music_time: time })
+        }).then(() => {
+            showToast('시트에서 수정했습니다');
+            setTimeout(() => loadLibrary(null, true), 1800);
+        }).catch(() => {
+            showToast('수정 요청을 보냈습니다');
+            setTimeout(() => loadLibrary(null, true), 1800);
+        });
+    }
+
+    function renderGrid() {
+        els.countLabel.textContent = library.length + '개 영상';
+        if (library.length === 0) {
+            els.grid.innerHTML =
+                '<div class="empty">' +
+                '<div class="big">보관함이 비어 있어요</div>' +
+                '<div class="sm">위에서 “영상 검색”으로 유튜브를 열어 영상을 찾고, 주소를 복사해 “담기”를 누르면 보관함에 저장됩니다. 카드를 누르면 재생되고, 컨트롤 버튼으로 목록을 이어서 재생할 수 있습니다.</div>' +
+                '</div>';
+            return;
+        }
+        els.grid.innerHTML = library.map(v =>
+            '<div class="card row" data-id="' + v.id + '">' +
+                '<div class="card-no">' + (v.no ? v.no : '–') + '</div>' +
+                '<div class="card-main">' +
+                    '<div class="card-title">' + escapeHtml(v.title || '유튜브 영상') + '</div>' +
+                '</div>' +
+                '<div class="card-time">' + (v.time ? escapeHtml(v.time) : '') + '</div>' +
+                '<button class="edit" data-edit="' + v.id + '" title="수정">✎ 수정</button>' +
+                '<button class="del" data-remove="' + v.id + '" title="삭제">&times; 삭제</button>' +
+            '</div>'
+        ).join('');
+    }
+
+    function escapeHtml(s) {
+        return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    els.grid.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('[data-remove]');
+        if (removeBtn) { requestDelete(removeBtn.getAttribute('data-remove'), e); return; }
+        const editBtn = e.target.closest('[data-edit]');
+        if (editBtn) { e.stopPropagation(); requestEdit(editBtn.getAttribute('data-edit')); return; }
+        const card = e.target.closest('.card');
+        if (card) play(card.getAttribute('data-id'));
+    });
+
+    /* ---------- read library from the published CSV ---------- */
+    // minimal CSV parser (handles quotes, commas, newlines in quotes)
+    function parseCSV(text) {
+        const rows = []; let row = [], field = '', q = false;
+        for (let i = 0; i < text.length; i++) {
+            const c = text[i];
+            if (q) {
+                if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else q = false; }
+                else field += c;
+            } else {
+                if (c === '"') q = true;
+                else if (c === ',') { row.push(field); field = ''; }
+                else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+                else if (c === '\r') { /* skip */ }
+                else field += c;
+            }
+        }
+        if (field.length || row.length) { row.push(field); rows.push(row); }
+        return rows;
+    }
+
+    function loadLibrary(done, preserveOptimistic) {
+        if (!preserveOptimistic) {
+            els.countLabel.textContent = '불러오는 중…';
+            els.grid.innerHTML = '<div class="lib-loading"><div class="spinner"></div>구글 시트에서 보관함을 불러오는 중…</div>';
+        }
+        // cache-bust so newly written rows show up
+        fetch(CSV_URL + '&_=' + Date.now())
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(text => {
+                const rows = parseCSV(text).filter(r => r.length && r.some(c => c.trim() !== ''));
+                const sheetItems = [];
+                if (rows.length) {
+                    let start = 0;
+                    const head = rows[0].map(c => c.trim().toLowerCase());
+                    if (head.includes('music_url') || head.includes('music_name') || head[0] === 'no.' || head[0] === 'no') start = 1;
+                    for (let i = start; i < rows.length; i++) {
+                        const r = rows[i];
+                        const no = (r[0] || '').trim();
+                        const name = (r[1] || '').trim();
+                        const url = (r[2] || '').trim();
+                        const time = (r[3] || '').trim();
+                        const id = parseVideoId(url) || parseVideoId(no);
+                        if (!id) continue;
+                        sheetItems.push({ no: no, title: name || '유튜브 영상', url: url, time: time, id: id });
+                    }
+                }
+                sheetItems.reverse(); // newest (bottom of sheet) first
+                if (preserveOptimistic) {
+                    // keep any optimistic (no-numbered) items not yet in the sheet
+                    const sheetIds = new Set(sheetItems.map(v => v.id));
+                    const pendingOnly = library.filter(v => !v.no && !sheetIds.has(v.id));
+                    library = pendingOnly.concat(sheetItems);
+                } else {
+                    library = sheetItems;
+                }
+                renderGrid(); updateControls();
+                if (done) done();
+            })
+            .catch(() => {
+                if (!preserveOptimistic) {
+                    els.grid.innerHTML = '<div class="lib-error">시트를 불러오지 못했습니다. 인터넷 연결 또는 게시 설정을 확인한 뒤 “새로고침”을 눌러주세요.</div>';
+                    els.countLabel.textContent = '오류';
+                }
+                if (done) done();
+            });
+    }
+
+    /* ---------- add flow: link → title modal → sheet ---------- */
+    function beginAdd(rawUrl) {
+        const id = parseVideoId(rawUrl);
+        if (!id) { showToast('유효한 유튜브 링크/ID가 아닙니다', true); els.linkInput.focus(); return; }
+        const fullUrl = /^https?:\/\//.test(rawUrl.trim()) ? rawUrl.trim()
+                        : 'https://www.youtube.com/watch?v=' + id;
+        pending = { id: id, url: fullUrl };
+        els.titleThumb.src = 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg';
+        els.titleInput.value = '';
+        els.timeInput.value = '';
+        els.titleMeta.textContent = 'VIDEO ID ' + id;
+        openModal(els.titleModal);
+        setTimeout(() => els.titleInput.focus(), 60);
+        // try to prefill the title via YouTube oEmbed (no key needed)
+        fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent(fullUrl))
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d && d.title && pending && pending.id === id && !els.titleInput.value) els.titleInput.value = d.title; })
+            .catch(() => {});
+    }
+
+    function savePending() {
+        if (!pending) return;
+        const name = els.titleInput.value.trim();
+        if (!name) { showToast('노래 제목을 입력하세요', true); els.titleInput.focus(); return; }
+        const time = els.timeInput.value.trim();
+        const rec = { music_name: name, music_url: pending.url, music_time: time };
+        const id = pending.id;
+        closeModal(els.titleModal);
+        els.linkInput.value = '';
+
+        // optimistic: show it at the top of the library immediately
+        if (!library.some(v => v.id === id)) {
+            library.unshift({ no: '', title: name, url: pending.url, time: time, id: id });
+            renderGrid(); updateControls();
+        }
+        play(id, name);
+
+        if (!writeUrl) {
+            showToast('임시로 표시했습니다 · 시트 저장은 Apps Script URL이 필요합니다', true);
+            pending = null;
+            return;
+        }
+
+        showToast('시트에 저장 중…');
+        // Apps Script web apps don't send CORS headers, so use no-cors:
+        // we can't read the response, but the row is appended. Then re-read CSV,
+        // retrying until the published CSV reflects the new row (publish lag).
+        fetch(writeUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(rec)
+        }).then(() => {
+            showToast('시트에 저장했습니다');
+            reloadUntil(id, 6);
+        }).catch(() => {
+            showToast('저장 요청은 보냈습니다 · 갱신은 잠시 후 반영됩니다');
+            reloadUntil(id, 6);
+        });
+        pending = null;
+    }
+
+    // reload the CSV repeatedly (publish cache can lag a few seconds) until the
+    // given video id shows up, or attempts run out. Keeps the optimistic card.
+    function reloadUntil(id, attempts) {
+        loadLibrary(() => {
+            if (library.some(v => v.id === id && v.no)) return;  // confirmed from sheet
+            if (attempts > 1) setTimeout(() => reloadUntil(id, attempts - 1), 2500);
+        }, true);   // preserveOptimistic
+    }
+
+    /* ---------- search popup ---------- */
+    // Open the real YouTube site in a new window, sized to fill the screen
+    // (browsers can't force true F11 fullscreen on another window, but a
+    // screen-sized window looks the same). Pick the video URL there and use
+    // the main page's "붙여넣기" → "담기" to add it.
+    function openSearchPopup() {
+        const sw = screen.availWidth || screen.width;
+        const sh = screen.availHeight || screen.height;
+        const w = Math.round(sw * 0.8);
+        const h = Math.round(sh * 0.8);
+        const left = Math.round((sw - w) / 2);
+        const top = Math.round((sh - h) / 2);
+        const win = window.open('https://www.youtube.com', 'ytSite',
+            'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top);
+        if (!win) {
+            window.open('https://www.youtube.com', '_blank', 'noopener');
+            showToast('팝업이 차단되어 새 탭에서 열었습니다', true);
+            return;
+        }
+        try { win.moveTo(left, top); win.resizeTo(w, h); } catch (_) {}
+        win.focus();
+        showToast('유튜브를 열었습니다 · 영상 주소를 복사해 “붙여넣기”로 넣으세요');
+    }
+
+    /* ---------- modal helpers ---------- */
+    function openModal(m) { m.classList.add('show'); m.setAttribute('aria-hidden', 'false'); }
+    function closeModal(m) { m.classList.remove('show'); m.setAttribute('aria-hidden', 'true'); }
+
+    // wiring
+    els.searchLaunch.addEventListener('click', openSearchPopup);
+    els.toggleAddBtn.addEventListener('click', () => {
+        const open = els.addPanel.style.display === 'none';
+        els.addPanel.style.display = open ? 'block' : 'none';
+        els.toggleAddBtn.classList.toggle('open', open);
+        els.toggleAddBtn.textContent = open ? '▾ 닫기' : '＋ 영상 검색 및 추가하기';
+        if (open) els.linkInput.focus();
+    });
+    els.addBtn.addEventListener('click', () => beginAdd(els.linkInput.value));
+    els.reloadLibBtn.addEventListener('click', () => { showToast('보관함을 새로고침합니다'); loadLibrary(); });
+    els.linkInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') beginAdd(els.linkInput.value); });
+
+    // 미리보기 / 정지: play the pasted URL in the player; toggle to stop while playing
+    els.previewBtn.addEventListener('click', () => {
+        const playing = els.previewBtn.classList.contains('active');
+        if (playing) {
+            // act as a stop button
+            if (ytReady && ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+            else els.player.src = 'https://www.youtube-nocookie.com/embed/?enablejsapi=1&rel=0';
+            syncPreviewBtn(-1);
+            return;
+        }
+        const id = parseVideoId(els.linkInput.value);
+        if (!id) { showToast('유효한 유튜브 링크/ID가 아닙니다', true); els.linkInput.focus(); return; }
+        userInteracted = true;        // allow scroll-to-player on an explicit click
+        play(id);
+    });
+
+    els.titleClose.addEventListener('click', () => { pending = null; closeModal(els.titleModal); });
+    els.titleCancel.addEventListener('click', () => { pending = null; closeModal(els.titleModal); });
+    els.titleSave.addEventListener('click', savePending);
+    els.titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') savePending(); });
+    els.titleModal.addEventListener('click', (e) => { if (e.target === els.titleModal) { pending = null; closeModal(els.titleModal); } });
+
+    // delete-confirm modal
+    function closeDel() { deleteTargetId = null; closeModal(els.delModal); }
+    els.delClose.addEventListener('click', closeDel);
+    els.delCancel.addEventListener('click', closeDel);
+    els.delModal.addEventListener('click', (e) => { if (e.target === els.delModal) closeDel(); });
+    els.delConfirm.addEventListener('click', () => {
+        const id = deleteTargetId;
+        closeModal(els.delModal);
+        deleteTargetId = null;
+        if (id) doDelete(id);
+    });
+
+    // edit modal
+    function closeEdit() { editTargetId = null; closeModal(els.editModal); }
+    els.editClose.addEventListener('click', closeEdit);
+    els.editCancel.addEventListener('click', closeEdit);
+    els.editModal.addEventListener('click', (e) => { if (e.target === els.editModal) closeEdit(); });
+    els.editSave.addEventListener('click', saveEdit);
+    els.editTitle.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveEdit(); });
+    els.editTime.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveEdit(); });
+
+    els.saveWriteUrlBtn.addEventListener('click', () => {
+        const u = els.writeUrlInput.value.trim();
+        writeUrl = u;
+        showToast(u ? '시트 쓰기 URL을 적용했습니다' : '쓰기 URL을 비웠습니다');
+    });
+    els.howtoBtn.addEventListener('click', () => { els.gasCode.textContent = GAS_CODE; openModal(els.howtoModal); });
+    els.howtoClose.addEventListener('click', () => closeModal(els.howtoModal));
+    els.howtoDone.addEventListener('click', () => closeModal(els.howtoModal));
+    els.howtoModal.addEventListener('click', (e) => { if (e.target === els.howtoModal) closeModal(els.howtoModal); });
+    els.howtoCopy.addEventListener('click', () => {
+        navigator.clipboard.writeText(GAS_CODE).then(
+            () => showToast('Apps Script 코드를 복사했습니다'),
+            () => showToast('복사에 실패했습니다', true)
+        );
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (els.titleModal.classList.contains('show')) { pending = null; closeModal(els.titleModal); }
+            if (els.howtoModal.classList.contains('show')) closeModal(els.howtoModal);
+            if (els.delModal.classList.contains('show')) { deleteTargetId = null; closeModal(els.delModal); }
+            if (els.editModal.classList.contains('show')) { editTargetId = null; closeModal(els.editModal); }
+        }
+    });
+
+    // init
+    if (writeUrl) els.writeUrlInput.value = writeUrl;
+
+    // load the YouTube IFrame API (enables end-of-video auto-advance)
+    (function loadYT() {
+        if (window.YT && window.YT.Player) { onYTReady(); return; }
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+    })();
+
+    loadLibrary();
+    updateControls();
+})();
+</script>
+</body>
+</html>
