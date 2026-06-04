@@ -205,7 +205,8 @@
     .ci-title {
         font-family: 'Bricolage Grotesque', sans-serif;
         font-weight: 600; font-size: 1.1rem; color: var(--ink);
-        display: inline-block; white-space: nowrap;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        flex: 1 1 auto; min-width: 0;
     }
     .ci-titlewrap.marquee .ci-no { position: absolute; left: 0; top: 0; z-index: 2;
         background: var(--panel-2); padding-right: 6px; }
@@ -1040,8 +1041,8 @@
                 },
                 onStateChange: (e) => {
                     if (e.data === YT.PlayerState.ENDED) advanceAuto();
-                    if (e.data === YT.PlayerState.PLAYING) { hideEmbedError(); syncVolumeToPlayers(); setMediaPlaybackState('playing'); }
-                    if (e.data === YT.PlayerState.PAUSED) setMediaPlaybackState('paused');
+                    if (e.data === YT.PlayerState.PLAYING) { hideEmbedError(); syncVolumeToPlayers(); setMediaPlaybackState('playing'); updatePositionState(); startPositionTicker(); }
+                    if (e.data === YT.PlayerState.PAUSED) { setMediaPlaybackState('paused'); updatePositionState(); stopPositionTicker(); }
                     if (e.data === YT.PlayerState.CUED) { try { ytPlayer.playVideo(); } catch (_) {} }
                     syncPreviewBtn(e.data);
                 },
@@ -1153,6 +1154,26 @@
     // Lets external controls (Bluetooth headsets/car/earbuds, lock screen,
     // notification) drive play / pause / next / prev. Supported on Android
     // Chrome and recent iOS Safari; silently no-ops where unavailable.
+    // move to the next track from an external control: wrap to the top even
+    // when not in repeat mode, so the car's "next" button always does something.
+    function mediaNextTrack() {
+        if (!library.length) { if (current == null) { userInteracted = true; playAll(); } return; }
+        const idx = currentIndex();
+        if (idx === -1) { userInteracted = true; playAll(); return; }
+        let n = nextIndex(idx);
+        if (n === -1) n = (idx + 1) % library.length;   // force wrap-around
+        play(library[n].id);
+    }
+    // move to the previous track from an external control: wrap to the end.
+    function mediaPrevTrack() {
+        if (!library.length) return;
+        const idx = currentIndex();
+        if (idx === -1) { userInteracted = true; playAll(); return; }
+        if (shuffle) { const n = nextIndex(idx); if (n !== -1) play(library[n].id); return; }
+        const p = idx > 0 ? idx - 1 : library.length - 1;   // force wrap-around
+        play(library[p].id);
+    }
+
     function setupMediaSession() {
         if (!('mediaSession' in navigator)) return;
         try {
@@ -1163,16 +1184,52 @@
             navigator.mediaSession.setActionHandler('pause', () => {
                 if (ytReady && ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
             });
-            navigator.mediaSession.setActionHandler('previoustrack', () => {
-                els.prevBtn.click();
-            });
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-                els.nextBtn.click();
-            });
+            // call navigation directly (don't rely on a possibly-disabled button)
+            navigator.mediaSession.setActionHandler('previoustrack', () => { mediaPrevTrack(); });
+            navigator.mediaSession.setActionHandler('nexttrack', () => { mediaNextTrack(); });
+            // some head units expose seek instead of (or as well as) track skip
+            try { navigator.mediaSession.setActionHandler('seekforward', (d) => {
+                seekRelative((d && d.seekOffset) || 10);
+            }); } catch (_) {}
+            try { navigator.mediaSession.setActionHandler('seekbackward', (d) => {
+                seekRelative(-((d && d.seekOffset) || 10));
+            }); } catch (_) {}
+            try { navigator.mediaSession.setActionHandler('seekto', (d) => {
+                if (d && typeof d.seekTime === 'number' && ytReady && ytPlayer && ytPlayer.seekTo) {
+                    ytPlayer.seekTo(d.seekTime, true); updatePositionState();
+                }
+            }); } catch (_) {}
             // stop is optional; map it to pause where the platform shows it
             try { navigator.mediaSession.setActionHandler('stop', () => {
                 if (ytReady && ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
             }); } catch (_) {}
+        } catch (_) {}
+    }
+
+    function seekRelative(delta) {
+        if (!(ytReady && ytPlayer && ytPlayer.seekTo && ytPlayer.getCurrentTime)) return;
+        try {
+            const t = (ytPlayer.getCurrentTime() || 0) + delta;
+            ytPlayer.seekTo(Math.max(0, t), true);
+            updatePositionState();
+        } catch (_) {}
+    }
+
+    // Report duration/position so car head units & steering-wheel remotes
+    // recognise this as a real media track and enable their transport controls.
+    function updatePositionState() {
+        if (!('mediaSession' in navigator) || !navigator.mediaSession.setPositionState) return;
+        if (!(ytReady && ytPlayer && ytPlayer.getDuration && ytPlayer.getCurrentTime)) return;
+        try {
+            const dur = ytPlayer.getDuration() || 0;
+            const pos = ytPlayer.getCurrentTime() || 0;
+            if (dur > 0 && pos >= 0 && pos <= dur) {
+                navigator.mediaSession.setPositionState({
+                    duration: dur,
+                    playbackRate: 1,
+                    position: pos
+                });
+            }
         } catch (_) {}
     }
 
@@ -1192,6 +1249,15 @@
                 artwork: art
             });
         } catch (_) {}
+    }
+
+    let positionTicker = null;
+    function startPositionTicker() {
+        stopPositionTicker();
+        positionTicker = setInterval(updatePositionState, 5000);
+    }
+    function stopPositionTicker() {
+        if (positionTicker) { clearInterval(positionTicker); positionTicker = null; }
     }
 
     function setMediaPlaybackState(state) {
@@ -1274,16 +1340,7 @@
         title.style.removeProperty('--ci-shift');
         title.style.removeProperty('--ci-dur');
         // compare rendered text width against the available track width
-        const overflow = title.scrollWidth - wrap.clientWidth;
-        if (overflow > 4) {
-            wrap.classList.add('marquee');
-            // scroll the full text width plus a small gap, then loop
-            const shift = title.scrollWidth + 24;
-            title.style.setProperty('--ci-shift', '-' + shift + 'px');
-            // speed: ~40px per second, with a sensible minimum duration
-            const dur = Math.max(6, shift / 40);
-            title.style.setProperty('--ci-dur', dur + 's');
-        }
+        // marquee disabled: long titles stay static and truncate with an ellipsis
     }
     window.addEventListener('resize', () => {
         if (els.playerShell.classList.contains('collapsed')) setupMarquee();
