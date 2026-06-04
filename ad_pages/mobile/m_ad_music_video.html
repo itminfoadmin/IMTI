@@ -124,6 +124,28 @@
     .embed-error .ee-msg { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.6; margin-bottom: 10px; max-width: 360px; }
     .embed-error .ee-link { color: #cfcfd6; font-size: 0.9rem; text-decoration: underline; }
     .embed-error .ee-link:hover { color: var(--accent); }
+    /* "동영상 닫기" toggle under the player — matches the add bar button look */
+    .toggle-video {
+        width: 100%; margin: 16px 0 0; padding: 13px;
+        border: 1px solid var(--line); border-radius: 11px; cursor: pointer;
+        background: var(--panel-2); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 1rem; font-weight: 600;
+        transition: filter 0.16s, transform 0.1s, background 0.16s, color 0.16s;
+    }
+    .toggle-video:hover { background: var(--line); color: var(--ink); }
+    .toggle-video:active { transform: translateY(1px); }
+
+    /* collapsed: keep the iframe playing but hide it; shrink the frame to a
+       slim bar matching the add button's width/height */
+    .player-shell.collapsed .player-frame {
+        aspect-ratio: auto; height: 0; min-height: 0;
+        padding: 0; border: none; box-shadow: none;
+        overflow: hidden; visibility: hidden;
+    }
+    .player-shell.collapsed .now-title,
+    .player-shell.collapsed .now-meta { display: none !important; }
+    .player-shell.collapsed .toggle-video { margin-top: 0; }
+
     .now-title {
         margin-top: 16px;
         font-family: 'Bricolage Grotesque', sans-serif;
@@ -415,17 +437,26 @@
 
     @media (max-width: 540px) {
         .ctrl-search .cs-tx { display: none; }
-        .controls { gap: 7px; }
 
         /* tighten outer spacing on phones */
         .stage {
-            padding: calc(20px + var(--safe-top)) calc(16px + var(--safe-right)) calc(40px + var(--safe-bottom)) calc(16px + var(--safe-left));
-            gap: 20px;
+            padding: calc(16px + var(--safe-top)) calc(14px + var(--safe-right)) calc(40px + var(--safe-bottom)) calc(14px + var(--safe-left));
+            gap: 16px;
         }
 
-        /* video keeps its 16:9 ratio but fills the width */
+        /* video keeps its 16:9 ratio but fills the full width */
         .player-frame { border-radius: 12px; }
-        .now-title { font-size: 1.1rem; margin-top: 14px; }
+        .now-title { font-size: 1.08rem; margin-top: 14px; line-height: 1.3; }
+        .now-meta { margin-top: 5px; }
+        .toggle-video { font-size: 1.02rem; padding: 14px; margin-top: 14px; }
+
+        /* control bar: equal-width, thumb-friendly transport buttons */
+        .controls { gap: 6px; padding: 9px; }
+        .controls .ctrl-btn {
+            flex: 1 1 0; min-width: 0; min-height: 46px; padding: 10px 6px;
+        }
+        .ctrl-spacer { display: none; }
+        .pos-label { width: 100%; text-align: center; order: 9; padding-top: 2px; }
 
         /* add panel: stack the link input full-width, buttons in a tidy row */
         .addrow { gap: 8px; }
@@ -445,8 +476,6 @@
 
         /* playlist box: less inner padding so cards have room */
         .playlist-box { padding: 11px; border-radius: 13px; }
-        .controls { padding: 9px 10px; }
-        .ctrl-btn { padding: 10px 13px; }      /* comfortable thumb targets */
 
         /* library list rows */
         .card.row { padding: 12px; gap: 10px; }
@@ -483,8 +512,17 @@
 
     /* very narrow phones / split view */
     @media (max-width: 380px) {
+        .stage { padding-left: calc(11px + var(--safe-left)); padding-right: calc(11px + var(--safe-right)); }
         .sec-title { font-size: 1.3rem; }
-        .ctrl-btn { padding: 9px 10px; font-size: 0.95rem; }
+        .controls .ctrl-btn { min-height: 44px; font-size: 0.95rem; }
+        .now-title { font-size: 1rem; }
+        .card-title { font-size: 0.88rem; }
+    }
+
+    /* landscape phones: cap the player height so controls stay reachable */
+    @media (max-height: 480px) and (orientation: landscape) {
+        .player-frame { aspect-ratio: auto; height: 62vh; max-height: 62vh; }
+        .stage { padding-top: calc(12px + var(--safe-top)); }
     }
 </style>
 </head>
@@ -530,6 +568,7 @@
         </div>
         <div class="now-title" id="nowTitle" style="display:none;"></div>
         <div class="now-meta" id="nowMeta" style="display:none;"></div>
+        <button id="toggleVideoBtn" class="toggle-video">▾ 동영상 닫기</button>
     </div>
 
     <!-- ===== 3) playlist: controls + library in one bordered box ===== -->
@@ -676,6 +715,7 @@
         // search launch (popup) + add-by-link
         searchLaunch: document.getElementById('searchLaunch'),
         toggleAddBtn: document.getElementById('toggleAddBtn'),
+        toggleVideoBtn: document.getElementById('toggleVideoBtn'),
         addPanel: document.getElementById('addPanel'),
         linkInput: document.getElementById('linkInput'),
         reloadLibBtn: document.getElementById('reloadLibBtn'),
@@ -933,7 +973,9 @@
         const idx = currentIndex();
         const has = current != null;
         const inLib = idx !== -1;
-        els.playPauseBtn.disabled = !has;
+        // play button is usable when something is loaded OR the library has items
+        // (so the very first press can start from the top of the library)
+        els.playPauseBtn.disabled = !has && library.length === 0;
         els.prevBtn.disabled = !inLib || (idx <= 0 && !repeat && !shuffle);
         els.nextBtn.disabled = !inLib || (idx >= library.length - 1 && !repeat && !shuffle);
         els.posLabel.textContent = inLib ? (idx + 1) + ' / ' + library.length : (has ? '목록에 없음' : '—');
@@ -953,6 +995,8 @@
         if (n !== -1) play(library[n].id);
     });
     els.playPauseBtn.addEventListener('click', () => {
+        // nothing loaded yet → start the library from the top (first item)
+        if (current == null) { userInteracted = true; playAll(); return; }
         if (!ytReady || !ytPlayer) { if (current) play(current); return; }
         const st = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
         if (st === (YT.PlayerState ? YT.PlayerState.PLAYING : 1)) {
@@ -1254,6 +1298,10 @@
 
     // wiring
     els.searchLaunch.addEventListener('click', openSearchPopup);
+    els.toggleVideoBtn.addEventListener('click', () => {
+        const collapsed = els.playerShell.classList.toggle('collapsed');
+        els.toggleVideoBtn.textContent = collapsed ? '▸ 동영상 열기' : '▾ 동영상 닫기';
+    });
     els.toggleAddBtn.addEventListener('click', () => {
         const open = els.addPanel.style.display === 'none';
         els.addPanel.style.display = open ? 'block' : 'none';
