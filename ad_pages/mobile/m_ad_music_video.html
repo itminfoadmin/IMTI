@@ -217,16 +217,19 @@
         0%   { transform: translateX(0); }
         100% { transform: translateX(var(--ci-shift, -100%)); }
     }
+    .ci-timeline {
+        display: flex; align-items: baseline; justify-content: space-between;
+        gap: 10px; margin-top: 7px; width: 100%;
+    }
     .ci-time {
-        display: block; margin-top: 7px;
         font-family: 'DM Mono', monospace; font-size: 0.74rem;
         color: var(--ink-soft); letter-spacing: 0.03em;
         font-variant-numeric: tabular-nums;
     }
     .ci-date {
-        display: block; margin-top: 5px;
         font-family: 'DM Mono', monospace; font-size: 0.7rem;
         color: var(--gray); letter-spacing: 0.05em;
+        text-align: right; white-space: nowrap; flex-shrink: 0;
     }
     /* don't let the button's hover recolor the info text */
     .toggle-video:hover .ci-title { color: var(--ink); }
@@ -706,8 +709,10 @@
                     <span class="ci-no" id="ciNo"></span>
                     <span class="ci-title" id="ciTitle"></span>
                 </span>
-                <span class="ci-time" id="ciTime">0:00 / 0:00</span>
-                <span class="ci-date" id="ciDate"></span>
+                <span class="ci-timeline">
+                    <span class="ci-time" id="ciTime">0:00 / 0:00</span>
+                    <span class="ci-date" id="ciDate"></span>
+                </span>
             </span>
         </button>
     </div>
@@ -1035,7 +1040,8 @@
                 },
                 onStateChange: (e) => {
                     if (e.data === YT.PlayerState.ENDED) advanceAuto();
-                    if (e.data === YT.PlayerState.PLAYING) { hideEmbedError(); syncVolumeToPlayers(); }
+                    if (e.data === YT.PlayerState.PLAYING) { hideEmbedError(); syncVolumeToPlayers(); setMediaPlaybackState('playing'); }
+                    if (e.data === YT.PlayerState.PAUSED) setMediaPlaybackState('paused');
                     if (e.data === YT.PlayerState.CUED) { try { ytPlayer.playVideo(); } catch (_) {} }
                     syncPreviewBtn(e.data);
                 },
@@ -1139,7 +1145,58 @@
         currentItem = item || { no: '', title: title || '', time: '', id: id };
         renderCollapsedInfo();
         updateControls();
+        updateMediaSession();
         keepScroll(keepY);
+    }
+
+    /* ---------- 블루투스/잠금화면 미디어 컨트롤 (Media Session API) ---------- */
+    // Lets external controls (Bluetooth headsets/car/earbuds, lock screen,
+    // notification) drive play / pause / next / prev. Supported on Android
+    // Chrome and recent iOS Safari; silently no-ops where unavailable.
+    function setupMediaSession() {
+        if (!('mediaSession' in navigator)) return;
+        try {
+            navigator.mediaSession.setActionHandler('play', () => {
+                if (current == null) { userInteracted = true; playAll(); return; }
+                if (ytReady && ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+            });
+            navigator.mediaSession.setActionHandler('pause', () => {
+                if (ytReady && ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+            });
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                els.prevBtn.click();
+            });
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                els.nextBtn.click();
+            });
+            // stop is optional; map it to pause where the platform shows it
+            try { navigator.mediaSession.setActionHandler('stop', () => {
+                if (ytReady && ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+            }); } catch (_) {}
+        } catch (_) {}
+    }
+
+    function updateMediaSession() {
+        if (!('mediaSession' in navigator)) return;
+        if (!currentItem) return;
+        try {
+            const vid = parseVideoId(currentItem.url || '') || parseVideoId(currentItem.id || '') || current;
+            const art = vid ? [
+                { src: 'https://i.ytimg.com/vi/' + vid + '/mqdefault.jpg', sizes: '320x180', type: 'image/jpeg' },
+                { src: 'https://i.ytimg.com/vi/' + vid + '/hqdefault.jpg', sizes: '480x360', type: 'image/jpeg' }
+            ] : [];
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: currentItem.title || '(제목 없음)',
+                artist: currentItem.no ? ('No. ' + currentItem.no) : '스트림 데스크',
+                album: '스트림 데스크',
+                artwork: art
+            });
+        } catch (_) {}
+    }
+
+    function setMediaPlaybackState(state) {
+        if (!('mediaSession' in navigator)) return;
+        try { navigator.mediaSession.playbackState = state; } catch (_) {}
     }
 
     function stopYouTube() {
@@ -1749,6 +1806,7 @@
 
     loadLibrary();
     updateControls();
+    setupMediaSession();
 })();
 </script>
 </body>
