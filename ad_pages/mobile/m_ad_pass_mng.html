@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - P/W Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ad_common.css">
+    <style>
+        .main {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            margin: 24px; border: 1px dashed #fff; border-radius: 2px;
+            padding: 60px 36px;
+            padding-bottom: calc(60px + 30vh);
+        }
+        .pw-card { width: 560px; display: flex; flex-direction: column; }
+        .pw-card-title {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+            color: var(--gray-mid); text-transform: uppercase;
+            margin-bottom: 32px; text-align: center;
+        }
+        .field-row {
+            display: flex; align-items: center;
+            border-top: 1px dashed #e9ecef;
+            min-height: 52px; gap: 16px;
+        }
+        .field-row:last-of-type { border-bottom: 1px dashed #e9ecef; }
+        .field-label {
+            font-family: 'Gowun Batang', serif; font-size: 0.78rem;
+            font-weight: 700; letter-spacing: 0.05em;
+            color: var(--gray-dark); padding: 12px 0;
+            text-align: right; white-space: nowrap;
+            width: 200px; flex-shrink: 0;
+        }
+        .field-value { font-family: 'Gowun Batang', serif; font-size: 0.78rem; color: var(--gray-text); padding: 8px 0; flex: 1; }
+        .field-value input {
+            width: 100%; background: none; border: none; outline: none;
+            border-bottom: 1px solid #e9ecef;
+            font-family: 'Gowun Batang', serif; font-size: 0.82rem;
+            color: var(--gray-text); padding: 4px 0; transition: border-color 0.2s;
+        }
+        .field-value input:focus { border-bottom-color: var(--accent); }
+        .pw-submit-wrap { margin-top: 40px; display: flex; justify-content: center; }
+        .pw-submit-btn {
+            background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px;
+            padding: 10px 56px;
+            font-family: 'Gowun Batang', serif; font-size: 0.82rem;
+            font-weight: 700; letter-spacing: 0.06em;
+            color: var(--gray-mid); cursor: not-allowed;
+            transition: all 0.2s; opacity: 0.5;
+        }
+        .pw-submit-btn.active { color: var(--gray-text); border-color: var(--gray-text); cursor: pointer; opacity: 1; }
+        .pw-submit-btn.active:hover { background: var(--gray-text); color: #fff; }
+    </style>
+
+    <style id="m-responsive">
+        /* ── Mobile layout reset (PC navbar removed) ── */
+        html, body { height: auto; min-height: 100%; overflow-x: hidden; }
+        body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
+        .page-body {
+            height: auto !important; max-height: none !important;
+            overflow: visible !important; display: block !important;
+        }
+        .main {
+            margin: 12px !important;
+            padding: 16px 12px !important;
+            border: none !important;
+        }
+        /* Horizontal scroll container for wide data tables */
+        #table-area { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .member-table { width: 100%; min-width: 640px; font-size: 0.72rem; }
+        .member-table th, .member-table td { padding: 8px 8px; }
+        /* Popups: keep within viewport on small screens */
+        .adm-modal-box, .popup-box, .view-popup-box, .del-modal-box {
+            width: 92vw !important; max-width: 92vw !important;
+        }
+        .popup-box { padding: 40px 22px 28px !important; }
+        .adm-modal-body, .view-popup-body { padding-left: 20px !important; padding-right: 20px !important; }
+        .adm-modal-footer, .view-popup-footer { padding-left: 18px !important; padding-right: 18px !important; }
+        .adm-info-table td:first-child { width: 92px; }
+        .popup-btn-row { flex-wrap: wrap; justify-content: center; }
+        .popup-cancel-btn, .popup-confirm-btn { padding: 10px 32px !important; }
+    </style>
+
+    <style>
+        .main { padding: 32px 16px calc(32px + 20vh) !important; justify-content: flex-start !important; }
+        .pw-card { width: 100% !important; max-width: 460px; }
+        .field-row { flex-direction: column; align-items: stretch; gap: 4px; min-height: 0; padding: 12px 0; }
+        .field-label { width: auto !important; text-align: left !important; padding: 0 0 2px !important; }
+        .field-value { width: 100%; }
+        .pw-submit-btn { padding: 12px 32px !important; width: 100%; }
+    </style>
+
+</head>
+<body>
+
+<!-- Mobile navbar injected here -->
+<div id="m-navbar-mount"></div>
+<script>
+/* Load the mobile navbar fragment */
+fetch('m_ad_navbar.html')
+    .then(r => r.text())
+    .then(html => {
+        const mount = document.getElementById('m-navbar-mount');
+        mount.innerHTML = html;
+        mount.querySelectorAll('script').forEach(old => {
+            const s = document.createElement('script');
+            if (old.src) s.src = old.src; else s.textContent = old.textContent;
+            document.body.appendChild(s);
+        });
+    })
+    .catch(err => console.error('navbar load error:', err));
+</script>
+
+
+<div class="main">
+    <div class="pw-card">
+        <div class="pw-card-title">Admin P/W Management</div>
+
+        <div class="field-row">
+            <div class="field-label">e-mail : </div>
+            <div class="field-value">
+                <input type="email" id="inp-email" autocomplete="off" oninput="onFieldInput()">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field-label">Current Password : </div>
+            <div class="field-value">
+                <input type="password" id="inp-cur-pw" autocomplete="off" oninput="onFieldInput()">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field-label">New Password : </div>
+            <div class="field-value">
+                <input type="password" id="inp-new-pw" autocomplete="off" oninput="onFieldInput()">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field-label">New Password(confirm) : </div>
+            <div class="field-value">
+                <input type="password" id="inp-new-pw2" autocomplete="off" oninput="onFieldInput()">
+            </div>
+        </div>
+
+        <div class="pw-submit-wrap">
+            <button class="pw-submit-btn" id="pw-submit-btn" onclick="onSubmitClick()" disabled>
+                Change Admin Password
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: Input Error -->
+<div class="popup-overlay" id="popup-inputerror">
+    <div class="popup-box">
+        <p class="popup-message">You must enter the information correctly<br>for your password to be changed.</p>
+        <div class="popup-btn-row">
+            <button class="popup-confirm-btn" onclick="closePopup('popup-inputerror')">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: Confirm -->
+<div class="popup-overlay" id="popup-confirm">
+    <div class="popup-box">
+        <p class="popup-message">Are you sure you want to change<br>the administrator password?</p>
+        <div class="popup-btn-row">
+            <button class="popup-confirm-btn" id="confirm-btn" onclick="onConfirmClick()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: Reconfirm -->
+<div class="popup-overlay" id="popup-reconfirm">
+    <div class="popup-box">
+        <p class="popup-message">Are you sure you want to change<br>the administrator password?</p>
+        <div id="reconfirm-result" class="popup-result"></div>
+        <div class="popup-btn-row">
+            <button class="popup-confirm-btn danger" id="reconfirm-btn" onclick="onReconfirmClick()">Reconfirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: Success -->
+<div class="popup-overlay" id="popup-success">
+    <div class="popup-box">
+        <p class="popup-message">
+            The administrator password has been changed.<br>
+            Please let the other administrators know the new password<br>
+            right away—otherwise, they might really get sulky!
+        </p>
+        <div class="popup-btn-row">
+            <button class="popup-confirm-btn" onclick="onSuccessClose()">O.K.</button>
+        </div>
+    </div>
+</div>
+
+<script>window.__skipPCNavbar = true;</script>
+<script src="ad_common.js"></script>
+<script>
+    let _pendingNewPw = '';
+
+    function onFieldInput() {
+        const email  = document.getElementById('inp-email').value.trim();
+        const curPw  = document.getElementById('inp-cur-pw').value;
+        const newPw  = document.getElementById('inp-new-pw').value;
+        const newPw2 = document.getElementById('inp-new-pw2').value;
+        const active = email && curPw && newPw && newPw2 && newPw === newPw2 && newPw !== curPw;
+        const btn = document.getElementById('pw-submit-btn');
+        btn.disabled = !active;
+        btn.classList.toggle('active', active);
+    }
+
+    async function onSubmitClick() {
+        const email = document.getElementById('inp-email').value.trim();
+        const curPw = document.getElementById('inp-cur-pw').value;
+        const newPw = document.getElementById('inp-new-pw').value;
+        const btn   = document.getElementById('pw-submit-btn');
+        btn.disabled = true;
+        btn.classList.remove('active');
+        btn.textContent = 'Verifying...';
+        try {
+            const hash = await sha256(curPw);
+            const res  = await gasJsonp(GAS_URL, { action: 'adminLogin', email, password: hash, ip: '' }, 'pscb');
+            if (res && res.status === 'OK') {
+                _pendingNewPw = newPw;
+                btn.textContent = 'Change Admin Password';
+                openPopup('popup-confirm');
+            } else {
+                btn.textContent = 'Change Admin Password';
+                btn.disabled = false;
+                btn.classList.add('active');
+                openPopup('popup-inputerror');
+            }
+        } catch (e) {
+            btn.textContent = 'Change Admin Password';
+            btn.disabled = false;
+            btn.classList.add('active');
+            openPopup('popup-inputerror');
+        }
+    }
+
+    function onConfirmClick() {
+        closePopup('popup-confirm');
+        document.getElementById('reconfirm-result').textContent = '';
+        document.getElementById('reconfirm-result').className = 'popup-result';
+        const btn = document.getElementById('reconfirm-btn');
+        btn.disabled = false;
+        btn.textContent = 'Reconfirm';
+        openPopup('popup-reconfirm');
+    }
+
+    async function onReconfirmClick() {
+        const btn = document.getElementById('reconfirm-btn');
+        const resultEl = document.getElementById('reconfirm-result');
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+        resultEl.textContent = '';
+        resultEl.className = 'popup-result';
+        const email = document.getElementById('inp-email').value.trim();
+        try {
+            const newHash = await sha256(_pendingNewPw);
+            const res = await gasJsonp(GAS_URL, { action: 'changeAdminPw', email, newpw: newHash }, 'pscb');
+            if (res && res.status === 'OK') {
+                closePopup('popup-reconfirm');
+                openPopup('popup-success');
+            } else {
+                resultEl.textContent = 'Failed: ' + (res && res.status || 'ERROR');
+                resultEl.className = 'popup-result err';
+                btn.disabled = false;
+                btn.textContent = 'Reconfirm';
+            }
+        } catch (e) {
+            resultEl.textContent = 'Failed to change password. Please try again.';
+            resultEl.className = 'popup-result err';
+            btn.disabled = false;
+            btn.textContent = 'Reconfirm';
+        }
+    }
+
+    function onSuccessClose() {
+        closePopup('popup-success');
+        _pendingNewPw = '';
+        ['inp-email', 'inp-cur-pw', 'inp-new-pw', 'inp-new-pw2'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        onFieldInput();
+    }
+
+    function openPopup(id)  { document.getElementById(id).classList.add('active'); }
+    function closePopup(id) { document.getElementById(id).classList.remove('active'); }
+</script>
+</body>
+</html>

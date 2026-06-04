@@ -1,0 +1,2306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - MTI Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ad_common.css">
+    <style>
+        
+        /* padding override only — rest from ad_common.css .page-body */
+        .page-body { padding: 20px 36px; gap: 0; }
+        .align-bar, .list-area { width: 72%; margin-left: auto; margin-right: auto; }
+
+        
+        .card {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 145px 1fr;
+            align-items: center;
+            border-bottom: 1px solid #f1f3f5;
+            min-height: 48px;
+        }
+        .field-row:last-child { border-bottom: none; }
+
+        .field-label {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #495057;
+            padding: 8px 14px;
+            text-align: right;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .field-content {
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            row-gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Name row */
+        .name-row .field-content {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+            padding: 6px 12px;
+        }
+
+        input[type="text"], input[type="url"] {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.84rem;
+            color: #343a40;
+            border: 1px dashed #ced4da;
+            border-radius: 3px;
+            padding: 9px 10px;
+            outline: none;
+            background: #fff;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus, input[type="url"]:focus {
+            border-color: #868e96;
+            border-style: solid;
+        }
+        input::placeholder { color: #adb5bd; font-size: 0.82rem; }
+
+        /* Orientation dropdown */
+        .orientation-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        select.orientation-select {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.84rem;
+            color: #343a40;
+            border: 1px dashed #ced4da;
+            border-radius: 3px;
+            padding: 13px 25px;
+            outline: none;
+            background: #fff;
+            cursor: pointer;
+            min-width: 160px;
+        }
+        select.orientation-select:focus { border-color: #868e96; border-style: solid; }
+
+        
+        .competency-wrap {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .comp-label {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #495057;
+            margin-right: 6px;
+            white-space: nowrap;
+        }
+        .check-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.82rem;
+            color: #495057;
+            white-space: nowrap;
+            cursor: pointer;
+            min-width: 200px;
+            margin-right: 0;
+        }
+        .check-item input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
+            accent-color: #495057;
+        }
+
+        
+        .participants-wrap {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0;
+            row-gap: 8px;
+        }
+
+        /* Button group (right of Name row) */
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .btn {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 7px 18px;
+            border-radius: 4px;
+            border: 1px solid #868e96;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: #fff;
+            color: #868e96;
+        }
+        .btn:hover { background: #868e96; color: #fff; border-color: #868e96; }
+        .btn-apply  { border-color: #868e96; color: #868e96; }
+        .btn-apply:hover  { background: #868e96; color: #fff; }
+        .btn-delete { border-color: #868e96; color: #868e96; }
+        .btn-delete:hover { background: #868e96; color: #fff; border-color: #868e96; }
+        .btn-modify { border-color: #868e96; color: #868e96; }
+        .btn-modify:hover { background: #868e96; color: #fff; border-color: #868e96; }
+
+        /* Align button bar */
+        .align-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            margin-bottom: 40px;
+            flex-shrink: 0;
+        }
+        .btn-align {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 7px 20px;
+            border-radius: 4px;
+            border: 1px solid #adb5bd;
+            cursor: pointer;
+            background: #fff;
+            color: #495057;
+            transition: all 0.15s;
+        }
+        .btn-align:hover { background: #495057; color: #fff; border-color: #495057; }
+        .btn-add-new { border-color: #343a40; background: #343a40; color: #fff; font-weight: 900; letter-spacing: 0.06em; }
+        .btn-add-new:hover { background: #212529; color: #fff; border-color: #212529; }
+        .btn-searching-mti { border-color: #495057; background: #495057; color: #fff; font-weight: 900; letter-spacing: 0.06em; }
+        .btn-searching-mti:hover { background: #343a40; color: #fff; border-color: #343a40; }
+
+        /* List area (scrollable) */
+        .list-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-height: 0;
+            padding-right: 2px;
+            padding-bottom: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #dee2e6 transparent;
+        }
+        .list-area::-webkit-scrollbar { display: none; }
+        .list-area { scrollbar-width: none; -ms-overflow-style: none; }
+
+        /* Add-New-MTI modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 1000;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 0;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            width: 72%;
+            max-width: none;
+            min-width: 480px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            position: absolute;   /* absolute for dragging */
+            cursor: default;
+            user-select: none;
+        }
+        .modal-header {
+            cursor: grab;         
+        }
+        .modal-header:active {
+            cursor: grabbing;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 20px 20px 24px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .modal-title {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #343a40;
+        }
+        .modal-close-btn {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 4px;
+            border: 1px solid #adb5bd;
+            cursor: pointer;
+            background: #fff;
+            color: #868e96;
+            transition: all 0.15s;
+        }
+        .modal-close-btn:hover { background: #868e96; color: #fff; border-color: #868e96; }
+        .modal-body { padding: 8px 0 28px; }
+        .modal-field-row {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            align-items: center;
+            border-bottom: 1px solid #f1f3f5;
+            min-height: 66px;
+        }
+        .modal-field-row:last-child { border-bottom: none; }
+        .modal-has-btn { grid-template-columns: 130px 1fr auto; }
+        .modal-field-label {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #495057;
+            padding: 12px 18px;
+            text-align: right;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            white-space: nowrap;
+        }
+        .modal-field-content {
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            row-gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-add-orient {
+            white-space: nowrap;
+            flex-shrink: 0;
+            padding: 13px 18px !important;
+        }
+        
+        #add-modal input[type="text"],
+        #add-modal input[type="url"] {
+            padding: 14px 12px;
+            font-size: 0.86rem;
+        }
+        
+        #add-modal .check-item {
+            min-width: 240px;
+        }
+        
+        #add-modal .btn,
+        #add-modal .btn-apply {
+            padding: 13px 18px;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            padding: 10px 16px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+
+        
+        .item-card {
+            background: #f0f4e8;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .item-name-row {
+            display: grid;
+            grid-template-columns: 145px 1fr auto;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+            min-height: 52px;
+        }
+        .item-field-row {
+            display: grid;
+            grid-template-columns: 145px 1fr;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+            min-height: 50px;
+        }
+        .item-field-row.has-btn {
+            grid-template-columns: 145px 1fr auto;
+        }
+        .item-field-row:last-child { border-bottom: none; }
+
+        .item-label {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #495057;
+            padding: 6px 14px;
+            text-align: right;
+            background: rgba(255,255,255,0.5);
+            border-right: 1px solid #dee2e6;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .item-value {
+            padding: 7px 12px;
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.92rem;
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: #343a40;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .item-name-value {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #343a40;
+        }
+        .item-id {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #343a40;
+            padding: 0 10px;
+            white-space: nowrap;
+        }
+        .item-btn-group {
+            display: flex;
+            gap: 4px;
+            padding: 4px 10px;
+            flex-shrink: 0;
+        }
+
+        
+        .check-readonly {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.88rem;
+            color: #495057;
+            min-width: 220px;
+            margin-right: 0;
+            white-space: nowrap;
+        }
+
+        
+        .item-detail { display: none; }
+        .item-detail.open { display: block; }
+        .btn-open  { border-color: #868e96; color: #868e96; }
+        .btn-open:hover  { background: #868e96; color: #fff; border-color: #868e96; }
+        .btn-close { border-color: #868e96; color: #868e96; }
+        .btn-close:hover { background: #868e96; color: #fff; border-color: #868e96; }
+
+        
+        
+        .item-card.editing { border-color: #495057; border-width: 2px; }
+
+        
+        .item-edit-bar {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 0 10px;
+        }
+        .item-card.editing .item-edit-bar { display: flex; }
+        .item-card.editing .item-modify-bar { display: none; }
+
+        
+        .view-val { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; width: 100%; }
+        .edit-val { display: none; width: 100%; }
+        .item-card.editing .view-val { display: none; }
+        .item-card.editing .edit-val { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+        
+        .edit-val input[type="text"],
+        .edit-val input[type="url"],
+        .edit-val select {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.82rem;
+            color: #343a40;
+            border: 1px dashed #adb5bd;
+            border-radius: 3px;
+            padding: 7px 10px;
+            outline: none;
+            background: #fff;
+            transition: border-color 0.2s;
+        }
+        .edit-val input[type="text"]:focus,
+        .edit-val input[type="url"]:focus,
+        .edit-val select:focus { border-color: #495057; border-style: solid; }
+        .edit-val input[type="text"] { width: 100%; }
+        .edit-val input[type="url"]  { flex: 1; min-width: 0; }
+        .edit-val select { min-width: 150px; cursor: pointer; }
+
+        
+        .edit-val .check-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.82rem;
+            color: #495057;
+            white-space: nowrap;
+            cursor: pointer;
+            min-width: 220px;
+            margin-right: 0;
+        }
+        .edit-val .check-item input[type="checkbox"] { width: auto; cursor: pointer; accent-color: #495057; }
+
+        /* Google Docs Viewer Modal */
+        .docs-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .docs-overlay.active { display: flex; }
+        .docs-box {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.28);
+            width: 90%;
+            height: 90vh;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+        }
+        .docs-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+        }
+        .docs-title {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.80rem;
+            font-weight: 700;
+            color: #343a40;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80%;
+        }
+        .docs-iframe-wrap {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            min-height: 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .docs-iframe-wrap::-webkit-scrollbar { display: none; }
+        .docs-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        
+        .empty-msg {
+            text-align: center;
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.78rem;
+            color: #adb5bd;
+            padding: 40px 0;
+            letter-spacing: 0.08em;
+        }
+    </style>
+
+    <style id="m-responsive">
+        /* ── Mobile layout reset (PC navbar removed) ── */
+        html, body { height: auto; min-height: 100%; overflow-x: hidden; }
+        body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
+        .page-body {
+            height: auto !important; max-height: none !important;
+            overflow: visible !important; display: block !important;
+        }
+        .main {
+            margin: 12px !important;
+            padding: 16px 12px !important;
+            border: none !important;
+        }
+        /* Horizontal scroll container for wide data tables */
+        #table-area { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .member-table { width: 100%; min-width: 640px; font-size: 0.72rem; }
+        .member-table th, .member-table td { padding: 8px 8px; }
+        /* Popups: keep within viewport on small screens */
+        .adm-modal-box, .popup-box, .view-popup-box, .del-modal-box {
+            width: 92vw !important; max-width: 92vw !important;
+        }
+        .popup-box { padding: 40px 22px 28px !important; }
+        .adm-modal-body, .view-popup-body { padding-left: 20px !important; padding-right: 20px !important; }
+        .adm-modal-footer, .view-popup-footer { padding-left: 18px !important; padding-right: 18px !important; }
+        .adm-info-table td:first-child { width: 92px; }
+        .popup-btn-row { flex-wrap: wrap; justify-content: center; }
+        .popup-cancel-btn, .popup-confirm-btn { padding: 10px 32px !important; }
+    </style>
+
+    <style>
+        body { height: auto !important; overflow: visible !important; }
+        .page-body { padding: 12px !important; }
+        .main { margin: 0 !important; padding: 0 !important; }
+        table { max-width: 100%; }
+    </style>
+
+    <style id="m-mti-mobile">
+        @media (max-width: 760px) {
+            /* Full-width content columns */
+            .align-bar, .list-area { width: 100% !important; }
+
+            /* Align/action bar → 2-per-row grid of comfortable buttons */
+            .align-bar {
+                display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px;
+            }
+            .btn-align {
+                width: 100%; box-sizing: border-box; text-align: center;
+                padding: 11px 8px !important; font-size: 0.74rem !important;
+                white-space: normal; line-height: 1.3;
+            }
+            .btn-add-new { grid-column: 1 / -1; }   /* Add-New spans full width */
+
+            /* Cards: label column narrower, content wraps */
+            .field-row { grid-template-columns: 104px 1fr !important; }
+            .field-label { padding: 8px 10px !important; font-size: 0.72rem !important; }
+            .field-content { padding: 8px 10px !important; }
+
+            /* ── Modals: full-screen sheet, stacked fields ── */
+            .modal-box {
+                width: 96vw !important; max-width: 96vw !important;
+                max-height: 92vh !important; overflow-y: auto;
+            }
+            .modal-header {
+                flex-direction: column; align-items: stretch; gap: 10px;
+                position: sticky; top: 0; background: #fff; z-index: 5;
+            }
+            .modal-header > div { flex-wrap: wrap; gap: 6px !important; }
+            .modal-header .btn { flex: 1 1 auto; padding: 9px 10px !important; }
+
+            /* Any field row (incl. inline multi-column ones) becomes single column */
+            .modal-field-row,
+            .modal-field-row[style] {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 4px !important;
+            }
+            .modal-field-label {
+                text-align: left !important; background: transparent !important;
+                border: none !important; padding: 8px 4px 2px !important;
+            }
+            .modal-field-content { padding: 0 4px 8px !important; }
+            .modal-field-content select,
+            .modal-field-content input[type="text"],
+            .modal-field-content input[type="url"] {
+                width: 100% !important; min-width: 0 !important; box-sizing: border-box;
+            }
+            /* hide the little vertical spacer divs used between desktop columns */
+            .modal-field-row > div[style*="width:1px"],
+            .modal-field-row > div[style*="width: 1px"],
+            .modal-field-row > div[style*="background:#fff"] { display: none !important; }
+
+            /* Checkbox grids wrap naturally, larger tap targets */
+            .modal-field-content .check-item,
+            .edit-val .check-item {
+                flex: 1 1 calc(50% - 8px); font-size: 0.8rem;
+            }
+
+            /* ════════ MTI list cards → clean vertical stack ════════ */
+            .list-area { padding: 0 !important; gap: 12px; }
+
+            /* Name/header row: number + name on top, ID + buttons below */
+            .item-name-row {
+                display: flex !important; flex-direction: column;
+                align-items: stretch; gap: 0; min-height: 0;
+            }
+            .item-name-row > .item-label {
+                /* the MTI number becomes a small badge header */
+                justify-content: flex-start !important; text-align: left !important;
+                background: #e4ecd6 !important; border-right: none !important;
+                border-bottom: 1px solid #dee2e6;
+                padding: 8px 14px !important; font-size: 0.8rem !important;
+            }
+            .item-name-row > .item-value { padding: 0 !important; }
+            .item-name-value { font-size: 0.95rem !important; padding: 10px 14px !important; }
+            /* ID + action buttons share one tidy row */
+            .item-name-row > div:last-child {
+                display: flex !important; align-items: center !important;
+                justify-content: space-between; flex-wrap: wrap; gap: 6px;
+                padding: 8px 12px; border-top: 1px solid #eef1e7;
+            }
+            .item-id { padding: 0 !important; }
+
+            /* Detail field rows: label header on top, value full width */
+            .item-field-row,
+            .item-field-row[style],
+            .item-field-row.has-btn {
+                display: flex !important; flex-direction: column;
+                align-items: stretch !important; min-height: 0 !important; gap: 0;
+            }
+            .item-label {
+                justify-content: flex-start !important; text-align: left !important;
+                background: rgba(255,255,255,0.6) !important;
+                border-right: none !important; border-bottom: 1px solid #eef1e7;
+                padding: 7px 14px !important; font-size: 0.74rem !important;
+            }
+            .item-value { padding: 8px 14px !important; }
+            /* hide the desktop vertical divider between Domain & Orientation */
+            .item-field-row > div[style*="background:#dee2e6"] { display: none !important; }
+
+            /* Read-only checkbox lists: 1 per line, comfy spacing */
+            .check-readonly { min-width: 0 !important; width: 100%; font-size: 0.82rem; }
+
+            /* Button groups inside cards: full-width tap targets */
+            .item-btn-group, .item-edit-bar {
+                display: flex !important; flex-wrap: wrap; gap: 8px;
+                padding: 8px 0 0 !important; width: 100%;
+            }
+            .item-btn-group .btn, .item-edit-bar .btn {
+                flex: 1 1 auto; text-align: center; padding: 10px 8px !important;
+            }
+            /* Address row's button container goes full width below the link */
+            .item-field-row.has-btn > div:last-child { width: 100%; padding: 0 14px 10px; }
+
+            /* Edit-mode inputs fill width */
+            .edit-val { width: 100%; }
+            .edit-val input[type="text"], .edit-val input[type="url"], .edit-val select {
+                width: 100% !important; box-sizing: border-box;
+            }
+        }
+    </style>
+
+</head>
+<body>
+
+<!-- Mobile navbar injected here -->
+<div id="m-navbar-mount"></div>
+<script>
+/* Load the mobile navbar fragment */
+fetch('m_ad_navbar.html')
+    .then(r => r.text())
+    .then(html => {
+        const mount = document.getElementById('m-navbar-mount');
+        mount.innerHTML = html;
+        mount.querySelectorAll('script').forEach(old => {
+            const s = document.createElement('script');
+            if (old.src) s.src = old.src; else s.textContent = old.textContent;
+            document.body.appendChild(s);
+        });
+    })
+    .catch(err => console.error('navbar load error:', err));
+</script>
+
+
+<div class="page-body">
+
+    
+    <div class="align-bar">
+        <button class="btn-align" id="btn-align-name" onclick="alignByName()">Align by MTI-NAME(ASC)</button>
+        <button class="btn-align" id="btn-align-id"   onclick="alignById()">Align by MTI-ID(ASC)</button>
+        <button class="btn-align" onclick="openSearchingMTI()">Searching_MTI</button>
+        <button class="btn-align btn-add-new" onclick="openAddModal()">Add-New-MTI</button>
+    </div>
+
+    
+    <div class="modal-overlay" id="add-modal" onclick="onModalOverlayClick(event)">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="modal-title">ADD NEW MTI</span>
+                    <span class="modal-title" id="modal-next-num" style="color:#868e96;"></span>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <button class="btn btn-apply" onclick="openSearchingMTI()">Searching_MTI</button>
+                    <button id="add-modal-apply-btn" class="btn btn-apply" onclick="submitNewMTI()">Apply</button>
+                    <button class="btn" onclick="closeAddModal()">Cancel</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <!-- Name -->
+                <div class="modal-field-row">
+                    <div class="modal-field-label">Name</div>
+                    <div class="modal-field-content">
+                        <input type="text" id="modal-name"
+                               placeholder="Please enter the name of the MTI(Models of Teaching for Informatics).">
+                    </div>
+                </div>
+                
+                <div class="modal-field-row" style="grid-template-columns:130px 1fr 20px 130px 1fr;">
+                    <div class="modal-field-label">Domain</div>
+                    <div class="modal-field-content" style="display:flex;gap:8px;align-items:center;flex-wrap:nowrap;">
+                        <select class="orientation-select" id="modal-domain" style="flex-shrink:0;min-width:140px;">
+                            <option value="">Select Domain</option>
+                        </select>
+                        <button class="btn btn-add-orient" onclick="openAddDomainModal()" style="flex-shrink:0;">Add(+)</button>
+                    </div>
+                    
+                    <div style="width:1px;background:#fff;height:100%;align-self:stretch;"></div>
+                    <div class="modal-field-label" style="background:#f8f9fa;border-left:none;border-right:1px solid #dee2e6;">Orientation</div>
+                    <div class="modal-field-content" style="display:flex;gap:8px;align-items:center;flex-wrap:nowrap;">
+                        <select class="orientation-select" id="modal-orientation" style="flex-shrink:0;min-width:140px;">
+                            <option value="">Select Orientation</option>
+                        </select>
+                        <button class="btn btn-add-orient" onclick="openAddOrientModal()" style="flex-shrink:0;">Add(+)</button>
+                    </div>
+                </div>
+                <!-- Participants -->
+                <div class="modal-field-row">
+                    <div class="modal-field-label">Participants</div>
+                    <div class="modal-field-content">
+                        <label class="check-item"><input type="checkbox" value="Pre_Schooler"> Pre_Schooler</label>
+                        <label class="check-item"><input type="checkbox" value="Elementary_Schooler(L)"> Elementary_Schooler(L)</label>
+                        <label class="check-item"><input type="checkbox" value="Elementary_Schooler(M)"> Elementary_Schooler(M)</label>
+                        <label class="check-item"><input type="checkbox" value="Elementary_Schooler(H)"> Elementary_Schooler(H)</label>
+                        <div style="width:100%;height:0;flex-basis:100%;"></div>
+                        <label class="check-item"><input type="checkbox" value="Middle_Schooler"> Middle_Schooler</label>
+                        <label class="check-item"><input type="checkbox" value="High_Schooler"> High_Schooler</label>
+                        <label class="check-item"><input type="checkbox" value="Special_Learner"> Special_Learner</label>
+                        <label class="check-item"><input type="checkbox" value="Gifted_Learner"> Gifted_Learner</label>
+                        <label class="check-item"><input type="checkbox" value="Post_Schooler"> Post_Schooler</label>
+                    </div>
+                </div>
+                <!-- Competency -->
+                <div class="modal-field-row">
+                    <div class="modal-field-label">Competency</div>
+                    <div class="modal-field-content">
+                        <label class="check-item"><input type="checkbox" id="modal-comp-ct" value="Computational_Thinking"> Computational_Thinking</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-dcl" value="Digital_Cultural_Literacy"> Digital_Cultural_Literacy</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-ai" value="AI_Literacy"> AI_Literacy</label>
+                        <div style="width:100%;height:0;flex-basis:100%;"></div>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-lta" value="Logical_Thinking_Ability"> Logical_Thinking_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-psa" value="Problem_Solving_Ability"> Problem_Solving_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-cta" value="Creative_Thinking_Ability"> Creative_Thinking_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-cpsa" value="Creative_Problem_Solving_Ability"> Creative_Problem_Solving_Ability</label>
+                        <div style="width:100%;height:0;flex-basis:100%;"></div>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-aa" value="Academic_Achivement"> Academic_Achivement</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-is" value="Instruction_Satisfy"> Instruction_Satisfy</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-lm" value="Learning_Motivation"> Learning_Motivation</label>
+                        <label class="check-item"><input type="checkbox" id="modal-comp-etc" value="Etc."> Etc.</label>
+                    </div>
+                </div>
+                <!-- Address -->
+                <div class="modal-field-row modal-has-btn">
+                    <div class="modal-field-label">Address</div>
+                    <div class="modal-field-content">
+                        <input type="url" id="modal-address"
+                               placeholder="Please enter the url of the document containing information about the MTI.">
+                    </div>
+                    <div style="display:flex;align-items:center;flex-shrink:0;padding:6px 16px 6px 8px;">
+                        <button class="btn" onclick="previewModalAddress()">Preview</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    
+    <div class="list-area" id="mti-list">
+        <div class="empty-msg" id="list-empty">Loading MTI data...</div>
+
+    </div><!-- /list-area -->
+
+</div><!-- /page-body -->
+
+<script>
+/* CSV URLs */
+const URL_MTI_LIST    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=389975124&single=true&output=csv';
+const URL_COMPETENCY  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=0&single=true&output=csv';
+const URL_PARTICIPANTS= 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=1818365513&single=true&output=csv';
+const URL_TYPOLOGY    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub?gid=274508158&single=true&output=csv';
+/* GAS_URL is declared in ad_common.js */
+/* Separate GAS endpoint for appending orientations/domains */
+const GAS_URL_MTI = 'https://script.google.com/macros/s/AKfycbzY3a3F93NUK0_CNLqQ4zxwzjY9WYdQulptb2EqCypmb4SooNWNU51Z-9oaxFxTN2rT/exec';
+
+/* Competency / Participants display order */
+const COMP_LIST = [
+    'Computational_Thinking', 'Digital_Cultural_Literacy', 'AI_Literacy',
+    'Logical_Thinking_Ability', 'Problem_Solving_Ability', 'Creative_Thinking_Ability', 'Creative_Problem_Solving_Ability',
+    'Academic_Achivement', 'Instruction_Satisfy', 'Learning_Motivation', 'Etc.'
+];
+const PART_LIST = ['Pre_Schooler', 'Elementary_Schooler(L)', 'Elementary_Schooler(M)', 'Elementary_Schooler(H)', 'Middle_Schooler',
+                   'High_Schooler', 'Special_Learner', 'Gifted_Learner', 'Post_Schooler'];
+
+/* Korean → English label maps (populated after mti-typology load) */
+let COMP_KO2EN = {};  
+let PART_KO2EN = {};  
+let gDomainList = []; 
+let gDomainSet  = new Set(); /* for dedup */
+
+/* CSV parsing */
+function parseCSV(text) {
+    const rows = [];
+    for (const line of text.split('\n')) {
+        if (!line.trim()) continue;
+        const cols = []; let cur = '', inQ = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') { if (inQ && line[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+            else if (ch === ',' && !inQ) { cols.push(cur); cur = ''; }
+            else cur += ch;
+        }
+        cols.push(cur);
+        rows.push(cols);
+    }
+    return rows;
+}
+
+/* Data load and render */
+let gMtiList = [], gCompMap = {}, gPartMap = {};
+
+async function loadAll() {
+    document.getElementById('list-empty').textContent = 'Loading MTI data...';
+    try {
+        const [r1, r2, r3, r4] = await Promise.all([
+            fetch(URL_MTI_LIST).then(r => r.text()),
+            fetch(URL_COMPETENCY).then(r => r.text()),
+            fetch(URL_PARTICIPANTS).then(r => r.text()),
+            fetch(URL_TYPOLOGY).then(r => r.text()),
+        ]);
+
+        
+        COMP_KO2EN = {};
+        PART_KO2EN = {};
+        gDomainList = [];
+        gDomainSet = new Set();
+        const orientationSet = new Set();
+        parseCSV(r4).slice(1).forEach(r => {
+            const domainKo= (r[0]||'').trim();
+            const partKo  = (r[1]||'').trim();
+            const orientKo= (r[2]||'').trim();
+            const compKo  = (r[3]||'').trim();
+            const partEng = (r[4]||'').trim();
+            const compEng = (r[5]||'').trim();
+            if (domainKo && !gDomainSet.has(domainKo)) { gDomainSet.add(domainKo); gDomainList.push(domainKo); }
+            if (partKo && partEng) PART_KO2EN[partKo] = partEng;
+            if (compKo && compEng) COMP_KO2EN[compKo] = compEng;
+            if (orientKo) orientationSet.add(orientKo);
+        });
+        /* Populate modal Domain select */
+        const modalDomainSel = document.getElementById('modal-domain');
+        if (modalDomainSel) {
+            modalDomainSel.innerHTML = '<option value="">Select Domain</option>';
+            gDomainList.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d; opt.textContent = d;
+                modalDomainSel.appendChild(opt);
+            });
+        }
+        /* Populate modal Orientation select */
+        const modalOrientSel = document.getElementById('modal-orientation');
+        modalOrientSel.innerHTML = '<option value="">Select Orientation</option>';
+        [...orientationSet].sort((a, b) => a.localeCompare(b, 'ko')).forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o;
+            opt.textContent = o;
+            modalOrientSel.appendChild(opt);
+        });
+
+        /* mti-list cols: A=timestamp, B=mti_num, C=mti_id, D=domain, E=orientation, F=name(input), G=docs_url(input), H=name(app), I=docs_url(app) */
+        gMtiList = parseCSV(r1).slice(1).filter(r => r[2]);
+
+        /* competency map: { mti_id: [en_val, ...] } */
+        gCompMap = {};
+        parseCSV(r2).slice(1).forEach(r => {
+            const id  = (r[0]||'').trim();
+            const raw = (r[1]||'').trim();
+            if (!id) return;
+            const val = COMP_KO2EN[raw] || raw; /* convert Korean label to English if mapped */
+            if (!gCompMap[id]) gCompMap[id] = [];
+            gCompMap[id].push(val);
+        });
+
+        /* participants map: { mti_id: [en_val, ...] } */
+        gPartMap = {};
+        parseCSV(r3).slice(1).forEach(r => {
+            const id  = (r[0]||'').trim();
+            const raw = (r[1]||'').trim();
+            if (!id) return;
+            const val = PART_KO2EN[raw] || raw; /* convert Korean label to English if mapped */
+            if (!gPartMap[id]) gPartMap[id] = [];
+            gPartMap[id].push(val);
+        });
+
+        /* Initial sort: mti_num descending */
+        gMtiList.sort((a, b) => {
+            const na = parseInt((a[1]||'').replace(/\D/g,''), 10) || 0;
+            const nb = parseInt((b[1]||'').replace(/\D/g,''), 10) || 0;
+            return nb - na;
+        });
+
+        
+        const deletedId = sessionStorage.getItem('imti_deleted_id');
+        if (deletedId) {
+            sessionStorage.removeItem('imti_deleted_id');
+            gMtiList = gMtiList.filter(r => (r[2]||'').trim() !== deletedId);
+            delete gCompMap[deletedId];
+            delete gPartMap[deletedId];
+        }
+
+        /* Patch modified MTI data directly regardless of cache */
+        const reopenId   = sessionStorage.getItem('imti_reopen_id');
+        const modDataRaw = sessionStorage.getItem('imti_modified_data');
+        if (reopenId && modDataRaw) {
+            sessionStorage.removeItem('imti_reopen_id');
+            sessionStorage.removeItem('imti_modified_data');
+            let modData = null;
+            try { modData = JSON.parse(modDataRaw); } catch(e2) {}
+            if (modData) {
+                const row = gMtiList.find(r => (r[2]||'').trim() === reopenId);
+                if (row) {
+                    row[3] = modData.domain;
+                    row[4] = modData.orient;
+                    row[5] = modData.name;
+                    row[6] = modData.address;
+                    gCompMap[reopenId] = modData.comps;
+                    gPartMap[reopenId] = modData.parts;
+                }
+            }
+        }
+
+        /* New MTI: if not in CSV cache yet, reload once after 2s */
+        const newId = sessionStorage.getItem('imti_new_id');
+        if (newId) {
+            const found = gMtiList.some(r => (r[2]||'').trim() === newId);
+            if (!found && !sessionStorage.getItem('imti_new_retry')) {
+                sessionStorage.setItem('imti_new_retry', '1');
+                document.getElementById('list-empty').textContent = 'Loading new MTI...';
+                setTimeout(() => location.reload(), 2000);
+                return;
+            }
+            sessionStorage.removeItem('imti_new_retry');
+        }
+
+        /* Render */
+        renderList(gMtiList);
+
+        /* Focus newly added/modified card after render */
+        const container = document.getElementById('mti-list');
+
+        
+        if (reopenId) {
+            _focusCard(container, reopenId);
+        }
+        
+        if (newId) {
+            sessionStorage.removeItem('imti_new_id');
+            _focusCard(container, newId);
+        }
+    } catch(e) {
+        document.getElementById('list-empty').textContent = 'Failed to load data. — ' + e.message;
+        console.error('[loadAll error]', e);
+    }
+}
+
+/* Helper: scroll card to top and open it */
+function _focusCard(container, id) {
+    const card = container.querySelector(`.item-card[data-id="${id}"]`);
+    if (!card) return;
+    const eid    = id.replace(/[^a-zA-Z0-9]/g, '_');
+    const detail = document.getElementById('detail-' + eid);
+    const togBtn = document.getElementById('toggle-' + eid);
+    if (detail && !detail.classList.contains('open')) {
+        detail.classList.add('open');
+        if (togBtn) { togBtn.textContent = 'Close'; togBtn.className = 'btn btn-close'; }
+    }
+    container.insertBefore(card, container.firstChild);
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+/* Card rendering */
+function renderList(list) {
+    const container = document.getElementById('mti-list');
+    container.innerHTML = '';
+
+    if (!list.length) {
+        container.innerHTML = '<div class="empty-msg">No teaching models registered.</div>';
+        return;
+    }
+
+    list.forEach(row => {
+        const mtiNum      = (row[1]||'').trim();
+        const id          = (row[2]||'').trim();
+        const domain      = (row[3]||'').trim();
+        const orientation = (row[4]||'').trim();
+        const name        = (row[5]||'').trim(); 
+        const address     = (row[6]||'').trim(); 
+        const comps       = gCompMap[id] || [];
+        const parts       = gPartMap[id] || [];
+
+        const eid = id.replace(/[^a-zA-Z0-9]/g, '_'); /* make ID DOM-safe */
+
+        /* Competency read-only view */
+        const compHTML = COMP_LIST.map(c =>
+            (c === 'Logical_Thinking_Ability' || c === 'Academic_Achivement' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
+            `<span class="check-readonly"><input type="checkbox" ${comps.includes(c)?'checked ':''} disabled> ${c}</span>`
+        ).join('');
+        /* Competency edit view */
+        const compEditHTML = COMP_LIST.map(c =>
+            (c === 'Logical_Thinking_Ability' || c === 'Academic_Achivement' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
+            `<label class="check-item"><input type="checkbox" id="ie-comp-${eid}-${c.replace(/[^a-zA-Z0-9]/g,'_')}" value="${c}"${comps.includes(c)?' checked':''}> ${c}</label>`
+        ).join('');
+
+        /* Participants read-only view */
+        const partHTML = PART_LIST.map(p =>
+            (p === 'Middle_Schooler' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
+            `<span class="check-readonly"><input type="checkbox" ${parts.includes(p)?'checked ':''} disabled> ${p}</span>`
+        ).join('');
+        /* Participants edit view */
+        const partEditHTML = PART_LIST.map(p =>
+            (p === 'Middle_Schooler' ? '<div style="width:100%;height:0;flex-basis:100%;"></div>' : '') +
+            `<label class="check-item"><input type="checkbox" id="ie-part-${eid}-${p.replace(/[^a-zA-Z0-9]/g,'_')}" value="${p}"${parts.includes(p)?' checked':''}> ${p}</label>`
+        ).join('');
+
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.dataset.id = id;
+        card.innerHTML = `
+            <div class="item-name-row">
+                <div class="item-label" style="font-size:0.88rem;font-weight:700;color:#343a40;font-family:'Gowun Batang', serif;">${mtiNum}</div>
+                <div class="item-value" style="padding:0;">
+                    <div class="view-val item-name-value" style="padding:7px 12px;">${name}</div>
+                    <div class="edit-val" style="padding:4px 8px;">
+                        <input type="text" id="ie-name-${eid}" value="${name.replace(/"/g,'&quot;')}" placeholder="Enter the MTI name." style="width:100%;">
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;">
+                    <span class="item-id">${id}</span>
+                    <div class="item-btn-group item-modify-bar">
+                        <button class="btn btn-open" id="toggle-${eid}" onclick="toggleCard('${id}')">Open</button>
+                        <button class="btn btn-modify" onclick="modifyMTI('${id}')">Modify</button>
+                    </div>
+                    <div class="item-edit-bar">
+                        <button class="btn btn-apply" onclick="submitInlineEdit('${id}')">Apply</button>
+                        <button class="btn" onclick="closeInlineEdit('${id}')">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            <div class="item-detail" id="detail-${eid}">
+                <!-- Domain + Orientation -->
+                <div class="item-field-row" style="grid-template-columns:145px 1fr 1px 145px 1fr;">
+                    <div class="item-label">Domain</div>
+                    <div class="item-value" style="padding:0;">
+                        <div class="view-val" style="padding:7px 12px;font-size:0.94rem;font-weight:500;">${domain}</div>
+                        <div class="edit-val" style="padding:4px 8px;">
+                            <select id="ie-domain-${eid}"></select>
+                        </div>
+                    </div>
+                    <div style="background:#dee2e6;align-self:stretch;"></div>
+                    <div class="item-label">Orientation</div>
+                    <div class="item-value" style="padding:0;">
+                        <div class="view-val" style="padding:7px 12px;font-size:0.94rem;font-weight:500;">${orientation}</div>
+                        <div class="edit-val" style="padding:4px 8px;">
+                            <select id="ie-orient-${eid}"></select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Participants -->
+                <div class="item-field-row">
+                    <div class="item-label">Participants</div>
+                    <div class="item-value" style="padding:0;">
+                        <div class="view-val" style="padding:7px 12px;">${partHTML}</div>
+                        <div class="edit-val" style="padding:6px 12px;">${partEditHTML}</div>
+                    </div>
+                </div>
+                <!-- Competency -->
+                <div class="item-field-row">
+                    <div class="item-label">Competency</div>
+                    <div class="item-value" style="padding:0;">
+                        <div class="view-val" style="padding:7px 12px;">${compHTML}</div>
+                        <div class="edit-val" style="padding:6px 12px;">${compEditHTML}</div>
+                    </div>
+                </div>
+                <!-- Address -->
+                <div class="item-field-row has-btn">
+                    <div class="item-label">Address</div>
+                    <div class="item-value" style="padding:0;">
+                        <div class="view-val" style="padding:7px 12px;"><a href="${address}" target="_blank" style="font-size:0.82rem;color:#1971c2;word-break:break-all;">${address}</a></div>
+                        <div class="edit-val" style="padding:4px 8px;">
+                            <input type="url" id="ie-addr-${eid}" value="${address.replace(/"/g,'&quot;')}" placeholder="Enter the Google Docs URL.">
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;flex-shrink:0;">
+                        <div class="item-btn-group item-modify-bar">
+                            <button class="btn" onclick="previewMTI('${id}','${address}')">Preview</button>
+                            <button class="btn btn-delete" onclick="openDeleteModal('${id}','${name}')">Delete</button>
+                        </div>
+                        <div class="item-edit-bar" style="padding:4px 8px;">
+                            <button class="btn" onclick="previewInlineAddress('${id}')">Preview</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        container.appendChild(card);
+    });
+}
+
+/* Open/Close toggle */
+function toggleCard(id) {
+    const eid    = id.replace(/[^a-zA-Z0-9]/g, '_');
+    const detail = document.getElementById('detail-' + eid);
+    const btn    = document.getElementById('toggle-' + eid);
+    const isOpen = detail.classList.contains('open');
+    if (isOpen) {
+        detail.classList.remove('open');
+        btn.textContent = 'Open';
+        btn.className = 'btn btn-open';
+    } else {
+        detail.classList.add('open');
+        btn.textContent = 'Close';
+        btn.className = 'btn btn-close';
+    }
+}
+
+/* Button handlers */
+let __docsOriginalUrl = '';
+function openDocsPreview(url, title) {
+    if (!url) return;
+    __docsOriginalUrl = url;
+    
+    let embedUrl = url;
+    if (url.includes('docs.google.com')) {
+        const base = url.split('?')[0].split('#')[0]
+            .replace(/\/(edit|view|pub|preview|copy|export)(\/.*)?$/, '');
+        embedUrl = base + '/preview?rm=minimal';
+    }
+    document.getElementById('docs-iframe').src = embedUrl;
+    document.getElementById('docs-modal-title').textContent = title || url;
+    document.getElementById('docs-modal').classList.add('active');
+}
+function printDocsPreview() {
+    if (!__docsOriginalUrl) return;
+    let pdfUrl = __docsOriginalUrl;
+    if (__docsOriginalUrl.includes('docs.google.com')) {
+        const base = __docsOriginalUrl.split('?')[0].split('#')[0]
+            .replace(/\/(edit|view|pub|preview|copy|export)(\/.*)?$/, '');
+        pdfUrl = base + '/export?format=pdf';
+    }
+    fetch(pdfUrl)
+        .then(res => res.blob())
+        .then(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'mti-printing.pdf';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        })
+        .catch(() => {
+            // fetch 실패(CORS 등) 시 fallback: 그냥 링크 다운로드
+            const a = document.createElement('a');
+            a.href = pdfUrl;
+            a.download = 'mti-printing.pdf';
+            a.click();
+        });
+}
+function closeDocsModal(e) {
+    const overlay = document.getElementById('docs-modal');
+    if (e.target === overlay) {
+        overlay.classList.remove('active');
+        document.getElementById('docs-iframe').src = '';
+    }
+}
+function previewMTI(id, url) {
+    if (url) openDocsPreview(url, id);
+    else showNotice('Please enter a valid MTI Google Docs URL.');
+}
+function modifyMTI(id) {
+    const eid = id.replace(/[^a-zA-Z0-9]/g, '_');
+    const row = gMtiList.find(r => (r[2]||'').trim() === id);
+    if (!row) { showNotice('Could not find MTI data.'); return; }
+
+    const domain      = (row[3]||'').trim();
+    const orientation = (row[4]||'').trim();
+    const comps       = gCompMap[id] || [];
+    const parts       = gPartMap[id] || [];
+
+    /* Open card */
+    const detail    = document.getElementById('detail-' + eid);
+    const toggleBtn = document.getElementById('toggle-' + eid);
+    if (detail && !detail.classList.contains('open')) {
+        detail.classList.add('open');
+        if (toggleBtn) { toggleBtn.textContent = 'Close'; toggleBtn.className = 'btn btn-close'; }
+    }
+
+    /* Populate Domain select */
+    const domSel = document.getElementById('ie-domain-' + eid);
+    if (domSel) {
+        domSel.innerHTML = '<option value="">Select Domain</option>';
+        gDomainList.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d; opt.textContent = d;
+            if (d === domain) opt.selected = true;
+            domSel.appendChild(opt);
+        });
+    }
+
+    /* Populate Orientation select */
+    const oriSel = document.getElementById('ie-orient-' + eid);
+    if (oriSel) {
+        oriSel.innerHTML = '<option value="">Select Orientation</option>';
+        const currentOrients = [...document.querySelectorAll('#modal-orientation option')].slice(1).map(o => o.value);
+        currentOrients.forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o; opt.textContent = o;
+            if (o === orientation) opt.selected = true;
+            oriSel.appendChild(opt);
+        });
+        if (orientation && !currentOrients.includes(orientation)) {
+            const opt = document.createElement('option');
+            opt.value = orientation; opt.textContent = orientation; opt.selected = true;
+            oriSel.appendChild(opt);
+        }
+    }
+
+    /* Set Competency checkbox values */
+    COMP_LIST.forEach(c => {
+        const cb = document.getElementById('ie-comp-' + eid + '-' + c.replace(/[^a-zA-Z0-9]/g,'_'));
+        if (cb) cb.checked = comps.includes(c);
+    });
+
+    /* Set Participants checkbox values */
+    PART_LIST.forEach(p => {
+        const cb = document.getElementById('ie-part-' + eid + '-' + p.replace(/[^a-zA-Z0-9]/g,'_'));
+        if (cb) cb.checked = parts.includes(p);
+    });
+
+    /* Apply 'editing' class — CSS hides view-val, shows edit-val */
+    const card = detail ? detail.closest('.item-card') : null;
+    if (card) {
+        card.classList.add('editing');
+        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+}
+
+function closeInlineEdit(id) {
+    const eid  = id.replace(/[^a-zA-Z0-9]/g, '_');
+    const detail = document.getElementById('detail-' + eid);
+    const card = detail ? detail.closest('.item-card') : document.querySelector(`.item-card[data-id="${id}"]`);
+    if (card) card.classList.remove('editing');
+}
+
+function previewInlineAddress(id) {
+    const eid = id.replace(/[^a-zA-Z0-9]/g, '_');
+    const url = (document.getElementById('ie-addr-' + eid)||{}).value || '';
+    const isGoogleDocs = url && /https?:\/\/(docs|drive)\.google\.com\//.test(url);
+    if (isGoogleDocs) openDocsPreview(url, 'Preview');
+    else showNotice('Please enter a valid MTI Google Docs URL.');
+}
+
+function submitInlineEdit(id) {
+    function _notice(msg) {
+        if (typeof showNotice === 'function') showNotice(msg);
+        else alert(msg);
+    }
+
+    const eid    = id.replace(/[^a-zA-Z0-9]/g, '_');
+    const nameEl = document.getElementById('ie-name-'   + eid);
+    const domEl  = document.getElementById('ie-domain-' + eid);
+    const oriEl  = document.getElementById('ie-orient-' + eid);
+    const addrEl = document.getElementById('ie-addr-'   + eid);
+
+    if (!nameEl) { _notice('[Error] Edit field not found. Please refresh the page.'); return; }
+
+    const name    = nameEl.value.trim();
+    const domain  = domEl  ? domEl.value         : '';
+    const orient  = oriEl  ? oriEl.value          : '';
+    const address = addrEl ? addrEl.value.trim()  : '';
+    const isGoogleDocs = address && /https?:\/\/(docs|drive)\.google\.com\//.test(address);
+
+    const comps = COMP_LIST.filter(c => {
+        const cb = document.getElementById('ie-comp-' + eid + '-' + c.replace(/[^a-zA-Z0-9]/g,'_'));
+        return cb && cb.checked;
+    });
+    const parts = PART_LIST.filter(p => {
+        const cb = document.getElementById('ie-part-' + eid + '-' + p.replace(/[^a-zA-Z0-9]/g,'_'));
+        return cb && cb.checked;
+    });
+
+    /* Required field validation */
+    const missing = [];
+    if (!name)         missing.push('Name');
+    if (!domain)       missing.push('Domain');
+    if (!orient)       missing.push('Orientation');
+    if (!comps.length) missing.push('Competency');
+    if (!parts.length) missing.push('Participants');
+    if (!isGoogleDocs) missing.push('Address (Google Docs URL required)');
+    if (missing.length > 0) {
+        _notice(missing.join(', ') + ' field(s) are missing or invalid.');
+        return;
+    }
+
+    /* Original data (col F=5, G=6) */
+    const row = gMtiList.find(r => (r[2]||'').trim() === id);
+    if (!row) { _notice('Could not find MTI data.'); return; }
+    const mtiNum = (row[1]||'').trim();
+
+    const origName    = (row[5]||'').trim();
+    const origDomain  = (row[3]||'').trim();
+    const origOrient  = (row[4]||'').trim();
+    const origAddress = (row[6]||'').trim();
+    const origComps   = (gCompMap[id] || []).slice().sort().join(',');
+    const origParts   = (gPartMap[id] || []).slice().sort().join(',');
+    const newComps    = comps.slice().sort().join(',');
+    const newParts    = parts.slice().sort().join(',');
+
+    
+    if (name === origName && domain === origDomain && orient === origOrient &&
+        address === origAddress && newComps === origComps && newParts === origParts) {
+        _notice('No changes detected.');
+        return;
+    }
+
+    /* Save via GAS JSONP */
+    const card = document.querySelector(`.item-card[data-id="${id}"]`);
+    const applyBtn = card ? card.querySelector('.item-edit-bar .btn-apply') : null;
+    const origBtnText = applyBtn ? applyBtn.textContent : 'Apply';
+    if (applyBtn) { applyBtn.textContent = 'Saving...'; applyBtn.disabled = true; }
+
+    const cbName = '_gasModifyCb_' + Date.now();
+    const script = document.createElement('script');
+
+    const timer = setTimeout(() => {
+        if (window[cbName]) {
+            script.remove();
+            delete window[cbName];
+            if (applyBtn) { applyBtn.textContent = origBtnText; applyBtn.disabled = false; }
+            _notice('Request timed out. Please check your network.');
+        }
+    }, 15000);
+
+    window[cbName] = function(data) {
+        clearTimeout(timer);
+        script.remove();
+        delete window[cbName];
+        if (applyBtn) { applyBtn.textContent = origBtnText; applyBtn.disabled = false; }
+
+        console.log('[IMTI] modifyMTI GAS response:', JSON.stringify(data));
+
+        const ok = data && (
+            data.result  === 'success' ||
+            data.status  === 'ok'      ||
+            data.status  === 'OK'      ||
+            data.success === true      ||
+            data.message === 'success'
+        );
+        if (ok) {
+            closeInlineEdit(id);
+            
+            sessionStorage.setItem('imti_reopen_id', id);
+            sessionStorage.setItem('imti_modified_data', JSON.stringify({
+                id, name, domain, orient, address, comps, parts
+            }));
+            location.reload();
+        } else {
+            _notice('Save failed.\n' +
+                (data ? (data.error || data.message || JSON.stringify(data)) : 'No server response'));
+        }
+    };
+
+    const gasUrl = GAS_URL_MTI
+        + '?action=modifyMTI'
+        + '&mtiId='       + encodeURIComponent(id)
+        + '&mtiNum='      + encodeURIComponent(mtiNum)
+        + '&domain='      + encodeURIComponent(domain)
+        + '&orientation=' + encodeURIComponent(orient)
+        + '&mtiName='     + encodeURIComponent(name)
+        + '&docUrl='      + encodeURIComponent(address)
+        + '&comps='       + encodeURIComponent(JSON.stringify(comps))
+        + '&parts='       + encodeURIComponent(JSON.stringify(parts))
+        + '&callback='    + cbName;
+    script.src = gasUrl;
+    document.head.appendChild(script);
+}
+
+function openModifyModal(id, mtiNum, name, domain, orientation, comps, parts, address) {
+    document.getElementById('modify-modal-id').value      = id;
+    document.getElementById('modify-modal-num').textContent = '{' + mtiNum + '}';
+    document.getElementById('modify-modal-name').value    = name;
+    document.getElementById('modify-modal-address').value = address;
+
+    /* Domain select */
+    const domSel = document.getElementById('modify-modal-domain');
+    domSel.innerHTML = '<option value="">Select Domain</option>';
+    gDomainList.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d; opt.textContent = d;
+        if (d === domain) opt.selected = true;
+        domSel.appendChild(opt);
+    });
+
+    /* Orientation select */
+    const oriSel = document.getElementById('modify-modal-orientation');
+    oriSel.innerHTML = '<option value="">Select Orientation</option>';
+    const currentOrients = [...document.querySelectorAll('#modal-orientation option')].slice(1).map(o => o.value);
+    currentOrients.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        if (o === orientation) opt.selected = true;
+        oriSel.appendChild(opt);
+    });
+    /* Add current orientation if not in list */
+    if (orientation && !currentOrients.includes(orientation)) {
+        const opt = document.createElement('option');
+        opt.value = orientation; opt.textContent = orientation; opt.selected = true;
+        oriSel.appendChild(opt);
+    }
+
+    
+    COMP_LIST.forEach(c => {
+        const cb = document.getElementById('modify-comp-' + c.replace(/[^a-zA-Z0-9]/g,'_'));
+        if (cb) cb.checked = comps.includes(c);
+    });
+
+    
+    PART_LIST.forEach(p => {
+        const cb = document.getElementById('modify-part-' + p.replace(/[^a-zA-Z0-9]/g,'_'));
+        if (cb) cb.checked = parts.includes(p);
+    });
+
+    
+    const overlay = document.getElementById('modify-modal');
+    overlay.classList.add('active');
+    const box = overlay.querySelector('.modal-box');
+    requestAnimationFrame(() => {
+        const bh = box.offsetHeight;
+        const wh = window.innerHeight;
+        const ww = window.innerWidth;
+        const bw = box.offsetWidth;
+        box.style.left = Math.round((ww - bw) / 2) + 'px';
+        box.style.top  = Math.round(wh - bh - 60) + 'px';
+    });
+}
+
+function closeModifyModal() {
+    document.getElementById('modify-modal').classList.remove('active');
+}
+
+function previewModifyAddress() {
+    const url = document.getElementById('modify-modal-address').value.trim();
+    const isGoogleDocs = url && /https?:\/\/(docs|drive)\.google\.com\//.test(url);
+    if (isGoogleDocs) openDocsPreview(url, 'Preview');
+    else showNotice('Please enter a valid MTI Google Docs URL.');
+}
+
+function submitModifyMTI() {
+    const id      = document.getElementById('modify-modal-id').value;
+    const name    = document.getElementById('modify-modal-name').value.trim();
+    const domain  = document.getElementById('modify-modal-domain').value;
+    const orient  = document.getElementById('modify-modal-orientation').value;
+    const address = document.getElementById('modify-modal-address').value.trim();
+    const isGoogleDocs = address && /https?:\/\/(docs|drive)\.google\.com\//.test(address);
+
+    const comps = COMP_LIST.filter(c => {
+        const cb = document.getElementById('modify-comp-' + c.replace(/[^a-zA-Z0-9]/g,'_'));
+        return cb && cb.checked;
+    });
+    const parts = PART_LIST.filter(p => {
+        const cb = document.getElementById('modify-part-' + p.replace(/[^a-zA-Z0-9]/g,'_'));
+        return cb && cb.checked;
+    });
+
+    const missing = [];
+    if (!name)         missing.push('Name');
+    if (!domain)       missing.push('Domain');
+    if (!orient)       missing.push('Orientation');
+    if (!comps.length) missing.push('Competency');
+    if (!parts.length) missing.push('Participants');
+    if (!isGoogleDocs) missing.push('Address');
+    if (missing.length > 0) {
+        showNotice(missing.join(', ') + ' field(s) are missing or invalid.');
+        return;
+    }
+
+    const row = gMtiList.find(r => (r[2]||'').trim() === id);
+    const mtiNum = row ? (row[1]||'').trim() : '';
+
+    const applyBtn = document.querySelector('#modify-modal .btn-apply');
+    const origText = applyBtn ? applyBtn.textContent : 'Apply';
+    if (applyBtn) { applyBtn.textContent = 'Saving...'; applyBtn.disabled = true; }
+
+    const cbName = '_gasModifyCb_' + Date.now();
+    const script = document.createElement('script');
+
+    const timer = setTimeout(() => {
+        if (window[cbName]) {
+            script.remove();
+            delete window[cbName];
+            if (applyBtn) { applyBtn.textContent = origText; applyBtn.disabled = false; }
+            showNotice('Request timed out.');
+        }
+    }, 15000);
+
+    window[cbName] = function(data) {
+        clearTimeout(timer);
+        script.remove();
+        delete window[cbName];
+        if (applyBtn) { applyBtn.textContent = origText; applyBtn.disabled = false; }
+        if (data && (data.result === 'success' || data.status === 'ok')) {
+            closeModifyModal();
+            location.reload();
+        } else {
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
+        }
+    };
+
+    const url = GAS_URL_MTI
+        + '?action=modifyMTI'
+        + '&mtiId='       + encodeURIComponent(id)
+        + '&mtiNum='      + encodeURIComponent(mtiNum)
+        + '&domain='      + encodeURIComponent(domain)
+        + '&orientation=' + encodeURIComponent(orient)
+        + '&mtiName='     + encodeURIComponent(name)
+        + '&docUrl='      + encodeURIComponent(address)
+        + '&comps='       + encodeURIComponent(JSON.stringify(comps))
+        + '&parts='       + encodeURIComponent(JSON.stringify(parts))
+        + '&callback='    + cbName;
+    script.src = url;
+    document.head.appendChild(script);
+}
+
+/* Delete modal */
+function openDeleteModal(id, name) {
+    document.getElementById('delete-modal-id').value = id;
+    document.getElementById('delete-modal-name').textContent = name || id;
+    document.getElementById('delete-modal').style.display = 'flex';
+}
+function closeDeleteModal() {
+    document.getElementById('delete-modal').style.display = 'none';
+}
+function confirmDeleteMTI() {
+    const id = document.getElementById('delete-modal-id').value;
+    if (!id) return;
+
+    const confirmBtn = document.querySelector('#delete-modal .btn-apply');
+    const origText = confirmBtn ? confirmBtn.textContent : 'Confirm';
+    if (confirmBtn) { confirmBtn.textContent = 'Deleting...'; confirmBtn.disabled = true; }
+
+    const cbName = '_gasDeleteCb_' + Date.now();
+    const script = document.createElement('script');
+
+    const timer = setTimeout(() => {
+        if (window[cbName]) {
+            script.remove();
+            delete window[cbName];
+            if (confirmBtn) { confirmBtn.textContent = origText; confirmBtn.disabled = false; }
+            showNotice('Delete request timed out.');
+        }
+    }, 15000);
+
+    window[cbName] = function(data) {
+        clearTimeout(timer);
+        script.remove();
+        delete window[cbName];
+        if (confirmBtn) { confirmBtn.textContent = origText; confirmBtn.disabled = false; }
+        if (data && (data.result === 'success' || data.status === 'ok' || data.status === 'OK')) {
+            closeDeleteModal();
+            sessionStorage.setItem('imti_deleted_id', id);
+            location.reload();
+        } else {
+            showNotice('Delete failed: ' + (data && data.error ? data.error : 'Unknown error'));
+        }
+    };
+
+    const url = GAS_URL_MTI
+        + '?action=deleteMTI'
+        + '&mtiId='    + encodeURIComponent(id)
+        + '&callback=' + cbName;
+    script.src = url;
+    document.head.appendChild(script);
+}
+function deleteMTIItem(id) { openDeleteModal(id, id); }
+
+/* MTI-ID sort direction state: null=unsorted, true=ASC, false=DESC */
+let _idSortAsc = null;
+
+function alignById() {
+    const btn = document.getElementById('btn-align-id');
+    
+    if (_idSortAsc === true) {
+        
+        gMtiList.sort((a,b) => (b[2]||'').localeCompare(a[2]||''));
+        _idSortAsc = false;
+        if (btn) btn.textContent = 'Align by MTI-ID(ASC)';
+    } else {
+        
+        gMtiList.sort((a,b) => (a[2]||'').localeCompare(b[2]||''));
+        _idSortAsc = true;
+        if (btn) btn.textContent = 'Align by MTI-ID(DSC)';
+    }
+    renderList(gMtiList);
+}
+function alignByName() {
+    /* Reset MTI-ID button state when sorting by name */
+    _idSortAsc = null;
+    const idBtn = document.getElementById('btn-align-id');
+    if (idBtn) idBtn.textContent = 'Align by MTI-ID(ASC)';
+    gMtiList.sort((a,b) => (a[5]||'').localeCompare(b[5]||'', 'ko'));
+    renderList(gMtiList);
+}
+function openAddModal() {
+    /* Reset form */
+    document.getElementById('modal-name').value = '';
+    document.getElementById('modal-domain').value = '';
+    document.getElementById('modal-orientation').value = '';
+    document.getElementById('modal-address').value = '';
+    document.querySelectorAll('#add-modal input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    /* Compute next mti_num: max of B column numbers + 1 */
+    const nums = gMtiList.map(r => {
+        const m = (r[1]||'').match(/(\d+)$/);
+        return m ? parseInt(m[1], 10) : 0;
+    });
+    const maxNum = nums.length ? Math.max(...nums) : 0;
+    const nextNum = maxNum + 1;
+    const prefix = (gMtiList[0]?.[1]||'MTI-000').replace(/\d+$/, '');
+    const padLen = Math.max(3, String(maxNum).length);
+    const nextLabel = prefix + String(nextNum).padStart(padLen, '0');
+    const el = document.getElementById('modal-next-num');
+    if (el) el.textContent = '{' + nextLabel + '}';
+
+    /* Position modal 60px above bottom of screen */
+    const overlay = document.getElementById('add-modal');
+    overlay.classList.add('active');
+
+    const box = overlay.querySelector('.modal-box');
+    requestAnimationFrame(() => {
+        const bh = box.offsetHeight;
+        const wh = window.innerHeight;
+        const ww = window.innerWidth;
+        const bw = box.offsetWidth;
+        box.style.left = Math.round((ww - bw) / 2) + 'px';
+        box.style.top  = Math.round(wh - bh - 60) + 'px';
+    });
+}
+
+/* Drag logic for Add modal */
+(function() {
+    let dragging = false, startX, startY, origLeft, origTop;
+
+    function getBox() { return document.querySelector('#add-modal .modal-box'); }
+    function getHeader() { return document.querySelector('#add-modal .modal-header'); }
+
+    document.addEventListener('mousedown', function(e) {
+        const header = getHeader();
+        if (!header || !header.contains(e.target)) return;
+        /* Exclude button clicks from drag */
+        if (e.target.closest('button')) return;
+        dragging = true;
+        const box = getBox();
+        const rect = box.getBoundingClientRect();
+        startX = e.clientX;
+        startY = e.clientY;
+        origLeft = rect.left;
+        origTop  = rect.top;
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!dragging) return;
+        const box = getBox();
+        if (!box) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        let newLeft = origLeft + dx;
+        let newTop  = origTop  + dy;
+        /* Constrain within viewport */
+        const bw = box.offsetWidth;
+        const bh = box.offsetHeight;
+        newLeft = Math.max(0, Math.min(newLeft, window.innerWidth  - bw));
+        newTop  = Math.max(0, Math.min(newTop,  window.innerHeight - bh));
+        box.style.left = newLeft + 'px';
+        box.style.top  = newTop  + 'px';
+    });
+
+    document.addEventListener('mouseup', function() { dragging = false; });
+})();
+function closeAddModal() {
+    document.getElementById('add-modal').classList.remove('active');
+}
+function onModalOverlayClick(e) {
+    if (e.target === document.getElementById('add-modal')) closeAddModal();
+}
+function showNotice(msg) {
+    document.getElementById('alert-msg').textContent = msg;
+    const el = document.getElementById('alert-modal');
+    el.style.display = 'flex';
+}
+function openAddOrientModal() {
+    document.getElementById('add-orient-input').value = '';
+    document.getElementById('add-orient-modal').style.display = 'flex';
+    setTimeout(function() { document.getElementById('add-orient-input').focus(); }, 50);
+}
+function openAddDomainModal() {
+    document.getElementById('add-domain-input').value = '';
+    document.getElementById('add-domain-modal').style.display = 'flex';
+    setTimeout(function() { document.getElementById('add-domain-input').focus(); }, 50);
+}
+function closeAddDomainModal(e) {
+    if (e.target === document.getElementById('add-domain-modal'))
+        document.getElementById('add-domain-modal').style.display = 'none';
+}
+function submitAddDomain() {
+    const input = document.getElementById('add-domain-input');
+    const val = input.value.trim();
+    if (!val) return;
+    const sel = document.getElementById('modal-domain');
+    const exists = [...sel.options].some(o => o.value.trim() === val);
+    if (exists) {
+        showNotice('This domain already exists.');
+        return;
+    }
+
+    const addBtn = document.querySelector('#add-domain-modal .btn-apply');
+    const origText = addBtn.textContent;
+    addBtn.textContent = 'Saving...';
+    addBtn.disabled = true;
+
+    const cbName = '_gasDomainCb_' + Date.now();
+    const script = document.createElement('script');
+
+    const timer = setTimeout(function() {
+        if (window[cbName]) {
+            script.remove();
+            delete window[cbName];
+            addBtn.textContent = origText;
+            addBtn.disabled = false;
+            showNotice('Request timed out.');
+        }
+    }, 10000);
+
+    window[cbName] = function(data) {
+        clearTimeout(timer);
+        script.remove();
+        delete window[cbName];
+        addBtn.textContent = origText;
+        addBtn.disabled = false;
+
+        if (data && (data.result === 'success' || data.status === 'ok')) {
+            const opt = document.createElement('option');
+            opt.value = val; opt.textContent = val;
+            const opts = [...sel.options].slice(1);
+            const insertIdx = opts.findIndex(o => o.value.localeCompare(val, 'ko') > 0);
+            if (insertIdx === -1) sel.appendChild(opt);
+            else sel.options[insertIdx + 1].insertAdjacentElement('beforebegin', opt);
+            sel.value = val;
+            input.value = '';
+            gDomainSet.add(val);
+            document.getElementById('add-domain-modal').style.display = 'none';
+        } else {
+            document.getElementById('add-domain-modal').style.display = 'none';
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
+        }
+    };
+
+    const url = GAS_URL_MTI
+        + '?action=appendDomain'
+        + '&value=' + encodeURIComponent(val)
+        + '&callback=' + cbName;
+    script.src = url;
+    document.head.appendChild(script);
+}
+function closeAddOrientModal(e) {
+    if (e.target === document.getElementById('add-orient-modal'))
+        document.getElementById('add-orient-modal').style.display = 'none';
+}
+function submitAddOrientation() {
+    const input = document.getElementById('add-orient-input');
+    const val = input.value.trim();
+    if (!val) return;
+
+    
+    const sel = document.getElementById('modal-orientation');
+    const exists = [...sel.options].some(o => o.value.trim() === val);
+    if (exists) {
+        showNotice('This orientation already exists.');
+        return;
+    }
+
+    const addBtn = document.querySelector('#add-orient-modal .btn-apply');
+    const origText = addBtn.textContent;
+    addBtn.textContent = 'Saving...';
+    addBtn.disabled = true;
+
+    const cbName = '_gasOrientCb_' + Date.now();
+    const script = document.createElement('script');
+
+    const timer = setTimeout(function() {
+        if (window[cbName]) {
+            script.remove();
+            delete window[cbName];
+            addBtn.textContent = origText;
+            addBtn.disabled = false;
+            showNotice('Request timed out.');
+        }
+    }, 10000);
+
+    window[cbName] = function(data) {
+        clearTimeout(timer);
+        script.remove();
+        delete window[cbName];
+        addBtn.textContent = origText;
+        addBtn.disabled = false;
+
+        if (data && (data.result === 'success' || data.status === 'ok')) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val;
+            const opts = [...sel.options].slice(1);
+            const insertIdx = opts.findIndex(o => o.value.localeCompare(val, 'ko') > 0);
+            if (insertIdx === -1) sel.appendChild(opt);
+            else sel.options[insertIdx + 1].insertAdjacentElement('beforebegin', opt);
+            sel.value = val;
+            input.value = '';
+            document.getElementById('add-orient-modal').style.display = 'none';
+        } else {
+            document.getElementById('add-orient-modal').style.display = 'none';
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
+        }
+    };
+
+    const url = GAS_URL_MTI
+        + '?action=appendOrientation'
+        + '&value=' + encodeURIComponent(val)
+        + '&callback=' + cbName;
+    script.src = url;
+    document.head.appendChild(script);
+}
+function addNewOrientation() {
+    const input = document.getElementById('modal-new-orientation');
+    const val = input.value.trim();
+    if (!val) return;
+    const sel = document.getElementById('modal-orientation');
+
+    /* Duplicate check */
+    const exists = [...sel.options].some(o => o.value.trim() === val);
+    if (exists) {
+        showNotice('This orientation already exists.');
+        return;
+    }
+
+    /* Save to mti-typology sheet col C via GAS JSONP */
+    const addBtn = document.querySelector('.btn-add-orient');
+    const origText = addBtn.textContent;
+    addBtn.textContent = 'Saving...';
+    addBtn.disabled = true;
+
+    const cbName = '_gasOrientCb_' + Date.now();
+    const script = document.createElement('script');
+
+    window[cbName] = function(data) {
+        /* Clean up script tag */
+        script.remove();
+        delete window[cbName];
+        addBtn.textContent = origText;
+        addBtn.disabled = false;
+
+        if (data && (data.result === 'success' || data.status === 'ok')) {
+            /* Insert in ascending order into dropdown */
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val;
+            const opts = [...sel.options].slice(1);
+            const insertIdx = opts.findIndex(o => o.value.localeCompare(val, 'ko') > 0);
+            if (insertIdx === -1) sel.appendChild(opt);
+            else sel.options[insertIdx + 1].insertAdjacentElement('beforebegin', opt);
+            sel.value = val;
+            input.value = '';
+        } else {
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
+        }
+    };
+
+    /* Timeout: error if no response within 10s */
+    const timer = setTimeout(function() {
+        if (window[cbName]) {
+            script.remove();
+            delete window[cbName];
+            addBtn.textContent = origText;
+            addBtn.disabled = false;
+            showNotice('Request timed out.');
+        }
+    }, 10000);
+
+    window[cbName]._timer = timer;
+    const origCb = window[cbName];
+    window[cbName] = function(data) {
+        clearTimeout(timer);
+        origCb(data);
+    };
+
+    const gasUrlOrient = GAS_URL_MTI
+        + '?action=appendOrientation'
+        + '&value=' + encodeURIComponent(val)
+        + '&callback=' + cbName;
+    script.src = gasUrlOrient;
+    document.head.appendChild(script);
+}
+function previewModalAddress() {
+    const url = document.getElementById('modal-address').value.trim();
+    const isGoogleDocs = url && /https?:\/\/(docs|drive)\.google\.com\//.test(url);
+    if (isGoogleDocs) openDocsPreview(url, 'Preview');
+    else showNotice('Please enter a valid MTI Google Docs URL.');
+}
+function closeAlertModal(e) {
+    if (e.target === document.getElementById('alert-modal')) document.getElementById('alert-modal').style.display = 'none';
+}
+function submitNewMTI() {
+    const name    = document.getElementById('modal-name').value.trim();
+    const domain  = document.getElementById('modal-domain').value;
+    const orient  = document.getElementById('modal-orientation').value;
+    const address = document.getElementById('modal-address').value.trim();
+    const isGoogleDocs = address && /https?:\/\/(docs|drive)\.google\.com\//.test(address);
+
+    /* Collect checkbox values */
+    const comps = [...document.querySelectorAll('#add-modal [id^="modal-comp-"]:checked')].map(c => c.value);
+    const parts = [...document.querySelectorAll('#add-modal .modal-field-content input[type="checkbox"]:not([id^="modal-comp-"]):checked')].map(c => c.value);
+
+    /* Validate required fields */
+    const missing = [];
+    if (!name)         missing.push('Name');
+    if (!domain)       missing.push('Domain');
+    if (!orient)       missing.push('Orientation');
+    if (!comps.length) missing.push('Competency');
+    if (!parts.length) missing.push('Participants');
+    if (!isGoogleDocs) missing.push('Address');
+    if (missing.length > 0) {
+        showNotice(missing.join(', ') + ' field(s) are missing or invalid.');
+        return;
+    }
+
+    /* mtiId: yyyyMMddHHmmss format (mtiNum computed server-side) */
+    const _now = new Date();
+    const mtiId = String(_now.getFullYear())
+        + String(_now.getMonth()+1).padStart(2,'0')
+        + String(_now.getDate()).padStart(2,'0')
+        + String(_now.getHours()).padStart(2,'0')
+        + String(_now.getMinutes()).padStart(2,'0')
+        + String(_now.getSeconds()).padStart(2,'0');
+
+    /* Set Apply button loading state */
+    const applyBtn = document.getElementById('add-modal-apply-btn');
+    const origText = applyBtn ? applyBtn.textContent : 'Apply';
+    if (applyBtn) { applyBtn.textContent = 'Saving...'; applyBtn.disabled = true; }
+
+    const cbName = '_gasMtiCb_' + Date.now();
+    const script = document.createElement('script');
+
+    const timer = setTimeout(() => {
+        if (window[cbName]) {
+            script.remove();
+            delete window[cbName];
+            if (applyBtn) { applyBtn.textContent = origText; applyBtn.disabled = false; }
+            showNotice('Request timed out.');
+        }
+    }, 15000);
+
+    window[cbName] = function(data) {
+        clearTimeout(timer);
+        script.remove();
+        delete window[cbName];
+        if (applyBtn) { applyBtn.textContent = origText; applyBtn.disabled = false; }
+
+        if (data && (data.result === 'success' || data.status === 'ok')) {
+            closeAddModal();
+            sessionStorage.setItem('imti_new_id', mtiId);
+            location.reload();
+        } else {
+            showNotice('Save failed: ' + (data && data.error ? data.error : 'Unknown error'));
+        }
+    };
+
+    const url = GAS_URL_MTI
+        + '?action=appendNewMTI'
+        + '&mtiId='       + encodeURIComponent(mtiId)
+        + '&domain='      + encodeURIComponent(domain)
+        + '&orientation=' + encodeURIComponent(orient)
+        + '&mtiName='     + encodeURIComponent(name)
+        + '&docUrl='      + encodeURIComponent(address)
+        + '&comps='       + encodeURIComponent(JSON.stringify(comps))
+        + '&parts='       + encodeURIComponent(JSON.stringify(parts))
+        + '&callback='    + cbName;
+    script.src = url;
+    document.head.appendChild(script);
+}
+function applyMTI()   { alert('Apply: Not yet implemented.'); }
+function openSearchingMTI() {
+    const w = 1100, h = 780;
+    const left = Math.round(window.screenX + (window.outerWidth - w) / 2);
+    const top  = Math.round(window.screenY + (window.outerHeight - h) / 2);
+    window.open('m_ad_mti-searching.html', 'SearchingMTI',
+        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+}
+function deleteMTI()  { alert('Delete(input): Not yet implemented.'); }
+
+/* Drag logic for Modify modal */
+(function() {
+    let dragging = false, startX, startY, origLeft, origTop;
+    function getBox() { return document.querySelector('#modify-modal .modal-box'); }
+    function getHeader() { return document.querySelector('#modify-modal .modal-header'); }
+    document.addEventListener('mousedown', function(e) {
+        const header = getHeader();
+        if (!header || !header.contains(e.target)) return;
+        if (e.target.closest('button')) return;
+        dragging = true;
+        const box = getBox();
+        const rect = box.getBoundingClientRect();
+        startX = e.clientX; startY = e.clientY;
+        origLeft = rect.left; origTop = rect.top;
+        e.preventDefault();
+    });
+    document.addEventListener('mousemove', function(e) {
+        if (!dragging) return;
+        const box = getBox();
+        if (!box) return;
+        let newLeft = origLeft + (e.clientX - startX);
+        let newTop  = origTop  + (e.clientY - startY);
+        newLeft = Math.max(0, Math.min(newLeft, window.innerWidth  - box.offsetWidth));
+        newTop  = Math.max(0, Math.min(newTop,  window.innerHeight - box.offsetHeight));
+        box.style.left = newLeft + 'px';
+        box.style.top  = newTop  + 'px';
+    });
+    document.addEventListener('mouseup', function() { dragging = false; });
+})();
+
+window.__pageInit = loadAll;
+</script>
+
+    
+    <div class="docs-overlay" id="docs-modal" onclick="closeDocsModal(event)">
+        <div class="docs-box">
+            <div class="docs-header">
+                <span class="docs-title" id="docs-modal-title">Google Docs Preview</span>
+                <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <button class="btn" id="docs-print-btn" onclick="printDocsPreview()">PDF ↯</button>
+                    <button class="btn" onclick="document.getElementById('docs-modal').classList.remove('active');document.getElementById('docs-iframe').src='';">Close</button>
+                </div>
+            </div>
+            <div class="docs-iframe-wrap">
+                <iframe class="docs-iframe" id="docs-iframe" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="add-domain-modal" onclick="closeAddDomainModal(event)"
+         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:4000;align-items:center;justify-content:center;padding-bottom:20vh;">
+        <div style="background:#fff;border:1px solid #dee2e6;border-radius:8px;width:460px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:#f8f9fa;border-bottom:1px solid #dee2e6;">
+                <span style="font-family:'Gowun Batang', serif;font-size:0.84rem;font-weight:700;color:#343a40;letter-spacing:0.05em;">ADD NEW DOMAIN</span>
+            </div>
+            <div style="padding:24px 24px 8px;">
+                <div style="display:grid;grid-template-columns:auto 1fr;align-items:center;gap:0;border:1px solid #dee2e6;border-radius:4px;overflow:hidden;">
+                    <div style="font-family:'Gowun Batang', serif;font-size:0.78rem;font-weight:700;color:#495057;padding:12px 16px;background:#f8f9fa;border-right:1px solid #dee2e6;white-space:nowrap;">New-Domain</div>
+                    <input type="text" id="add-domain-input"
+                           placeholder="Enter new domain..."
+                           style="border:none;outline:none;padding:20px 26px;font-family:'Gowun Batang', serif;font-size:0.84rem;width:100%;"
+                           onkeydown="if(event.key==='Enter')submitAddDomain()">
+                </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px 20px;">
+                <button class="btn btn-apply" onclick="submitAddDomain()">Add(+)</button>
+                <button class="btn" onclick="document.getElementById('add-domain-modal').style.display='none'">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="add-orient-modal" onclick="closeAddOrientModal(event)"
+         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:4000;align-items:center;justify-content:center;padding-bottom:20vh;">
+        <div style="background:#fff;border:1px solid #dee2e6;border-radius:8px;width:460px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:#f8f9fa;border-bottom:1px solid #dee2e6;">
+                <span style="font-family:'Gowun Batang', serif;font-size:0.84rem;font-weight:700;color:#343a40;letter-spacing:0.05em;">ADD NEW ORIENTATION</span>
+            </div>
+            <div style="padding:24px 24px 8px;">
+                <div style="display:grid;grid-template-columns:auto 1fr;align-items:center;gap:0;border:1px solid #dee2e6;border-radius:4px;overflow:hidden;">
+                    <div style="font-family:'Gowun Batang', serif;font-size:0.78rem;font-weight:700;color:#495057;padding:12px 16px;background:#f8f9fa;border-right:1px solid #dee2e6;white-space:nowrap;">New-Orientation</div>
+                    <input type="text" id="add-orient-input"
+                           placeholder="Enter new orientation..."
+                           style="border:none;outline:none;padding:20px 26px;font-family:'Gowun Batang', serif;font-size:0.84rem;width:100%;"
+                           onkeydown="if(event.key==='Enter')submitAddOrientation()">
+                </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px 20px;">
+                <button class="btn btn-apply" onclick="submitAddOrientation()">Add(+)</button>
+                <button class="btn" onclick="document.getElementById('add-orient-modal').style.display='none'">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="alert-modal" onclick="closeAlertModal(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:5000;align-items:center;justify-content:center;padding-bottom:20vh;">
+        <div style="background:#fff;border:1px solid #dee2e6;border-radius:8px;min-width:340px;max-width:460px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+            <div style="display:flex;align-items:center;padding:12px 18px;background:#f8f9fa;border-bottom:1px solid #dee2e6;">
+                <span style="font-family:'Gowun Batang', serif;font-size:0.84rem;font-weight:700;color:#343a40;letter-spacing:0.05em;">NOTICE</span>
+            </div>
+            <div id="alert-msg" style="padding:28px 28px 24px;font-family:'Gowun Batang', serif;font-size:0.84rem;font-weight:700;color:#495057;line-height:1.6;text-align:center;">
+                Please enter a valid MTI Google Docs URL.
+            </div>
+            <div style="display:flex;justify-content:center;padding:0 0 22px;">
+                <button class="btn" onclick="document.getElementById('alert-modal').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="modify-modal" onclick="if(event.target===this)closeModifyModal()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="modal-title">MODIFY MTI</span>
+                    <span class="modal-title" id="modify-modal-num" style="color:#868e96;"></span>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <button class="btn btn-apply" onclick="submitModifyMTI()">Apply</button>
+                    <button class="btn" onclick="closeModifyModal()">Cancel</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modify-modal-id">
+                <!-- Name -->
+                <div class="modal-field-row">
+                    <div class="modal-field-label">Name</div>
+                    <div class="modal-field-content">
+                        <input type="text" id="modify-modal-name" placeholder="Enter the MTI name.">
+                    </div>
+                </div>
+                
+                <div class="modal-field-row" style="grid-template-columns:130px 1fr 1px 130px 1fr;">
+                    <div class="modal-field-label">Domain</div>
+                    <div class="modal-field-content" style="display:flex;gap:8px;align-items:center;flex-wrap:nowrap;">
+                        <select class="orientation-select" id="modify-modal-domain" style="flex-shrink:0;min-width:140px;">
+                            <option value="">Select Domain</option>
+                        </select>
+                    </div>
+                    <div style="width:1px;background:#fff;height:100%;align-self:stretch;"></div>
+                    <div class="modal-field-label" style="background:#f8f9fa;border-left:none;border-right:1px solid #dee2e6;">Orientation</div>
+                    <div class="modal-field-content" style="display:flex;gap:8px;align-items:center;flex-wrap:nowrap;">
+                        <select class="orientation-select" id="modify-modal-orientation" style="flex-shrink:0;min-width:140px;">
+                            <option value="">Select Orientation</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Participants -->
+                <div class="modal-field-row">
+                    <div class="modal-field-label">Participants</div>
+                    <div class="modal-field-content">
+                        <label class="check-item"><input type="checkbox" id="modify-part-Pre_Schooler" value="Pre_Schooler"> Pre_Schooler</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Elementary_Schooler_L" value="Elementary_Schooler(L)"> Elementary_Schooler(L)</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Elementary_Schooler_M" value="Elementary_Schooler(M)"> Elementary_Schooler(M)</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Elementary_Schooler_H" value="Elementary_Schooler(H)"> Elementary_Schooler(H)</label>
+                        <div style="width:100%;height:0;flex-basis:100%;"></div>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Middle_Schooler" value="Middle_Schooler"> Middle_Schooler</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-High_Schooler" value="High_Schooler"> High_Schooler</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Special_Learner" value="Special_Learner"> Special_Learner</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Gifted_Learner" value="Gifted_Learner"> Gifted_Learner</label>
+                        <label class="check-item"><input type="checkbox" id="modify-part-Post_Schooler" value="Post_Schooler"> Post_Schooler</label>
+                    </div>
+                </div>
+                <!-- Competency -->
+                <div class="modal-field-row">
+                    <div class="modal-field-label">Competency</div>
+                    <div class="modal-field-content">
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Computational_Thinking" value="Computational_Thinking"> Computational_Thinking</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Digital_Cultural_Literacy" value="Digital_Cultural_Literacy"> Digital_Cultural_Literacy</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-AI_Literacy" value="AI_Literacy"> AI_Literacy</label>
+                        <div style="width:100%;height:0;flex-basis:100%;"></div>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Logical_Thinking_Ability" value="Logical_Thinking_Ability"> Logical_Thinking_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Problem_Solving_Ability" value="Problem_Solving_Ability"> Problem_Solving_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Creative_Thinking_Ability" value="Creative_Thinking_Ability"> Creative_Thinking_Ability</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Creative_Problem_Solving_Ability" value="Creative_Problem_Solving_Ability"> Creative_Problem_Solving_Ability</label>
+                        <div style="width:100%;height:0;flex-basis:100%;"></div>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Academic_Achivement" value="Academic_Achivement"> Academic_Achivement</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Instruction_Satisfy" value="Instruction_Satisfy"> Instruction_Satisfy</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Learning_Motivation" value="Learning_Motivation"> Learning_Motivation</label>
+                        <label class="check-item"><input type="checkbox" id="modify-comp-Etc_" value="Etc."> Etc.</label>
+                    </div>
+                </div>
+                <!-- Address -->
+                <div class="modal-field-row modal-has-btn">
+                    <div class="modal-field-label">Address</div>
+                    <div class="modal-field-content">
+                        <input type="url" id="modify-modal-address" placeholder="Enter the Google Docs URL.">
+                    </div>
+                    <div style="display:flex;align-items:center;flex-shrink:0;padding:6px 16px 6px 8px;">
+                        <button class="btn" onclick="previewModifyAddress()">Preview</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="delete-modal" onclick="if(event.target===this)closeDeleteModal()"
+         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:4500;align-items:center;justify-content:center;">
+        <div style="background:#fff;border:1px solid #dee2e6;border-radius:8px;width:420px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.22);">
+            <div style="display:flex;align-items:center;padding:16px 20px;background:#f8f9fa;border-bottom:1px solid #dee2e6;">
+                <span style="font-family:'Gowun Batang', serif;font-size:0.84rem;font-weight:700;color:#343a40;letter-spacing:0.05em;">DELETE MTI</span>
+            </div>
+            <input type="hidden" id="delete-modal-id">
+            <div style="padding:28px 28px 18px;text-align:center;">
+                <p style="font-family:'Gowun Batang', serif;font-size:0.82rem;color:#495057;line-height:1.8;">
+                    Delete the following MTI?<br>
+                    <strong id="delete-modal-name" style="color:#e03131;font-size:0.9rem;"></strong><br>
+                    <span style="font-size:0.76rem;color:#adb5bd;">This action cannot be undone.</span>
+                </p>
+            </div>
+            <div style="display:flex;justify-content:center;gap:10px;padding:0 28px 24px;">
+                <button class="btn btn-apply" onclick="confirmDeleteMTI()" style="flex:1;background:#e03131;border-color:#e03131;color:#fff;">Confirm</button>
+                <button class="btn" onclick="closeDeleteModal()" style="flex:1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+<script>window.__skipPCNavbar = true;</script>
+<script src="ad_common.js"></script>
+</body>
+</html>

@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - Article Analyser</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ad_common.css">
+    <style>
+        body { height: 100vh; overflow: hidden; }
+
+        .main {
+            flex: 1; display: flex; flex-direction: column;
+            margin: 20px; border: 1px dashed #dee2e6; border-radius: 2px;
+            overflow: hidden; min-height: 0; position: relative;
+        }
+
+        /* ── Toolbar ── */
+        .toolbar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 20px; border-bottom: 1px solid #e9ecef;
+            background: #fff; flex-shrink: 0; flex-wrap: wrap;
+        }
+        .toolbar-left  { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; flex-wrap: wrap; }
+        .toolbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .toolbar-title {
+            font-family: 'Gowun Batang', serif; font-size: 0.72rem; font-weight: 500;
+            letter-spacing: 0.1em; color: #adb5bd; text-transform: uppercase; white-space: nowrap;
+        }
+        .toolbar-divider { width: 1px; height: 14px; background: #e9ecef; flex-shrink: 0; }
+
+        .article-id-wrap { display: flex; align-items: center; gap: 8px; }
+
+        
+        .article-id-above {
+            display: flex;
+            justify-content: flex-end;         
+            padding-left: 140px;               
+            margin-bottom: 2px;
+        }
+        .current-id-badge {
+            font-family: 'Gowun Batang', serif; font-size: 0.82rem; font-weight: 550;
+            letter-spacing: 0.08em; color: #343a40;
+            background: #f1f3f5; border: 1.5px solid #adb5bd;
+            border-radius: 2px; padding: 7px 14px;
+            white-space: nowrap;
+        }
+        .article-id-label {
+            font-family: 'Gowun Batang', serif; font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 0.08em; color: #adb5bd; text-transform: uppercase; white-space: nowrap;
+        }
+        .article-id-select {
+            font-family: 'Gowun Batang', serif; font-size: 0.75rem; color: #343a40;
+            background: #fff; border: 1.5px solid #343a40; border-radius: 2px;
+            padding: 6px 12px; outline: none; cursor: pointer; min-width: 200px;
+            transition: border-color 0.2s;
+        }
+        .article-id-select:focus { border-color: #1a56db; }
+        .article-id-select option.not-analyzed {
+            font-style: italic;
+            color: #868e96;
+        }
+
+        .latest-update-wrap { display: flex; align-items: center; gap: 6px; }
+        .latest-update-label {
+            font-family: 'Gowun Batang', serif; font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 0.04em; color: #495057; text-transform: uppercase; white-space: nowrap;
+        }
+        .latest-update-val {
+            font-family: 'Gowun Batang', serif; font-size: 0.7rem; font-weight: 700; color: #495057; white-space: nowrap;
+        }
+
+        .status-badge {
+            font-family: 'Gowun Batang', serif; font-size: 0.9rem; font-weight: 700;
+            letter-spacing: 0.06em; padding: 4px 10px; border-radius: 2px; display: none;
+        }
+        .status-badge.saving  { background: #fff3e0; color: #e67700; display: inline-block; }
+        .status-badge.ok      { background: #f3faf3; color: #2f9e44; display: inline-block; }
+        .status-badge.err     { background: #fff0f0; color: #e03131; display: inline-block; }
+        .status-badge.deleting{ background: #fff0f0; color: #e03131; display: inline-block; }
+
+        /* Buttons */
+        .btn {
+            font-family: 'Gowun Batang', serif; font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 0.06em; border-radius: 2px; padding: 7px 16px;
+            cursor: pointer; transition: all 0.18s; white-space: nowrap;
+            border: 1.5px solid transparent;
+        }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn-outline { background: #fff; border-color: #dee2e6; color: #6c757d; }
+        .btn-outline:hover:not(:disabled) { border-color: #adb5bd; color: #343a40; background: #f8f9fa; }
+        .btn-primary { background: #343a40; border-color: #343a40; color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: #1a56db; border-color: #1a56db; }
+        .btn-danger  { background: #fff; border-color: #ffc9c9; color: #e03131; }
+        .btn-danger:hover:not(:disabled)  { background: #fff0f0; border-color: #e03131; }
+        .btn-print   { background: #fff; border-color: #d0ebff; color: #1971c2; }
+        .btn-print:hover:not(:disabled)   { background: #e7f5ff; border-color: #1971c2; }
+        .btn-search  { background: #fff; border-color: #d3f9d8; color: #2f9e44; }
+        .btn-search:hover:not(:disabled)  { background: #ebfbee; border-color: #2f9e44; }
+        .btn-nav     { background: #D1DCE0; border-color: #dee2e6; color: #495057; }
+        .btn-nav:hover:not(:disabled)     { border-color: #868e96; color: #212529; background: #A4C5D3; }
+        .btn-nav:disabled { opacity: 0.25; cursor: not-allowed; }
+
+        
+        .last-saved-wrap {
+            display: flex; align-items: center; gap: 5px;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .last-saved-wrap.visible { opacity: 1; pointer-events: auto; }
+        .last-saved-label {
+            font-family: 'Gowun Batang', serif; font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 0.04em; color: #495057; text-transform: uppercase; white-space: nowrap;
+        }
+        .last-saved-id {
+            font-family: 'Gowun Batang', serif; font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 0.06em; color: #495057;
+            background: #fff; border: 0px solid #a5d0ee;
+            border-radius: 2px; padding: 7px 10px;
+            white-space: nowrap; cursor: pointer;
+            transition: background 0.18s, border-color 0.18s;
+        }
+        .last-saved-id:hover { background: #d0ebff; border-color: #1971c2; color: #1971c2; }
+
+        /* ── Editor Area ── */
+        .editor-wrap {
+            flex: 1; overflow-y: auto; overflow-x: hidden;
+            scrollbar-width: thin; scrollbar-color: #dee2e6 transparent;
+        }
+        .editor-wrap::-webkit-scrollbar { width: 6px; }
+        .editor-wrap::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 3px; }
+
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 10px; height: 100%; padding: 80px 20px;
+            font-family: 'Gowun Batang', serif; font-size: 0.9rem; color: #adb5bd;
+        }
+        .empty-state-icon { font-size: 2.2rem; opacity: 0.2; margin-bottom: 4px; }
+
+        
+        .editor-body {
+            padding: 16px 40px 40px;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        
+        .form-row {
+            display: flex; align-items: flex-start;
+            border-bottom: 1px solid #f1f3f5; padding: 4px 0;
+            transition: background 0.1s;
+        }
+        .form-row:last-child { border-bottom: none; }
+        .form-row:hover { background: #fafafa; margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+
+        .form-label {
+            font-family: 'Gowun Batang', serif; font-size: 0.82rem; font-weight: 700;
+            letter-spacing: 0.06em; color: #868e96; text-transform: uppercase;
+            white-space: nowrap; width: 140px; flex-shrink: 0;
+            padding-top: 9px; padding-right: 16px;
+        }
+        .col-tag {
+            font-size: 0.2rem; color: #ced4da; font-weight: 400;
+            margin-left: 3px; letter-spacing: 0.02em; vertical-align: middle;
+        }
+        .form-field { flex: 1; min-width: 0; }
+
+        
+        .form-row-2col {
+            display: flex; align-items: stretch;
+            border-bottom: 1px solid #f1f3f5; padding: 0;
+            transition: background 0.1s;
+        }
+        .form-row-2col:hover { background: #fafafa; margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+
+        .col-half { flex: 1; display: flex; flex-direction: column; }
+        .col-half + .col-half {
+            border-left: 1px solid #f1f3f5; padding-left: 20px; margin-left: 4px;
+        }
+
+        .sub-row {
+            display: flex; align-items: flex-start;
+            border-bottom: 1px solid #f8f9fa; padding: 3px 0;
+        }
+        .sub-row:last-child { border-bottom: none; }
+
+        
+        .f-input, .f-select, .f-textarea {
+            font-family: 'Gowun Batang', serif; font-size: 0.91rem; color: #000;
+            background: #f8f9fa; border: 0.5px solid #e9ecef; border-radius: 1px;
+            padding: 7px 10px; outline: none; width: 100%; box-sizing: border-box;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .f-input:focus, .f-select:focus, .f-textarea:focus { border-color: #adb5bd; background: #fff; }
+        
+        .f-input {
+            white-space: normal;
+            word-break: break-all;
+            height: auto;
+            overflow: visible;
+        }
+        .f-textarea {
+            resize: none;
+            min-height: 36px;
+            line-height: 1.65;
+            overflow: hidden;   
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .f-textarea.tall { min-height: 80px; }
+        
+        .f-textarea.f-single {
+            min-height: 36px;
+            line-height: 1.5;
+        }
+
+        /* APA 필드 내어쓰기 (hanging indent) */
+        #f-apa {
+            padding-left: 2.5em;
+            text-indent: -2.5em;
+        }
+
+        .section-sep { border: none; border-top: 1px solid #e9ecef; margin: 6px 0 2px; }
+        .p-sep, .p-sep-apa { display: none; }
+
+        /* ── Status Bar ── */
+        .statusbar {
+            display: flex; align-items: center; gap: 16px;
+            padding: 7px 20px; border-top: 1px solid #e9ecef;
+            background: #f8f9fa; flex-shrink: 0;
+        }
+        .statusbar-text {
+            font-family: 'Gowun Batang', serif; font-size: 0.75rem; font-weight: 700; color: #5d5d7d; letter-spacing: 0.04em;
+        }
+        .statusbar-text span { color: #6c757d; font-weight: 700; }
+        #sb-analyzed { color: #2f9e44 !important; font-weight: 700; }
+
+        /* ── Confirm Overlay ── */
+        .confirm-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+            display: none; align-items: center; justify-content: center; z-index: 200;
+        }
+        .confirm-overlay.open { display: flex; }
+        .confirm-box {
+            background: #fff; border-radius: 4px; padding: 28px 32px;
+            max-width: 360px; width: 90%; box-shadow: 0 8px 40px rgba(0,0,0,0.14);
+        }
+        .confirm-title {
+            font-family: 'Gowun Batang', serif; font-size: 0.78rem; font-weight: 700;
+            letter-spacing: 0.08em; color: #343a40; text-transform: uppercase; margin-bottom: 10px;
+        }
+        .confirm-msg {
+            font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem;
+            color: #495057; margin-bottom: 22px; line-height: 1.65;
+        }
+        .confirm-btns { display: flex; gap: 8px; justify-content: flex-end; }
+
+        /* ── Print ── */
+        @page {
+            size: Letter portrait;
+            margin: 20mm 15mm 10mm 30mm;
+        }
+        @media print {
+            body { overflow: visible; height: auto; background: #fff;
+                   -webkit-print-color-adjust: exact; print-color-adjust: exact;
+                   font-family: 'Gowun Batang', serif; font-size: 9pt; }
+            .page-body { display: block !important; }
+            nav, header, .navbar, .nav-bar, .sidebar,
+            [class*="nav"], [class*="header"], [id*="nav"], [id*="header"] { display: none !important; }
+
+            .main { margin: 0; border: none; overflow: visible; box-shadow: none; }
+            .toolbar, .statusbar { display: none !important; }
+            .editor-wrap { overflow: visible; height: auto !important; }
+            .confirm-overlay { display: none !important; }
+            .empty-state { display: none !important; }
+            .print-header { display: none !important; }
+            .section-sep { display: none !important; }
+
+            .editor-body { padding: 0 !important; max-width: 100% !important; display: block !important; }
+
+            
+            .article-id-above,
+            .form-row,
+            .form-row-2col { display: none !important; }
+
+            
+            #print-layout { display: block !important; }
+
+            
+            #print-layout .p-badge-wrap {
+                display: flex; justify-content: flex-end; margin-bottom: 10pt;
+            }
+            #print-layout .p-badge {
+                font-family: 'Gowun Batang', serif; font-size: 8.5pt; font-weight: 500;
+                letter-spacing: 0.05em; color: #343a40;
+                border: 0.1pt solid #adb5bd; border-radius: 1px; padding: 3pt 10pt;
+            }
+
+            
+            #print-layout .p-apa {
+                font-size: 9.5pt; line-height: 1.65; color: #212529;
+                margin-bottom: 10pt; word-break: break-word;
+                padding-left: 4.5em;
+                text-indent: -4.5em;
+            }
+
+            
+            #print-layout table {
+                width: 100%; border-collapse: collapse; margin-bottom: 6pt; font-size: 8.5pt;
+            }
+            #print-layout td {
+                border: 0.0pt solid #adb5bd; padding: 5pt 7pt;
+                vertical-align: top; line-height: 1.6; color: #212529;
+            }
+            #print-layout .p-label {
+                font-family: 'Gowun Batang', serif; font-size: 7.5pt; font-weight: 700;  text-align: right;
+                color: #495057; white-space: nowrap; width: 68pt;
+            }
+            #print-layout .p-val { word-break: break-word; }
+            #pl-domain, #pl-orientation, #pl-treatment { font-weight: 700; }
+
+            /* ── Print section separator (APA 아래만) ── */
+            .p-sep-apa {
+                display: block !important;
+                border: none;
+                border-top: 0.4pt dashed #E0E0E0;
+                margin: 3pt 0;
+            }
+        }
+        .print-header {
+            display: none;
+            justify-content: space-between; align-items: flex-end;
+            font-family: 'Gowun Batang', serif; font-size: 0.72rem;
+            color: #adb5bd; text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 28px; padding-bottom: 12px; border-bottom: 2px solid #343a40;
+        }
+        .print-header-left { display: flex; flex-direction: column; gap: 4px; }
+        .print-header-title { font-size: 0.72rem; color: #adb5bd; letter-spacing: 0.1em; }
+        .print-header-update { font-size: 0.65rem; color: #adb5bd; }
+        .print-header-id { font-size: 2rem; font-weight: 700; color: #343a40; letter-spacing: 0.04em; line-height: 1; }
+
+        @media (max-width: 900px) {
+            .form-row-2col { flex-direction: column; }
+            .col-half + .col-half { border-left: none; padding-left: 0; margin-left: 0; border-top: 1px solid #f1f3f5; }
+            .editor-body { padding: 16px 16px 40px; max-width: 100%; }
+        }
+    </style>
+
+    <style id="m-responsive">
+        /* ── Mobile layout reset (PC navbar removed) ── */
+        html, body { height: auto; min-height: 100%; overflow-x: hidden; }
+        body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
+        .page-body {
+            height: auto !important; max-height: none !important;
+            overflow: visible !important; display: block !important;
+        }
+        .main {
+            margin: 12px !important;
+            padding: 16px 12px !important;
+            border: none !important;
+        }
+        /* Horizontal scroll container for wide data tables */
+        #table-area { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .member-table { width: 100%; min-width: 640px; font-size: 0.72rem; }
+        .member-table th, .member-table td { padding: 8px 8px; }
+        /* Popups: keep within viewport on small screens */
+        .adm-modal-box, .popup-box, .view-popup-box, .del-modal-box {
+            width: 92vw !important; max-width: 92vw !important;
+        }
+        .popup-box { padding: 40px 22px 28px !important; }
+        .adm-modal-body, .view-popup-body { padding-left: 20px !important; padding-right: 20px !important; }
+        .adm-modal-footer, .view-popup-footer { padding-left: 18px !important; padding-right: 18px !important; }
+        .adm-info-table td:first-child { width: 92px; }
+        .popup-btn-row { flex-wrap: wrap; justify-content: center; }
+        .popup-cancel-btn, .popup-confirm-btn { padding: 10px 32px !important; }
+    </style>
+
+    <style id="m-analyser-mobile">
+        /* ====== Mobile layout for Article Analyser ====== */
+        body { height: auto !important; overflow: visible !important; }
+        .page-body { display: block !important; height: auto !important; overflow: visible !important; }
+
+        .main {
+            margin: 10px !important;
+            padding: 0 !important;
+            border: 1px solid #e9ecef !important;
+            border-radius: 4px;
+            overflow: visible !important;
+            display: block !important;
+        }
+
+        /* ── Toolbar: stack into clean rows ── */
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 14px 14px;
+        }
+        .toolbar-left {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            width: 100%;
+        }
+        /* hide the little vertical dividers — they look stray when stacked */
+        .toolbar-divider { display: none !important; }
+
+        .toolbar-title {
+            font-size: 0.78rem; letter-spacing: 0.12em;
+            text-align: center; padding-bottom: 4px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        /* Article ID selector takes full width with label on top */
+        .article-id-wrap {
+            flex-direction: column; align-items: stretch; gap: 4px; width: 100%;
+        }
+        .article-id-label { font-size: 0.68rem; }
+        .article-id-select {
+            width: 100%; min-width: 0; box-sizing: border-box;
+            font-size: 0.92rem; padding: 10px 12px;
+        }
+
+        .latest-update-wrap {
+            justify-content: space-between; width: 100%;
+            background: #f8f9fa; border-radius: 3px; padding: 7px 10px;
+        }
+        .latest-update-label, .latest-update-val { font-size: 0.74rem; }
+
+        .status-badge { align-self: flex-start; font-size: 0.82rem; }
+
+        /* ── Toolbar-right: button grid ── */
+        .toolbar-right {
+            flex-wrap: wrap; gap: 8px; width: 100%;
+        }
+        .last-saved-wrap {
+            order: -1; width: 100%; justify-content: space-between;
+            background: #f8f9fa; border-radius: 3px; padding: 7px 10px;
+        }
+        /* Buttons share the row two-up, sizing evenly */
+        .toolbar-right .btn {
+            flex: 1 1 calc(50% - 4px);
+            min-width: 0;
+            padding: 11px 8px;
+            font-size: 0.74rem;
+            text-align: center;
+        }
+        /* SAVE / DELETE sit together in their own row, above PRINT */
+        .toolbar-right .save-delete-group {
+            display: flex; gap: 8px; width: 100%;
+            order: 99;                 /* keep just above PRINT */
+            padding-top: 10px;
+            border-top: 2px solid #dee2e6;   /* separator from buttons above */
+        }
+        .toolbar-right .save-delete-group .btn { flex: 1 1 calc(50% - 4px); }
+        .toolbar-right #btn-print { order: 100; }
+        /* Prev / Next side by side on their own row */
+        #btn-prev, #btn-next { flex: 1 1 calc(50% - 4px); }
+
+        /* ── Editor body ── */
+        .editor-wrap { overflow: visible !important; height: auto !important; }
+        .editor-body { padding: 14px 12px 32px !important; max-width: 100% !important; }
+
+        .empty-state { padding: 48px 16px; font-size: 0.85rem; text-align: center; }
+
+        /* Current-ID badge centred above the form */
+        .article-id-above { padding-left: 0 !important; justify-content: center !important; }
+        .current-id-badge { font-size: 0.9rem; padding: 8px 18px; }
+
+        /* Form rows: label on top, field full width */
+        .form-row, .sub-row {
+            flex-direction: column; align-items: stretch; gap: 4px;
+            padding: 10px 0;
+        }
+        .form-row:hover, .form-row-2col:hover { background: none; margin: 0; padding-left: 0; padding-right: 0; }
+        .form-row:hover { padding: 10px 0; }
+
+        .form-label {
+            width: auto !important; padding: 0 0 2px 0 !important;
+            font-size: 0.74rem; white-space: normal;
+        }
+        .col-tag { font-size: 0.6rem !important; }
+        .form-field { width: 100%; }
+
+        /* Two-column section becomes single column */
+        .form-row-2col { flex-direction: column; padding: 0; }
+        .col-half + .col-half {
+            border-left: none; padding-left: 0; margin-left: 0;
+            border-top: 1px solid #f1f3f5;
+        }
+        .sub-row:last-child { border-bottom: 1px solid #f8f9fa; }
+
+        .f-textarea, .f-input, .f-select { font-size: 0.92rem; padding: 9px 10px; }
+        .f-textarea.f-single { min-height: 42px; }
+
+        .section-sep { margin: 10px 0 4px; }
+
+        /* ── Status bar: stack the three counters ── */
+        .statusbar {
+            flex-direction: column; align-items: stretch; gap: 6px;
+            padding: 10px 14px;
+        }
+        .statusbar .toolbar-divider { display: none !important; }
+        .statusbar-text { font-size: 0.78rem; }
+
+        /* Confirm dialog stays centred & sized for phones */
+        .confirm-box { width: 88vw; max-width: 88vw; padding: 24px 22px; }
+    </style>
+
+</head>
+<body>
+
+<!-- Mobile navbar injected here -->
+<div id="m-navbar-mount"></div>
+<script>
+/* Load the mobile navbar fragment */
+fetch('m_ad_navbar.html')
+    .then(r => r.text())
+    .then(html => {
+        const mount = document.getElementById('m-navbar-mount');
+        mount.innerHTML = html;
+        mount.querySelectorAll('script').forEach(old => {
+            const s = document.createElement('script');
+            if (old.src) s.src = old.src; else s.textContent = old.textContent;
+            document.body.appendChild(s);
+        });
+    })
+    .catch(err => console.error('navbar load error:', err));
+</script>
+
+
+<div class="page-body">
+<div class="main" id="main-wrap">
+
+    <!-- ── Toolbar ── -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <span class="toolbar-title">Article Analyser</span>
+            <div class="toolbar-divider"></div>
+
+            
+            <div class="article-id-wrap">
+                <span class="article-id-label">Article ID</span>
+                <select class="article-id-select" id="article-id-select">
+                    <option value="">— Select Article No. —</option>
+                </select>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            
+            <div class="latest-update-wrap">
+                <span class="latest-update-label">Latest Update</span>
+                <span class="latest-update-val" id="latest-update-val">—</span>
+            </div>
+            <div class="toolbar-divider"></div>
+            <span class="status-badge" id="status-badge"></span>
+
+        </div>
+
+        <div class="toolbar-right">
+            <div class="last-saved-wrap" id="last-saved-wrap">
+                <span class="last-saved-label">Previous: </span>
+                <span class="last-saved-id" id="last-saved-id" title="Click to jump to this article"></span>
+            </div>
+            <button class="btn btn-nav" id="btn-prev" disabled>‹ Prev_Article</button>
+            <button class="btn btn-nav" id="btn-next" disabled>Next_Article ›</button>
+            <button class="btn btn-outline" id="btn-reload">↺ RELOAD</button>
+            <button class="btn btn-search"  id="btn-search">⌕ SEARCHING</button>
+            <div class="save-delete-group">
+                <button class="btn btn-primary" id="btn-save"   disabled>✓ SAVE</button>
+                <button class="btn btn-danger"  id="btn-delete" disabled>✕ DELETE</button>
+            </div>
+            <button class="btn btn-print"   id="btn-print"  disabled>⎙ PRINT</button>
+        </div>
+    </div>
+
+    <!-- ── Editor ── -->
+    <div class="editor-wrap" id="editor-wrap">
+
+        <div class="empty-state" id="empty-state">
+            <div class="empty-state-icon">◫</div>
+            <span>Select an Article ID from the dropdown above.</span>
+        </div>
+
+        <div class="editor-body" id="editor-body" style="display:none;">
+
+            
+            <div class="print-header">
+                <div class="print-header-left">
+                    <span class="print-header-title">IMTI — Article Analyser</span>
+                    <span class="print-header-update" id="print-update"></span>
+                </div>
+                <span class="print-header-id" id="print-id"></span>
+            </div>
+
+            
+            <div class="article-id-above" id="article-id-above" style="display:none;">
+                <span class="current-id-badge" id="current-id-badge"></span>
+            </div>
+
+            
+            <div class="form-row">
+                <div class="form-label">APA <span class="col-tag">col V</span></div>
+                <div class="form-field">
+                    <textarea class="f-textarea f-single" id="f-apa"></textarea>
+                </div>
+            </div>
+
+            <hr class="section-sep">
+
+            
+            <div class="form-row-2col">
+
+                <div class="col-half">
+                    <div class="sub-row">
+                        <div class="form-label">Setting <span class="col-tag">col M</span></div>
+                        <div class="form-field"><textarea class="f-textarea f-single" id="f-setting"></textarea></div>
+                    </div>
+                    <div class="sub-row">
+                        <div class="form-label">Treatment <span class="col-tag">col N</span></div>
+                        <div class="form-field"><textarea class="f-textarea f-single" id="f-treatment"></textarea></div>
+                    </div>
+                    <div class="sub-row">
+                        <div class="form-label">Unit <span class="col-tag">col P</span></div>
+                        <div class="form-field"><textarea class="f-textarea f-single" id="f-unit"></textarea></div>
+                    </div>
+                    <div class="sub-row">
+                        <div class="form-label">Outcome <span class="col-tag">col O</span></div>
+                        <div class="form-field"><textarea class="f-textarea f-single" id="f-outcome"></textarea></div>
+                    </div>
+                </div>
+
+                <div class="col-half">
+                    <div class="sub-row">
+                        <div class="form-label">Domain <span class="col-tag">col I</span></div>
+                        <div class="form-field"><textarea class="f-textarea f-single" id="f-domain"></textarea></div>
+                    </div>
+                    <div class="sub-row">
+                        <div class="form-label">Orientation <span class="col-tag">col J</span></div>
+                        <div class="form-field"><textarea class="f-textarea f-single" id="f-orientation"></textarea></div>
+                    </div>
+                    <div class="sub-row">
+                        <div class="form-label">Participant <span class="col-tag">col L</span></div>
+                        <div class="form-field"><textarea class="f-textarea f-single" id="f-participant"></textarea></div>
+                    </div>
+                    <div class="sub-row">
+                        <div class="form-label">Competency <span class="col-tag">col K</span></div>
+                        <div class="form-field"><textarea class="f-textarea f-single" id="f-competency"></textarea></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <hr class="section-sep">
+
+            
+            <div class="form-row">
+                <div class="form-label">T_Procedure <span class="col-tag">col R</span></div>
+                <div class="form-field">
+                    <textarea class="f-textarea" id="f-tprocedure"></textarea>
+                </div>
+            </div>
+
+            
+            <div class="form-row">
+                <div class="form-label">Article_Sum. <span class="col-tag">col S</span></div>
+                <div class="form-field">
+                    <textarea class="f-textarea tall" id="f-summary"></textarea>
+                </div>
+            </div>
+
+            
+            <div class="form-row">
+                <div class="form-label">Main_Ref. <span class="col-tag">col T</span></div>
+                <div class="form-field">
+                    <textarea class="f-textarea f-single" id="f-mainref"></textarea>
+                </div>
+            </div>
+
+            
+            <div id="print-layout" style="display:none;">
+
+                <div class="p-badge-wrap">
+                    <span class="p-badge" id="pl-badge"></span>
+                </div><br>
+
+                <div class="p-apa" id="pl-apa"></div>
+
+                <hr class="p-sep-apa">
+
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="p-label">Domain :</td>
+                            <td class="p-val" id="pl-domain"></td>
+                            <td class="p-label">Orientation :</td>
+                            <td class="p-val" id="pl-orientation"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-label">Participant :</td>
+                            <td class="p-val" id="pl-participant"></td>
+                            <td class="p-label">Competency :</td>
+                            <td class="p-val" id="pl-competency"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="p-label">Treatment :</td>
+                            <td class="p-val" id="pl-treatment"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-label">Unit :</td>
+                            <td class="p-val" id="pl-unit"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-label">Outcomes :</td>
+                            <td class="p-val" id="pl-outcome"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-label">Setting :</td>
+                            <td class="p-val" id="pl-setting"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table><tbody>
+                    <tr>
+                        <td class="p-label">T_Procedure :</td>
+                        <td class="p-val" id="pl-tprocedure"></td>
+                    </tr>
+                </tbody></table>
+
+                <table><tbody>
+                    <tr>
+                        <td class="p-label">Summary :</td>
+                        <td class="p-val" id="pl-summary"></td>
+                    </tr>
+                </tbody></table>
+
+                <table><tbody>
+                    <tr>
+                        <td class="p-label">Reference :</td>
+                        <td class="p-val" id="pl-mainref"></td>
+                    </tr>
+                </tbody></table>
+
+            </div><!-- #print-layout -->
+        </div><!-- .editor-body -->
+    </div><!-- .editor-wrap -->
+
+    <!-- ── Status Bar ── -->
+    <div class="statusbar">
+        <span class="statusbar-text"><span id="sb-total">0</span> Articles Loaded</span>
+        <div class="toolbar-divider"></div>
+        <span class="statusbar-text"><span id="sb-analyzed">0</span> Articles Remain for Analysis!!</span>
+        <div class="toolbar-divider"></div>
+        <span class="statusbar-text">Now => &nbsp<span id="sb-msg">0</span></span>
+    </div>
+
+</div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-box">
+        <div class="confirm-title">⚠ DELETE ARTICLE</div>
+        <div class="confirm-msg" id="confirm-msg">Delete this article?<br>This action cannot be undone.</div>
+        <div class="confirm-btns">
+            <button class="btn btn-outline" id="confirm-cancel-btn">Cancel</button>
+            <button class="btn btn-danger"  id="confirm-ok-btn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>window.__skipPCNavbar = true;</script>
+<script src="ad_common.js"></script>
+<script>
+window.__pageInit = function () {
+
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vReDdJqNzhR0M-GLK0d5fvyALhSllo1vbFGrB3FRFcU7gpdYbriPrx-Sb6FN1eiAUHrBlvdOY4Y5Y9E/pub?output=csv';
+    const GAS_URL = (typeof window.GAS_URL !== 'undefined' && window.GAS_URL)
+        ? window.GAS_URL
+        : 'https://script.google.com/macros/s/AKfycbwXGsZFdsVcn-uzuItYmd1ijp4vnOKYY1ynVndqysGJMuKU2Zdwwk9ACPNPfDFSzlMs/exec';
+
+    const COL = {
+        ARTICLE_ID:  0,
+        DOMAIN:      8,   // I
+        ORIENTATION: 9,   // J
+        COMPETENCY:  10,  // K
+        PARTICIPANT: 11,  // L
+        SETTING:     12,  // M
+        TREATMENT:   13,  // N
+        OUTCOME:     14,  // O
+        UNIT:        15,  // P
+        T_PROCEDURE: 17,  // R
+        SUMMARY:     18,  // S
+        MAIN_REF:    19,  // T
+        LATEST_UPD:  20,
+        APA:         21,  // V
+    };
+
+    let allRows    = [];
+    let currentRow = null;
+    let currentIdx = -1;
+    let lastSavedId = null;
+
+    const v = (row, idx) => (row[idx] || '').replace(/^"|"$/g, '').trim();
+
+    function setBadge(type, msg) {
+        const el = document.getElementById('status-badge');
+        el.className = 'status-badge ' + type;
+        el.textContent = msg;
+        if (type === 'ok') setTimeout(() => { el.className = 'status-badge'; }, 3000);
+    }
+    function setSbMsg(msg) { document.getElementById('sb-msg').textContent = msg; }
+    function updateAnalyzedCount() {
+        const count = allRows.filter(row => v(row, COL.LATEST_UPD) === 'Just-Analyzed').length;
+        document.getElementById('sb-analyzed').textContent = count;
+    }
+    function setButtons(on) {
+        ['btn-save','btn-delete','btn-print'].forEach(id => {
+            document.getElementById(id).disabled = !on;
+        });
+        updateNavButtons();
+    }
+
+    /* Update Prev/Next button states */
+    function updateNavButtons() {
+        const hasList = allRows.length > 0;
+        document.getElementById('btn-prev').disabled = !hasList || currentIdx <= 0;
+        document.getElementById('btn-next').disabled = !hasList || currentIdx < 0 || currentIdx >= allRows.length - 1;
+    }
+
+    /* Auto-resize textarea to fit content */
+    function autoResize(el) {
+        el.style.height = '0px';
+        const sh = el.scrollHeight;
+        el.style.height = Math.max(sh, 36) + 'px';
+    }
+    function autoResizeAll() {
+        document.querySelectorAll('.f-textarea').forEach(el => autoResize(el));
+    }
+
+    /* CSV parsing — handles "" escape sequences from Google Sheets */
+    function parseCSV(text) {
+        const rows = [];
+        for (const line of text.split('\n')) {
+            if (!line.trim()) continue;
+            const cells = [];
+            let cur = '', inQ = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') {
+                    if (inQ && line[i + 1] === '"') {
+                        cur += '"'; i++;
+                    } else {
+                        inQ = !inQ;
+                    }
+                } else if (ch === ',' && !inQ) {
+                    cells.push(cur.trim()); cur = '';
+                } else {
+                    cur += ch;
+                }
+            }
+            cells.push(cur.trim());
+            rows.push(cells);
+        }
+        return rows;
+    }
+
+    function loadData() {
+        // Remember current Article ID for restoration after reload
+        const preservedId = document.getElementById('article-id-select').value || null;
+
+        setSbMsg('Loading...');
+        setButtons(false);
+
+        // If an article is selected, keep editor visible while loading; otherwise show empty state
+        if (!preservedId) {
+            document.getElementById('editor-body').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'flex';
+        }
+
+        // Clear allRows before load to avoid stale data
+        allRows = [];
+        buildDropdown(true);
+
+        fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' })
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(text => {
+                const rows = parseCSV(text);
+                allRows = rows.slice(1).filter(row => v(row, COL.ARTICLE_ID) !== '');
+                buildDropdown(true);
+                document.getElementById('sb-total').textContent = allRows.length;
+                updateAnalyzedCount();
+                setSbMsg('✓ ' + allRows.length + ' Articles Loaded');
+
+                // Restore previously selected article after reload
+                if (preservedId) {
+                    const sel = document.getElementById('article-id-select');
+                    const opt = sel.querySelector(`option[value="${preservedId.replace(/"/g,'&quot;')}"]`);
+                    if (opt) {
+                        sel.value = preservedId;
+                        fillForm(parseInt(opt.dataset.idx));
+                        setSbMsg('✓ ' + allRows.length + ' articles loaded — ' + preservedId + ' restored');
+                    } else {
+                        // Article was deleted — show empty state
+                        document.getElementById('editor-body').style.display = 'none';
+                        document.getElementById('empty-state').style.display = 'flex';
+                    }
+                }
+
+                updateNavButtons();
+            })
+            .catch(err => setSbMsg('⚠ Data load failed: ' + err.message));
+    }
+
+    /* Build dropdown. skipAutoFill=true skips fillForm() on prevVal restore (loadData handles it explicitly) */
+    function buildDropdown(skipAutoFill) {
+        const sel     = document.getElementById('article-id-select');
+        const prevVal = sel.value;
+        sel.innerHTML = '<option value="">— Select Article No. —</option>';
+        allRows.forEach((row, i) => {
+            const id = v(row, COL.ARTICLE_ID);
+            if (!id) return;
+            const opt = document.createElement('option');
+            opt.value = id; opt.dataset.idx = i; opt.textContent = id;
+            // Only 'Just-Analyzed' in col U counts as analyzed; others show italic in dropdown.
+            const latestUpd = v(row, COL.LATEST_UPD);
+            const isAnalyzed = latestUpd === 'Just-Analyzed';
+            if (!isAnalyzed) {
+                opt.classList.add('not-analyzed');
+                opt.style.fontStyle = 'italic';
+            }
+            sel.appendChild(opt);
+        });
+        if (prevVal && !skipAutoFill) {
+            sel.value = prevVal;
+            const opt = sel.querySelector(`option[value="${prevVal.replace(/"/g,'&quot;')}"]`);
+            if (opt) fillForm(parseInt(opt.dataset.idx));
+        }
+    }
+
+    /* Fill form */
+    function fillForm(idx) {
+        currentIdx = idx;
+        currentRow = allRows[idx];
+        const row  = currentRow;
+
+        document.getElementById('f-apa').value         = v(row, COL.APA);
+        document.getElementById('f-setting').value     = v(row, COL.SETTING);
+        document.getElementById('f-treatment').value   = v(row, COL.TREATMENT);
+        document.getElementById('f-outcome').value     = v(row, COL.OUTCOME);
+        document.getElementById('f-unit').value        = v(row, COL.UNIT);
+        document.getElementById('f-domain').value      = v(row, COL.DOMAIN);
+        document.getElementById('f-orientation').value = v(row, COL.ORIENTATION);
+        document.getElementById('f-participant').value = v(row, COL.PARTICIPANT);
+        document.getElementById('f-competency').value  = v(row, COL.COMPETENCY);
+        document.getElementById('f-tprocedure').value  = v(row, COL.T_PROCEDURE);
+        document.getElementById('f-summary').value     = v(row, COL.SUMMARY);
+        document.getElementById('f-mainref').value     = v(row, COL.MAIN_REF);
+
+        // Latest Update: col U value (read-only)
+        const latestUpd = v(row, COL.LATEST_UPD);
+        document.getElementById('latest-update-val').textContent = latestUpd || '—';
+
+        const aid = v(row, COL.ARTICLE_ID);
+        document.getElementById('print-id').textContent     = aid;
+        document.getElementById('print-update').textContent = latestUpd ? 'Updated: ' + latestUpd : '';
+
+        document.getElementById('empty-state').style.display = 'none';
+        document.getElementById('editor-body').style.display = '';
+        setButtons(true);
+
+        // Show Article ID above APA field
+        const badge = document.getElementById('current-id-badge');
+        const now = new Date();
+        const todayDD = String(now.getDate()).padStart(2, '0');
+        const todayMM = String(now.getMonth() + 1).padStart(2, '0');
+        badge.textContent = aid;
+        document.getElementById('article-id-above').style.display = 'flex';
+
+        // Populate print-only layout
+        const setText = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+        setText('pl-badge',      aid);
+        setText('pl-apa',         v(row, COL.APA));
+        setText('pl-domain',      v(row, COL.DOMAIN));
+        setText('pl-orientation', v(row, COL.ORIENTATION));
+        setText('pl-participant', v(row, COL.PARTICIPANT));
+        setText('pl-competency',  v(row, COL.COMPETENCY));
+        setText('pl-unit',        v(row, COL.UNIT));
+        setText('pl-treatment',   v(row, COL.TREATMENT));
+        setText('pl-outcome',     v(row, COL.OUTCOME));
+        setText('pl-setting',     v(row, COL.SETTING));
+        setText('pl-tprocedure',  v(row, COL.T_PROCEDURE));
+        setText('pl-summary',     v(row, COL.SUMMARY));
+        setText('pl-mainref',     v(row, COL.MAIN_REF));
+
+        // Auto-resize textareas after layout settles
+        requestAnimationFrame(() => requestAnimationFrame(autoResizeAll));
+
+        document.getElementById('editor-wrap').scrollTop = 0;
+        updateNavButtons();
+    }
+
+    function clearForm() {
+        currentIdx = -1; currentRow = null;
+        document.getElementById('article-id-select').value = '';
+        document.getElementById('latest-update-val').textContent = '—';
+        document.getElementById('editor-body').style.display = 'none';
+        document.getElementById('empty-state').style.display = 'flex';
+        setButtons(false);
+        document.getElementById('current-id-badge').textContent = '';
+        document.getElementById('article-id-above').style.display = 'none';
+    }
+
+    /* Collect form values */
+    function collectFormData() {
+        return {
+            articleId:   document.getElementById('article-id-select').value.trim(),
+            apa:         document.getElementById('f-apa').value.trim(),
+            setting:     document.getElementById('f-setting').value.trim(),
+            treatment:   document.getElementById('f-treatment').value.trim(),
+            outcome:     document.getElementById('f-outcome').value.trim(),
+            unit:        document.getElementById('f-unit').value.trim(),
+            domain:      document.getElementById('f-domain').value.trim(),
+            orientation: document.getElementById('f-orientation').value.trim(),
+            participant: document.getElementById('f-participant').value.trim(),
+            competency:  document.getElementById('f-competency').value.trim(),
+            tprocedure:  document.getElementById('f-tprocedure').value.trim(),
+            summary:     document.getElementById('f-summary').value.trim(),
+            mainref:     document.getElementById('f-mainref').value.trim(),
+        };
+    }
+
+    
+    function handleSave() {
+        const data = collectFormData();
+        if (!data.articleId) { setSbMsg('⚠ No Article ID selected.'); return; }
+        setBadge('saving', 'Saving...'); setSbMsg('');
+        fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ action: 'update', ...data }).toString()
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === 'ok') {
+                setBadge('ok', '✓ Saved');
+                setSbMsg('✓ ' + data.articleId + ' saved');
+
+                lastSavedId = data.articleId;
+                document.getElementById('last-saved-id').textContent = lastSavedId;
+                document.getElementById('last-saved-wrap').classList.add('visible');
+
+                if (currentRow) {
+                    currentRow[COL.APA]         = data.apa;
+                    currentRow[COL.SETTING]     = data.setting;
+                    currentRow[COL.TREATMENT]   = data.treatment;
+                    currentRow[COL.OUTCOME]     = data.outcome;
+                    currentRow[COL.UNIT]        = data.unit;
+                    currentRow[COL.DOMAIN]      = data.domain;
+                    currentRow[COL.ORIENTATION] = data.orientation;
+                    currentRow[COL.PARTICIPANT] = data.participant;
+                    currentRow[COL.COMPETENCY]  = data.competency;
+                    currentRow[COL.T_PROCEDURE] = data.tprocedure;
+                    currentRow[COL.SUMMARY]     = data.summary;
+                    currentRow[COL.MAIN_REF]    = data.mainref;
+                    if (res.savedAt) {
+                        currentRow[COL.LATEST_UPD] = res.savedAt;
+                        document.getElementById('latest-update-val').textContent = res.savedAt;
+                        document.getElementById('print-update').textContent = 'Updated: ' + res.savedAt;
+                    }
+                    updateAnalyzedCount();
+                }
+            } else { throw new Error(res.message || 'Unknown error'); }
+        })
+        .catch(err => { setBadge('err', '✗ Save failed'); setSbMsg('⚠ Error: ' + err.message); });
+    }
+
+    
+    function handleDeleteConfirmed() {
+        const data = collectFormData();
+        document.getElementById('confirm-overlay').classList.remove('open');
+        setBadge('deleting', 'Deleting...');
+        fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ action: 'delete', articleId: data.articleId }).toString()
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === 'ok') {
+                setBadge('ok', '✓ Deleted');
+                setSbMsg('✓ ' + data.articleId + ' deleted');
+                // After delete, re-sync fully from server (row numbers shift on the sheet)
+                clearForm();
+                loadData();
+            } else { throw new Error(res.message || 'Unknown error'); }
+        })
+        .catch(err => { setBadge('err', '✗ Delete failed'); setSbMsg('⚠ Error: ' + err.message); });
+    }
+
+    /* Event listeners */
+    document.getElementById('article-id-select').addEventListener('change', function () {
+        const opt = this.selectedOptions[0];
+        if (!opt || opt.value === '') { clearForm(); return; }
+        const idx = parseInt(opt.dataset.idx);
+        if (!isNaN(idx)) fillForm(idx);
+    });
+    document.getElementById('btn-reload').addEventListener('click', loadData);
+    document.getElementById('btn-prev').addEventListener('click', function () {
+        if (currentIdx > 0) {
+            const newIdx = currentIdx - 1;
+            const aid = v(allRows[newIdx], COL.ARTICLE_ID);
+            document.getElementById('article-id-select').value = aid;
+            fillForm(newIdx);
+        }
+    });
+    document.getElementById('btn-next').addEventListener('click', function () {
+        if (currentIdx >= 0 && currentIdx < allRows.length - 1) {
+            const newIdx = currentIdx + 1;
+            const aid = v(allRows[newIdx], COL.ARTICLE_ID);
+            document.getElementById('article-id-select').value = aid;
+            fillForm(newIdx);
+        }
+    });
+    document.getElementById('btn-save').addEventListener('click', handleSave);
+    document.getElementById('btn-print').addEventListener('click', () => window.print());
+    document.getElementById('btn-search').addEventListener('click', function () {
+        const w = 1650, h = 720;
+        const left = Math.round(window.screenX + (window.outerWidth  - w) / 2);
+        const top  = Math.round(window.screenY + (window.outerHeight - h) / 2);
+        const popup = window.open(
+            'm_ad_mti_article_searching.html',
+            'ArticleSearching',
+            `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no`
+        );
+        if (popup) popup.focus();
+    });
+    document.getElementById('btn-delete').addEventListener('click', function () {
+        if (!currentRow) return;
+        const id = document.getElementById('article-id-select').value;
+        document.getElementById('confirm-msg').innerHTML =
+            'Delete article <strong>' + id + '</strong>?<br>This action cannot be undone.';
+        document.getElementById('confirm-overlay').classList.add('open');
+    });
+    document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
+        document.getElementById('confirm-overlay').classList.remove('open');
+    });
+    document.getElementById('confirm-ok-btn').addEventListener('click', handleDeleteConfirmed);
+    document.getElementById('confirm-overlay').addEventListener('click', function (e) {
+        if (e.target === this) this.classList.remove('open');
+    });
+
+    // Last-saved chip click → jump to that article
+    document.getElementById('last-saved-id').addEventListener('click', function () {
+        if (!lastSavedId) return;
+        const sel = document.getElementById('article-id-select');
+        const opt = sel.querySelector(`option[value="${lastSavedId.replace(/"/g,'&quot;')}"]`);
+        if (opt) {
+            sel.value = lastSavedId;
+            fillForm(parseInt(opt.dataset.idx));
+        }
+    });
+
+    // Auto-resize textarea on input
+    document.querySelectorAll('.f-textarea').forEach(el => {
+        el.addEventListener('input', () => autoResize(el));
+    });
+
+    loadData();
+};
+</script>
+</body>
+</html>
