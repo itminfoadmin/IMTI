@@ -9,6 +9,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* never let any element push past the device width */
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; overflow-x: clip; }
+    img, iframe, video, svg, input, pre, button { max-width: 100%; }
+    input, button, textarea, select { min-width: 0; }
+    body { overflow-wrap: anywhere; word-break: break-word; }
     :root {
         --bg: #0e0e10;
         --panel: #17171b;
@@ -67,8 +72,11 @@
     .stage {
         max-width: 1180px; margin: 0 auto;
         padding: 40px 5% 80px 5%;
-        display: grid; grid-template-columns: 1fr; gap: 30px;
+        display: grid; grid-template-columns: minmax(0, 1fr); gap: 30px;
     }
+    /* grid children must be allowed to shrink below their content's intrinsic
+       width, otherwise a long card title widens the whole column past the screen */
+    .stage > * { min-width: 0; }
 
     /* ---------- player + controls (top) ---------- */
     .player-shell { }
@@ -349,12 +357,27 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* sync overlay: covers the library while the sheet write settles, so the
+       list never flickers (old rows reappearing then vanishing) during publish lag */
+    .playlist-box { position: relative; }
+    .sync-overlay {
+        position: absolute; inset: 0; z-index: 20;
+        display: none; flex-direction: column; align-items: center; justify-content: center;
+        gap: 14px; padding: 24px; text-align: center;
+        background: rgba(14,14,16,0.78); backdrop-filter: blur(3px);
+        border-radius: 16px;
+        font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.7;
+    }
+    .sync-overlay.show { display: flex; }
+
     /* grid of cards */
     .grid {
         display: flex; flex-direction: column; gap: 8px; margin-top: 22px;
+        width: 100%; min-width: 0;
     }
+    .grid > .card.row { width: 100%; min-width: 0; max-width: 100%; }
     .card.row {
-        display: flex; align-items: center; gap: 14px;
+        display: flex; align-items: center; gap: 14px; min-width: 0;
         background: var(--panel); border: 1px solid var(--line);
         border-radius: 11px; padding: 12px 14px; cursor: pointer; position: relative;
         transition: border-color 0.16s, background 0.16s, transform 0.1s;
@@ -370,8 +393,9 @@
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .card-time {
-        flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 0.8rem;
+        flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 0.78rem;
         color: var(--ink-soft); min-width: 48px; text-align: right;
+        white-space: nowrap;
     }
     .card.row .del, .card.row .edit {
         flex-shrink: 0; padding: 7px 11px; border-radius: 8px;
@@ -422,7 +446,26 @@
 
     @media (max-width: 540px) {
         .ctrl-search .cs-tx { display: none; }
-        .controls { gap: 7px; }
+        .controls { gap: 7px; padding: 9px; }
+        /* control bar must never overflow: drop the flex spacer, let transport
+           buttons share the row, and wrap the volume/time onto their own line */
+        .ctrl-spacer { display: none; }
+        .controls .ctrl-btn { flex: 1 1 0; min-width: 0; padding: 9px 6px; }
+        .time-label { order: 8; flex: 0 0 auto; margin-left: 0; }
+        .vol-wrap { order: 10; flex: 1 1 100%; justify-content: flex-end; }
+        .vol-slider { width: 60%; max-width: 200px; }
+        /* card row: two lines on phones so a long title has the full width.
+           Line 1: [no] [title]
+           Line 2: [date] [수정] [삭제] */
+        .card.row { flex-wrap: wrap; gap: 8px; padding: 11px 12px; align-items: center; }
+        .card-no { order: 0; width: 22px; flex: 0 0 auto; font-size: 0.78rem; }
+        .card-main { order: 1; flex: 1 1 calc(100% - 30px); min-width: 0; }  /* fills line 1 next to the no. */
+        .card-time { order: 2; flex: 1 1 auto; min-width: 0; font-size: 0.74rem; white-space: nowrap;
+                     color: var(--gray); margin-left: 30px; }   /* line 2, left side */
+        .card.row .edit { order: 3; }
+        .card.row .del { order: 4; }
+        .card.row .edit, .card.row .del { flex: 0 0 auto; padding: 7px 10px; font-size: 0.68rem; }
+        .card-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     }
 </style>
 </head>
@@ -440,7 +483,7 @@
                 <button class="ghost icon-only" id="searchLaunch" title="유튜브 검색 (유튜브 열기)">&#9906;</button>
                 <button id="previewBtn" class="ghost" title="붙여넣은 주소 미리보기">▶ 미리보기</button>
                 <button id="addBtn" class="ghost" title="보관함에 담기">＋ 담기</button>
-                <button id="reloadLibBtn" class="ghost" title="보관함 새로고침 (시트 다시 불러오기)">&#8635; 새로고침</button>
+                <button id="reloadLibBtn" class="ghost" title="보관함 새로고침 (데이터 다시 불러오기)">&#8635; 새로고침</button>
             </div>
         </div>
     </div>
@@ -500,6 +543,11 @@
         <span id="countLabel" style="display:none;"></span>
 
         <div class="grid" id="grid"></div>
+
+        <div class="sync-overlay" id="syncOverlay">
+            <div class="spinner"></div>
+            <div id="syncMsg">데이터와 동기화하는 중…</div>
+        </div>
     </div>
 </div>
 
@@ -515,9 +563,6 @@
             <div class="ms-field">
                 <label for="titleInput">이 영상의 노래 제목을 입력하세요</label>
                 <input id="titleInput" type="text" placeholder="예: 최유리 - 숲" autocomplete="off">
-                <div class="ms-row2">
-                    <input id="timeInput" type="text" placeholder="재생시간(선택) 예: 3:51" autocomplete="off">
-                </div>
                 <div class="ms-meta" id="titleMeta"></div>
             </div>
         </div>
@@ -561,7 +606,7 @@
             <button class="modal-close" id="delClose" title="닫기">&times;</button>
         </div>
         <div class="ms-body" style="display:block;">
-            <p style="font-size:0.9rem;line-height:1.6;color:var(--ink-soft);">아래 영상을 보관함(시트)에서 삭제합니다. 되돌릴 수 없습니다.</p>
+            <p style="font-size:0.9rem;line-height:1.6;color:var(--ink-soft);">아래 영상을 보관함(데이터)에서 삭제합니다. 되돌릴 수 없습니다.</p>
             <p id="delName" style="margin-top:10px;font-weight:600;font-size:0.95rem;word-break:break-all;"></p>
         </div>
         <div class="ms-foot">
@@ -583,9 +628,7 @@
             <div class="ms-field">
                 <label for="editTitle">노래 제목</label>
                 <input id="editTitle" type="text" placeholder="예: 최유리 - 숲" autocomplete="off">
-                <div class="ms-row2">
-                    <input id="editTime" type="text" placeholder="재생시간 예: 3:51" autocomplete="off">
-                </div>
+                <div class="ms-meta" id="editMeta"></div>
             </div>
         </div>
         <div class="ms-foot">
@@ -608,6 +651,8 @@
         nowTitle: document.getElementById('nowTitle'),
         nowMeta: document.getElementById('nowMeta'),
         countLabel: document.getElementById('countLabel'),
+        syncOverlay: document.getElementById('syncOverlay'),
+        syncMsg: document.getElementById('syncMsg'),
         toast: document.getElementById('toast'),
         // controls
         prevBtn: document.getElementById('prevBtn'),
@@ -633,7 +678,6 @@
         titleClose: document.getElementById('titleClose'),
         titleThumb: document.getElementById('titleThumb'),
         titleInput: document.getElementById('titleInput'),
-        timeInput: document.getElementById('timeInput'),
         titleMeta: document.getElementById('titleMeta'),
         titleCancel: document.getElementById('titleCancel'),
         titleSave: document.getElementById('titleSave'),
@@ -656,13 +700,13 @@
         editSave: document.getElementById('editSave'),
         editThumb: document.getElementById('editThumb'),
         editTitle: document.getElementById('editTitle'),
-        editTime: document.getElementById('editTime'),
+        editMeta: document.getElementById('editMeta'),
     };
 
     // ---- data source ----
     // Read-only published CSV (no, music_name, music_url, music_time)
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSa64ck2MF5_7njlI0WUbTk0hwSa0zyvxCBc4LCLUSVkXyh0GWscVM7fgz6knRdTcjkKAzfTk4c1bTV/pub?gid=0&single=true&output=csv';
-    let writeUrl = 'https://script.google.com/macros/s/AKfycbyQk_oF7zGVUyP5QunQ8qRBcuQ7wfnOMraGjtI-IHq5_fXqTztad3zwpHdA7KWgpKnE/exec';            // Apps Script web-app /exec URL
+    let writeUrl = 'https://script.google.com/macros/s/AKfycbzHHkb6rZwFLvokKsfr2OomgOWO0GuAc7Zcgaua29pOi4Wa9vaGix1CJN4ycjI3NjNs/exec';            // Apps Script web-app /exec URL
     let pending = null;           // {id, url} awaiting a title in the modal
 
     // library mirrors the sheet: [{no, title, url, time, id}]
@@ -673,6 +717,8 @@
     let repeat = false;           // repeat the whole list
     let ytPlayer = null;          // YouTube IFrame API player (for auto-advance)
     let ytReady = false;
+    let ytPlayerReady = false;    // true once the player's onReady has fired
+    let pendingVideoId = null;    // a video requested before the player was ready
     let userInteracted = false;   // suppress auto-scroll until the user acts
     ['pointerdown','keydown'].forEach(ev =>
         window.addEventListener(ev, () => { userInteracted = true; }, { once: true }));
@@ -705,10 +751,28 @@
 '      .setMimeType(ContentService.MimeType.JSON);\n' +
 '  }\n' +
 '\n' +
+'  if (data.action === "update") {            // edit title only; keep saved time\n' +
+'    var values = sheet.getDataRange().getValues();\n' +
+'    for (var i = 1; i < values.length; i++) {  // skip header (row 1)\n' +
+'      if (String(values[i][2]) === String(data.music_url) ||\n' +
+'          (data.no && String(values[i][0]) === String(data.no))) {\n' +
+'        if (data.music_name) sheet.getRange(i + 1, 2).setValue(data.music_name);\n' +
+'        break;\n' +
+'      }\n' +
+'    }\n' +
+'    return ContentService.createTextOutput(JSON.stringify({ ok: true }))\n' +
+'      .setMimeType(ContentService.MimeType.JSON);\n' +
+'  }\n' +
+'\n' +
 '  var last = sheet.getLastRow();             // row 1 is the header\n' +
-'  sheet.appendRow([last, data.music_name, data.music_url, data.music_time || ""]);\n' +
-'  return ContentService.createTextOutput(JSON.stringify({ ok: true, no: last }))\n' +
+'  var savedAt = formatNow(ss.getSpreadsheetTimeZone());  // server time when saved\n' +
+'  sheet.appendRow([last, data.music_name, data.music_url, savedAt]);\n' +
+'  return ContentService.createTextOutput(JSON.stringify({ ok: true, no: last, music_time: savedAt }))\n' +
 '    .setMimeType(ContentService.MimeType.JSON);\n' +
+'}\n' +
+'\n' +
+'function formatNow(tz) {                      // yyyy-MM-dd (date only)\n' +
+'  return Utilities.formatDate(new Date(), tz || "Asia/Seoul", "yyyy-MM-dd");\n' +
 '}\n' +
 '\n' +
 'function renumber(sheet) {                    // keep "no" column sequential\n' +
@@ -751,9 +815,22 @@
         ytReady = true;
         ytPlayer = new YT.Player('player', {
             events: {
+                onReady: () => {
+                    ytPlayerReady = true;
+                    syncVolumeToPlayers();
+                    // if a track was requested before the player finished booting,
+                    // adopt it via the API so the time counter works — but only if
+                    // it isn't already playing (avoid restarting from 0)
+                    if (pendingVideoId) {
+                        var v = pendingVideoId; pendingVideoId = null;
+                        var st = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
+                        if (st !== YT.PlayerState.PLAYING && st !== YT.PlayerState.BUFFERING) startVideo(v);
+                    }
+                },
                 onStateChange: (e) => {
                     if (e.data === YT.PlayerState.ENDED) advanceAuto();
                     if (e.data === YT.PlayerState.PLAYING) { hideEmbedError(); syncVolumeToPlayers(); }
+                    if (e.data === YT.PlayerState.CUED) { try { ytPlayer.playVideo(); } catch (_) {} }
                     syncPreviewBtn(e.data);
                 },
                 onError: (e) => {
@@ -822,6 +899,27 @@
         }
     }
 
+    // load a video into the API player and make sure it actually starts playing
+    // (so the elapsed-time counter advances). Falls back to a plain iframe src.
+    function startVideo(vid) {
+        els.player.style.display = 'block';
+        if (ytReady && ytPlayer && ytPlayerReady && ytPlayer.loadVideoById) {
+            try {
+                ytPlayer.loadVideoById(vid);   // loadVideoById autoplays on desktop
+                ytPlayer.playVideo();          // nudge mobile/cued states to start
+            } catch (_) {
+                els.player.src = 'https://www.youtube-nocookie.com/embed/' + vid +
+                    '?autoplay=1&rel=0&enablejsapi=1';
+            }
+        } else {
+            // API not ready yet — use a direct autoplay iframe; remember it so the
+            // API player can take over (and report time) once onReady fires
+            pendingVideoId = vid;
+            els.player.src = 'https://www.youtube-nocookie.com/embed/' + vid +
+                '?autoplay=1&rel=0&enablejsapi=1';
+        }
+    }
+
     function play(id, title) {
         const keepY = window.scrollY;
         current = id;
@@ -831,15 +929,7 @@
         const item = library.find(v => v.id === id);
         const vid = (item ? (parseVideoId(item.url) || parseVideoId(item.id)) : parseVideoId(id));
 
-        if (vid) {
-            els.player.style.display = 'block';
-            if (ytReady && ytPlayer && ytPlayer.loadVideoById) {
-                ytPlayer.loadVideoById(vid);
-            } else {
-                els.player.src = 'https://www.youtube-nocookie.com/embed/' + vid +
-                    '?autoplay=1&rel=0&enablejsapi=1';
-            }
-        }
+        if (vid) startVideo(vid);
 
         els.nowTitle.textContent = title || (item && item.title) || '';
         updateControls();
@@ -908,7 +998,7 @@
 
     function updateTimeLabel() {
         let cur = 0, dur = 0;
-        if (ytReady && ytPlayer && ytPlayer.getDuration) {
+        if (ytReady && ytPlayer && ytPlayer.getCurrentTime && ytPlayer.getDuration) {
             try { cur = ytPlayer.getCurrentTime() || 0; dur = ytPlayer.getDuration() || 0; } catch (_) {}
         }
         els.timeLabel.textContent = fmtTime(cur) + ' / ' + fmtTime(dur);
@@ -993,23 +1083,29 @@
 
     function doDelete(id) {
         const item = library.find(v => v.id === id);
-        // optimistic: drop from the list immediately
-        library = library.filter(v => v.id !== id);
-        renderGrid(); updateControls();
 
-        if (!writeUrl || !item) { showToast('삭제했습니다'); return; }
-        // delete exactly one row by its sheet number (no); url is only a fallback
+        if (!writeUrl || !item) {
+            // no sheet wired: just drop locally
+            library = library.filter(v => v.id !== id);
+            renderGrid(); updateControls();
+            showToast('삭제했습니다');
+            return;
+        }
+        // keep the row on screen but lock the UI under the overlay until the
+        // sheet confirms the deletion — avoids the deleted row flickering back
+        showSync('삭제 내용을 데이터에 반영하는 중…');
         fetch(writeUrl, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'delete', no: item.no, music_url: item.url })
         }).then(() => {
-            showToast('시트에서 삭제했습니다');
-            setTimeout(() => loadLibrary(null, true), 1800);
+            showToast('데이터에서 삭제했습니다');
+            // wait until the id is truly gone from the published CSV
+            syncUntil(items => !items.some(v => v.id === id), '삭제 내용을 데이터에 반영하는 중…', 10);
         }).catch(() => {
             showToast('삭제 요청을 보냈습니다');
-            setTimeout(() => loadLibrary(null, true), 1800);
+            syncUntil(items => !items.some(v => v.id === id), '삭제 내용을 데이터에 반영하는 중…', 10);
         });
     }
 
@@ -1022,7 +1118,7 @@
         els.editThumb.style.display = '';
         els.editThumb.src = 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg';
         els.editTitle.value = item.title === '유튜브 영상' ? '' : (item.title || '');
-        els.editTime.value = item.time || '';
+        els.editMeta.textContent = item.time ? ('저장 일시 ' + item.time) : '저장 일시 미기록';
         openModal(els.editModal);
         setTimeout(() => els.editTitle.focus(), 60);
     }
@@ -1032,25 +1128,28 @@
         if (!item) { closeModal(els.editModal); return; }
         const name = els.editTitle.value.trim();
         if (!name) { showToast('노래 제목을 입력하세요', true); els.editTitle.focus(); return; }
-        const time = els.editTime.value.trim();
-        // optimistic update
-        item.title = name; item.time = time;
-        renderGrid();
+        const id = editTargetId;
         closeModal(els.editModal);
-        const target = editTargetId; editTargetId = null;
+        editTargetId = null;
 
-        if (!writeUrl || !item.no) { showToast('수정했습니다'); return; }
+        if (!writeUrl || !item.no) {
+            item.title = name; renderGrid();
+            showToast('수정했습니다');
+            return;
+        }
+        // title-only update; the saved time stays as-is (handled in GAS)
+        showSync('수정 내용을 데이터에 반영하는 중…');
         fetch(writeUrl, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'update', no: item.no, music_url: item.url, music_name: name, music_time: time })
+            body: JSON.stringify({ action: 'update', no: item.no, music_url: item.url, music_name: name })
         }).then(() => {
-            showToast('시트에서 수정했습니다');
-            setTimeout(() => loadLibrary(null, true), 1800);
+            showToast('데이터에서 수정했습니다');
+            syncUntil(items => items.some(v => v.id === id && v.title === name), '수정 내용을 데이터에 반영하는 중…', 10);
         }).catch(() => {
             showToast('수정 요청을 보냈습니다');
-            setTimeout(() => loadLibrary(null, true), 1800);
+            syncUntil(items => items.some(v => v.id === id && v.title === name), '수정 내용을 데이터에 반영하는 중…', 10);
         });
     }
 
@@ -1111,13 +1210,11 @@
         return rows;
     }
 
-    function loadLibrary(done, preserveOptimistic) {
-        if (!preserveOptimistic) {
-            els.countLabel.textContent = '불러오는 중…';
-            els.grid.innerHTML = '<div class="lib-loading"><div class="spinner"></div>구글 시트에서 보관함을 불러오는 중…</div>';
-        }
-        // cache-bust so newly written rows show up
-        fetch(CSV_URL + '&_=' + Date.now())
+    // Fetch + parse the published CSV into an array (newest first). Does NOT
+    // touch the screen — callers decide when to render. Resolves with the items
+    // or rejects on network/parse error.
+    function fetchSheet() {
+        return fetch(CSV_URL + '&_=' + Date.now())   // cache-bust
             .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
             .then(text => {
                 const rows = parseCSV(text).filter(r => r.length && r.some(c => c.trim() !== ''));
@@ -1138,24 +1235,63 @@
                     }
                 }
                 sheetItems.reverse(); // newest (bottom of sheet) first
-                if (preserveOptimistic) {
-                    // keep any optimistic (no-numbered) items not yet in the sheet
-                    const sheetIds = new Set(sheetItems.map(v => v.id));
-                    const pendingOnly = library.filter(v => !v.no && !sheetIds.has(v.id));
-                    library = pendingOnly.concat(sheetItems);
-                } else {
-                    library = sheetItems;
-                }
+                return sheetItems;
+            });
+    }
+
+    // Plain load used on first paint and manual refresh: fetch and render once.
+    function loadLibrary(done) {
+        els.countLabel.textContent = '불러오는 중…';
+        els.grid.innerHTML = '<div class="lib-loading"><div class="spinner"></div>데이터에서 보관함을 불러오는 중…</div>';
+        fetchSheet()
+            .then(items => {
+                library = items;
                 renderGrid(); updateControls();
                 if (done) done();
             })
             .catch(() => {
-                if (!preserveOptimistic) {
-                    els.grid.innerHTML = '<div class="lib-error">시트를 불러오지 못했습니다. 인터넷 연결 또는 게시 설정을 확인한 뒤 “새로고침”을 눌러주세요.</div>';
-                    els.countLabel.textContent = '오류';
-                }
+                els.grid.innerHTML = '<div class="lib-error">데이터를 불러오지 못했습니다.</div>';
+                els.countLabel.textContent = '오류';
                 if (done) done();
             });
+    }
+
+    // ---- sync overlay ----
+    function showSync(msg) {
+        if (msg) els.syncMsg.textContent = msg;
+        els.syncOverlay.classList.add('show');
+    }
+    function hideSync() { els.syncOverlay.classList.remove('show'); }
+
+    // Poll the published CSV until `check(items)` is satisfied (the sheet has
+    // settled to the state we expect), then render exactly once. The library is
+    // NOT redrawn on intermediate polls, so stale rows never flicker in and out.
+    // Falls back to rendering whatever the sheet currently has if attempts run out.
+    function syncUntil(check, msg, attempts) {
+        attempts = attempts || 8;
+        showSync(msg);
+        let tries = 0;
+        (function poll() {
+            tries++;
+            fetchSheet()
+                .then(items => {
+                    if (check(items) || tries >= attempts) {
+                        library = items;
+                        renderGrid(); updateControls();
+                        hideSync();
+                    } else {
+                        setTimeout(poll, 1500);
+                    }
+                })
+                .catch(() => {
+                    if (tries >= attempts) {
+                        hideSync();
+                        showToast('데이터 동기화를 확인하지 못했습니다 · 새로고침을 눌러주세요', true);
+                    } else {
+                        setTimeout(poll, 1500);
+                    }
+                });
+        })();
     }
 
     /* ---------- add flow: link → title modal → sheet ---------- */
@@ -1169,7 +1305,6 @@
         els.titleThumb.style.display = '';
         els.titleThumb.src = 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg';
         els.titleInput.value = '';
-        els.timeInput.value = '';
         els.titleMeta.textContent = 'VIDEO ID ' + id;
         openModal(els.titleModal);
         setTimeout(() => els.titleInput.focus(), 60);
@@ -1184,51 +1319,52 @@
         if (!pending) return;
         const name = els.titleInput.value.trim();
         if (!name) { showToast('노래 제목을 입력하세요', true); els.titleInput.focus(); return; }
-        const time = els.timeInput.value.trim();
-        const rec = { music_name: name, music_url: pending.url, music_time: time };
+        // time is generated on the server (GAS) at save time — not entered here
+        const rec = { action: 'add', music_name: name, music_url: pending.url };
         const id = pending.id;
         closeModal(els.titleModal);
         els.linkInput.value = '';
 
-        // optimistic: show it at the top of the library immediately
+        // optimistic: show it at the top with a provisional timestamp so the
+        // user gets instant feedback; the real saved time comes back from the sheet
         if (!library.some(v => v.id === id)) {
-            library.unshift({ no: '', title: name, url: pending.url, time: time, id: id });
+            library.unshift({ no: '', title: name, url: pending.url, time: clientNow(), id: id });
             renderGrid(); updateControls();
         }
         // note: do NOT auto-play the newly added video — just add it to the library
 
         if (!writeUrl) {
-            showToast('임시로 표시했습니다 · 시트 저장은 Apps Script URL이 필요합니다', true);
+            showToast('임시로 표시했습니다 · 데이터 저장은 Apps Script URL이 필요합니다', true);
             pending = null;
             return;
         }
 
-        showToast('시트에 저장 중…');
+        showToast('데이터에 저장 중…');
         // Apps Script web apps don't send CORS headers, so use no-cors:
-        // we can't read the response, but the row is appended. Then re-read CSV,
-        // retrying until the published CSV reflects the new row (publish lag).
+        // we can't read the response, but the row is appended. Then poll the CSV
+        // (publish cache can lag a few seconds) until the new row appears, showing
+        // the sync overlay so the list doesn't flicker meanwhile.
         fetch(writeUrl, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(rec)
         }).then(() => {
-            showToast('시트에 저장했습니다');
-            reloadUntil(id, 6);
+            showToast('데이터에 저장했습니다');
+            syncUntil(items => items.some(v => v.id === id && v.no), '저장 내용을 데이터에 반영하는 중…', 10);
         }).catch(() => {
             showToast('저장 요청은 보냈습니다 · 갱신은 잠시 후 반영됩니다');
-            reloadUntil(id, 6);
+            syncUntil(items => items.some(v => v.id === id && v.no), '저장 내용을 데이터에 반영하는 중…', 10);
         });
         pending = null;
     }
 
-    // reload the CSV repeatedly (publish cache can lag a few seconds) until the
-    // given video id shows up, or attempts run out. Keeps the optimistic card.
-    function reloadUntil(id, attempts) {
-        loadLibrary(() => {
-            if (library.some(v => v.id === id && v.no)) return;  // confirmed from sheet
-            if (attempts > 1) setTimeout(() => reloadUntil(id, attempts - 1), 2500);
-        }, true);   // preserveOptimistic
+    // provisional client-side date (yyyy-mm-dd) for the optimistic card only;
+    // replaced by the server value once the sheet is read back
+    function clientNow() {
+        const d = new Date();
+        const p = n => String(n).padStart(2, '0');
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
     }
 
     /* ---------- search popup ---------- */
@@ -1313,12 +1449,11 @@
     els.editModal.addEventListener('click', (e) => { if (e.target === els.editModal) closeEdit(); });
     els.editSave.addEventListener('click', saveEdit);
     els.editTitle.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveEdit(); });
-    els.editTime.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveEdit(); });
 
     els.saveWriteUrlBtn.addEventListener('click', () => {
         const u = els.writeUrlInput.value.trim();
         writeUrl = u;
-        showToast(u ? '시트 쓰기 URL을 적용했습니다' : '쓰기 URL을 비웠습니다');
+        showToast(u ? '데이터 쓰기 URL을 적용했습니다' : '쓰기 URL을 비웠습니다');
     });
     els.howtoBtn.addEventListener('click', () => { els.gasCode.textContent = GAS_CODE; openModal(els.howtoModal); });
     els.howtoClose.addEventListener('click', () => closeModal(els.howtoModal));
