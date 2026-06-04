@@ -127,6 +127,14 @@
         font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--ink-soft);
         letter-spacing: 0.04em; white-space: nowrap; min-width: 92px; text-align: right;
     }
+    .mute-btn {
+        flex-shrink: 0; padding: 9px 14px; border-radius: 9px; cursor: pointer;
+        background: var(--panel); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem; white-space: nowrap;
+        transition: background 0.16s, color 0.16s, border-color 0.16s;
+    }
+    .mute-btn:hover { background: var(--line); color: var(--ink); }
+    .mute-btn.muted { background: var(--accent-soft); border-color: var(--accent); color: #ffb3b3; }
 
     /* ---------- panels ---------- */
     .panel {
@@ -205,16 +213,8 @@
     .chip:hover { border-color: var(--accent); color: var(--ink); }
     .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -4px var(--accent); }
 
-    /* image thumb */
-    .img-thumb {
-        margin-top: 12px; border-radius: 11px; overflow: hidden; border: 1px solid var(--line);
-        background: #000; display: none; max-height: 220px;
-    }
-    .img-thumb.show { display: block; }
-    .img-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 220px; }
-
     /* export */
-    .export-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .make-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
     .btn-primary {
         flex: 1; min-width: 200px; padding: 15px 22px; border: none; border-radius: 12px;
         background: var(--accent); color: #fff; cursor: pointer;
@@ -227,7 +227,7 @@
     .btn-primary:active { transform: translateY(1px); }
     .btn-primary[disabled] { opacity: 0.45; cursor: not-allowed; filter: none; }
     .btn-ghost {
-        padding: 15px 20px; border-radius: 12px; cursor: pointer;
+        padding: 15px 20px; border-radius: 12px; cursor: pointer; flex-shrink: 0;
         background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
         font-family: 'Noto Sans KR', sans-serif; font-size: 0.95rem; font-weight: 600;
         transition: background 0.16s, color 0.16s;
@@ -235,23 +235,28 @@
     .btn-ghost:hover { background: var(--line); color: var(--ink); }
     .btn-ghost[disabled] { opacity: 0.4; cursor: not-allowed; }
 
-    /* recording progress */
-    .rec-status {
-        margin-top: 16px; padding: 14px 16px; border-radius: 12px;
-        background: var(--panel-2); border: 1px solid var(--line);
-        display: none; align-items: center; gap: 14px;
+    /* make button doubling as a progress bar */
+    .make-btn { position: relative; overflow: hidden; }
+    .make-btn .make-progress {
+        position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+        background: rgba(255,255,255,0.22); transition: width 0.2s; pointer-events: none;
     }
-    .rec-status.show { display: flex; }
-    .rec-dot {
-        width: 12px; height: 12px; border-radius: 50%; background: var(--accent);
-        flex-shrink: 0; animation: pulse 1s ease-in-out infinite;
+    .make-btn .make-label { position: relative; z-index: 1; }
+    .make-btn.recording { cursor: default; }
+    /* make button after completion = download button */
+    .make-btn.done { background: var(--ok); box-shadow: 0 8px 24px -8px var(--ok); }
+    .make-btn.done:hover { filter: brightness(1.06); }
+
+    /* option toggle buttons (resolution / format) */
+    .opt-btn {
+        flex-shrink: 0; padding: 0 18px; border-radius: 12px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.9rem; font-weight: 600;
+        white-space: nowrap; transition: background 0.16s, color 0.16s, border-color 0.16s;
     }
+    .opt-btn:hover { border-color: var(--accent); color: var(--ink); }
+    .opt-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .rec-text { flex: 1; min-width: 0; }
-    .rec-text .rt-main { font-size: 0.9rem; color: var(--ink); margin-bottom: 6px; }
-    .rec-text .rt-sub { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--gray); }
-    .progress-track { width: 100%; height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 8px; }
-    .progress-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 99px; transition: width 0.2s; }
 
     /* result */
     .result {
@@ -298,6 +303,9 @@
     @media (max-width: 600px) {
         .field-row { flex-direction: column; gap: 12px; }
         .btn-primary, .btn-ghost { min-width: 100%; }
+        .make-row .opt-btn { flex: 1; }
+        .transport { gap: 8px; }
+        .mute-btn { margin-left: auto; }
     }
 </style>
 </head>
@@ -349,13 +357,11 @@
             <div class="field">
                 <label>배경 색상</label>
                 <div class="color-grid" id="colorGrid">
-                    <div class="swatch active" data-color="#0e0e10" style="background:#0e0e10;"></div>
-                    <div class="swatch" data-color="#1a1320" style="background:#1a1320;"></div>
-                    <div class="swatch" data-color="#101820" style="background:#101820;"></div>
-                    <div class="swatch" data-color="#2a1416" style="background:#2a1416;"></div>
-                    <div class="swatch" data-color="#13241a" style="background:#13241a;"></div>
-                    <div class="swatch" data-color="#23203a" style="background:#23203a;"></div>
-                    <input type="color" id="customColor" value="#ff4d4d" title="직접 색 선택">
+                    <div class="swatch active" data-color="#0e0e10" style="background:#0e0e10;" title="검은색"></div>
+                    <div class="swatch" data-color="#808080" style="background:#808080;" title="회색"></div>
+                    <div class="swatch" data-color="#ffffff" style="background:#ffffff;" title="흰색"></div>
+                    <div class="swatch" data-color="#7ec8e3" style="background:#7ec8e3;" title="하늘색"></div>
+                    <div class="swatch" data-color="#4caf50" style="background:#4caf50;" title="초록색"></div>
                 </div>
             </div>
 
@@ -373,7 +379,6 @@
             <div class="field">
                 <label>포인트 색상 (시각 효과 색)</label>
                 <input type="color" id="accentColor" value="#ff4d4d">
-                <div class="hint">스펙트럼·파형·텍스트 강조에 쓰입니다</div>
             </div>
         </div>
     </section>
@@ -397,49 +402,31 @@
             <button class="play-btn" id="playBtn" disabled>▶</button>
             <input type="range" class="seek" id="seek" min="0" max="100" value="0" step="0.1" disabled>
             <span class="time-label" id="timeLabel">0:00 / 0:00</span>
+            <button class="mute-btn" id="muteBtn" title="소리 끄기 / 켜기">🔊 소리 켜짐</button>
         </div>
     </section>
 
     <!-- ===== 4) 내보내기 ===== -->
     <section class="panel">
         <div class="panel-title"><span class="num">4</span> 영상 만들기</div>
-        <div class="panel-sub">버튼을 누르면 음악 전체 길이만큼 실시간으로 녹화합니다. 녹화 중에는 탭을 그대로 두세요.</div>
 
         <div class="warn" id="codecWarn"></div>
 
-        <div class="field-row" style="margin-bottom:16px;">
-            <div class="field">
-                <label>해상도</label>
-                <select id="resSelect">
-                    <option value="1920x1080">1080p (1920×1080) · 권장</option>
-                    <option value="1280x720">720p (1280×720) · 빠름</option>
-                </select>
-            </div>
-            <div class="field">
-                <label>형식</label>
-                <select id="fmtSelect"></select>
-            </div>
-        </div>
-
-        <div class="export-row">
-            <button class="btn-primary" id="renderBtn" disabled>🎬 영상 만들기 시작</button>
+        <div class="make-row">
+            <button class="btn-primary make-btn" id="renderBtn" disabled>
+                <span class="make-progress" id="makeProgress"></span>
+                <span class="make-label" id="makeLabel">🎬 영상 만들기 시작</span>
+            </button>
+            <button class="opt-btn" id="resBtn" data-value="1920x1080" title="해상도 전환">1080p</button>
+            <button class="opt-btn" id="fmtBtn" title="형식 전환">형식</button>
             <button class="btn-ghost" id="stopBtn" disabled>■ 중지</button>
-        </div>
-
-        <div class="rec-status" id="recStatus">
-            <div class="rec-dot"></div>
-            <div class="rec-text">
-                <div class="rt-main" id="recMain">녹화 중…</div>
-                <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-                <div class="rt-sub" id="recSub">0:00 / 0:00</div>
-            </div>
         </div>
 
         <div class="result" id="result">
             <div class="r-title">✓ 영상이 완성되었습니다</div>
             <div class="r-sub" id="resultSub"></div>
-            <a class="download" id="downloadLink" download>⬇ 영상 다운로드</a>
         </div>
+        <a id="downloadLink" download style="display:none;"></a>
     </section>
 
 </div>
@@ -457,6 +444,7 @@
         playBtn: document.getElementById('playBtn'),
         seek: document.getElementById('seek'),
         timeLabel: document.getElementById('timeLabel'),
+        muteBtn: document.getElementById('muteBtn'),
         drop: document.getElementById('drop'),
         dropBig: document.getElementById('dropBig'),
         dropSm: document.getElementById('dropSm'),
@@ -464,17 +452,14 @@
         songTitle: document.getElementById('songTitle'),
         songArtist: document.getElementById('songArtist'),
         colorGrid: document.getElementById('colorGrid'),
-        customColor: document.getElementById('customColor'),
         styleChips: document.getElementById('styleChips'),
         accentColor: document.getElementById('accentColor'),
-        resSelect: document.getElementById('resSelect'),
-        fmtSelect: document.getElementById('fmtSelect'),
+        resBtn: document.getElementById('resBtn'),
+        fmtBtn: document.getElementById('fmtBtn'),
         renderBtn: document.getElementById('renderBtn'),
         stopBtn: document.getElementById('stopBtn'),
-        recStatus: document.getElementById('recStatus'),
-        recMain: document.getElementById('recMain'),
-        recSub: document.getElementById('recSub'),
-        progressFill: document.getElementById('progressFill'),
+        makeProgress: document.getElementById('makeProgress'),
+        makeLabel: document.getElementById('makeLabel'),
         result: document.getElementById('result'),
         resultSub: document.getElementById('resultSub'),
         downloadLink: document.getElementById('downloadLink'),
@@ -499,6 +484,7 @@
     let analyser = null;
     let srcNode = null;
     let outGain = null;          // controls speaker output (muted during recording)
+    let recGain = null;          // gain feeding the recorded stream
     let freqData = null;
     let timeData = null;
     let audioGraphBuilt = false;
@@ -508,6 +494,8 @@
     let recChunks = [];
     let recording = false;
     let recStartTime = 0;
+    let soundOn = true;          // mute/unmute toggle for preview + recorded audio
+    let madeVideo = null;        // { url, fname } of the most recent finished video
 
     // ---------- toast ----------
     let toastTimer = null;
@@ -527,46 +515,75 @@
     }
 
     // ---------- codec / format detection ----------
-    const formatOptions = [];
+    const formatOptions = [];   // de-duplicated by ext, richest label first
+    let fmtIndex = 0;
     function detectFormats() {
         const candidates = [
-            { label: 'MP4 (H.264)', mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', ext: 'mp4' },
-            { label: 'MP4', mime: 'video/mp4', ext: 'mp4' },
-            { label: 'WebM (VP9)', mime: 'video/webm;codecs=vp9,opus', ext: 'webm' },
-            { label: 'WebM (VP8)', mime: 'video/webm;codecs=vp8,opus', ext: 'webm' },
-            { label: 'WebM', mime: 'video/webm', ext: 'webm' },
+            { label: 'MP4 (H.264)', short: 'MP4', mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', ext: 'mp4' },
+            { label: 'MP4', short: 'MP4', mime: 'video/mp4', ext: 'mp4' },
+            { label: 'WebM (VP9)', short: 'WebM', mime: 'video/webm;codecs=vp9,opus', ext: 'webm' },
+            { label: 'WebM (VP8)', short: 'WebM', mime: 'video/webm;codecs=vp8,opus', ext: 'webm' },
+            { label: 'WebM', short: 'WebM', mime: 'video/webm', ext: 'webm' },
         ];
-        const seenExt = {};
+        const added = {};
         candidates.forEach(c => {
             if (typeof MediaRecorder === 'undefined') return;
+            if (added[c.ext]) return;
             if (MediaRecorder.isTypeSupported(c.mime)) {
-                // keep first working option per label-family; show MP4 + WebM distinctly
+                added[c.ext] = true;
                 formatOptions.push(c);
             }
-        });
-        // build select, de-duplicating by ext while keeping the richest label first
-        els.fmtSelect.innerHTML = '';
-        const added = {};
-        formatOptions.forEach(c => {
-            if (added[c.ext]) return;
-            added[c.ext] = true;
-            const opt = document.createElement('option');
-            opt.value = c.mime;
-            opt.textContent = c.label;
-            opt.dataset.ext = c.ext;
-            els.fmtSelect.appendChild(opt);
         });
 
         if (formatOptions.length === 0) {
             els.codecWarn.textContent = '이 브라우저는 영상 녹화(MediaRecorder)를 지원하지 않습니다. 최신 Chrome 또는 Edge를 사용해 주세요.';
             els.codecWarn.classList.add('show');
             els.renderBtn.disabled = true;
-        } else if (!added['mp4']) {
+            els.fmtBtn.disabled = true;
+            els.fmtBtn.textContent = '형식 없음';
+            return;
+        }
+        if (!added['mp4']) {
             els.codecWarn.innerHTML = '이 브라우저는 MP4 직접 녹화를 지원하지 않아 <b>WebM</b>으로 저장됩니다. 유튜브는 WebM 업로드를 지원하므로 그대로 올리면 됩니다. (Chrome 최신 버전에서 MP4 옵션이 나타날 수 있습니다.)';
             els.codecWarn.classList.add('show');
         }
+        // disable the format toggle if there's only one choice
+        els.fmtBtn.disabled = (formatOptions.length < 2);
+        updateFmtBtn();
     }
+    function updateFmtBtn() {
+        els.fmtBtn.textContent = formatOptions[fmtIndex].short;
+    }
+    function currentFormat() { return formatOptions[fmtIndex]; }
     detectFormats();
+
+    // when a finished video is showing, any option change returns the button
+    // to "make" mode so the user can render again with new settings
+    function resetMakeButton() {
+        if (!els.renderBtn.classList.contains('done')) return;
+        els.renderBtn.classList.remove('done');
+        els.makeLabel.textContent = '🎬 영상 만들기 시작';
+        els.result.classList.remove('show');
+    }
+
+    // resolution toggle (1080p <-> 720p)
+    els.resBtn.addEventListener('click', () => {
+        if (els.resBtn.dataset.value === '1920x1080') {
+            els.resBtn.dataset.value = '1280x720';
+            els.resBtn.textContent = '720p';
+        } else {
+            els.resBtn.dataset.value = '1920x1080';
+            els.resBtn.textContent = '1080p';
+        }
+        resetMakeButton();
+    });
+    // format toggle (cycles through available formats)
+    els.fmtBtn.addEventListener('click', () => {
+        if (formatOptions.length < 2) return;
+        fmtIndex = (fmtIndex + 1) % formatOptions.length;
+        updateFmtBtn();
+        resetMakeButton();
+    });
 
     // ---------- audio loading ----------
     function loadAudioFile(file) {
@@ -641,6 +658,7 @@
         if (!audioEl) return;
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         buildAudioGraph();
+        applySound();
         if (audioEl.paused) { audioEl.play(); els.playBtn.textContent = '⏸'; }
         else { audioEl.pause(); els.playBtn.textContent = '▶'; }
     });
@@ -648,7 +666,19 @@
         if (audioEl) { audioEl.currentTime = parseFloat(els.seek.value); updateTimeLabel(); }
     });
 
-    // ---------- background image ----------
+    // mute / unmute — affects both preview playback and the recorded video
+    function applySound() {
+        if (audioEl) audioEl.muted = !soundOn;     // preview speaker (no graph yet)
+        if (outGain) outGain.gain.value = soundOn ? 1 : 0;   // speaker via graph
+        if (recGain) recGain.gain.value = soundOn ? 1.6 : 0; // recorded track
+    }
+    els.muteBtn.addEventListener('click', () => {
+        soundOn = !soundOn;
+        applySound();
+        els.muteBtn.textContent = soundOn ? '🔊 소리 켜짐' : '🔇 소리 꺼짐';
+        els.muteBtn.classList.toggle('muted', !soundOn);
+    });
+
     // ---------- color & style selectors ----------
     els.colorGrid.addEventListener('click', (e) => {
         const sw = e.target.closest('.swatch');
@@ -656,10 +686,6 @@
         document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
         sw.classList.add('active');
         bgColor = sw.dataset.color;
-    });
-    els.customColor.addEventListener('input', () => {
-        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-        bgColor = els.customColor.value;
     });
     els.styleChips.addEventListener('click', (e) => {
         const chip = e.target.closest('.chip');
@@ -776,14 +802,25 @@
         ctx.restore();
     }
 
+    function isLight(hex) {
+        const h = hex.replace('#', '');
+        const r = parseInt(h.substring(0, 2), 16);
+        const g = parseInt(h.substring(2, 4), 16);
+        const b = parseInt(h.substring(4, 6), 16);
+        // perceived luminance
+        return (0.299 * r + 0.587 * g + 0.114 * b) > 150;
+    }
+
     function drawText(W, H, level) {
         const title = els.songTitle.value.trim();
         const artist = els.songArtist.value.trim();
         if (!title && !artist) return;
 
+        const light = isLight(bgColor);
+
         ctx.save();
         ctx.textAlign = 'center';
-        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowColor = light ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.6)';
         ctx.shadowBlur = 24;
 
         const cy = H * 0.5;
@@ -791,7 +828,7 @@
         if (title) {
             const fs = Math.round(W * 0.052);
             ctx.font = '800 ' + fs + "px 'Bricolage Grotesque', sans-serif";
-            ctx.fillStyle = '#f4f4f5';
+            ctx.fillStyle = light ? '#15151a' : '#f4f4f5';
             ctx.fillText(title, W / 2, cy - (artist ? fs * 0.45 : 0));
         }
         if (artist) {
@@ -831,7 +868,7 @@
 
     // ---------- recording ----------
     function setCanvasSize() {
-        const res = els.resSelect.value.split('x');
+        const res = els.resBtn.dataset.value.split('x');
         els.canvas.width = parseInt(res[0], 10);
         els.canvas.height = parseInt(res[1], 10);
     }
@@ -856,8 +893,8 @@
         let audioStream;
         try {
             const recDest = audioCtx.createMediaStreamDestination();
-            const recGain = audioCtx.createGain();
-            recGain.gain.value = 1.6;   // amplify recorded audio
+            recGain = audioCtx.createGain();
+            recGain.gain.value = soundOn ? 1.6 : 0;   // amplify (or mute) recorded audio
             analyser.connect(recGain);  // analyser already gets the source; tap it for recording
             recGain.connect(recDest);
             audioStream = recDest.stream;
@@ -869,8 +906,8 @@
         canvasStream.getVideoTracks().forEach(t => mixed.addTrack(t));
         audioStream.getAudioTracks().forEach(t => mixed.addTrack(t));
 
-        const mime = els.fmtSelect.value;
-        const ext = els.fmtSelect.options[els.fmtSelect.selectedIndex].dataset.ext;
+        const mime = currentFormat().mime;
+        const ext = currentFormat().ext;
 
         try {
             recorder = new MediaRecorder(mixed, { mimeType: mime, videoBitsPerSecond: 8000000 });
@@ -892,11 +929,15 @@
         await audioEl.play();
         els.playBtn.textContent = '⏸';
 
-        // UI
+        // UI — the make button itself becomes the progress bar
         els.renderBtn.disabled = true;
+        els.renderBtn.classList.remove('done');
+        els.renderBtn.classList.add('recording');
+        els.makeProgress.style.width = '0%';
+        els.makeLabel.textContent = '영상 만드는 중… 0%';
         els.stopBtn.disabled = false;
-        els.recStatus.classList.add('show');
-        els.recMain.textContent = '녹화 중… (음악이 끝나면 자동 종료)';
+        els.resBtn.disabled = true;
+        els.fmtBtn.disabled = true;
 
         monitorRecording();
 
@@ -908,8 +949,8 @@
         if (!recording) return;
         const cur = audioEl.currentTime;
         const pct = duration ? Math.min(100, (cur / duration) * 100) : 0;
-        els.progressFill.style.width = pct + '%';
-        els.recSub.textContent = fmtTime(cur) + ' / ' + fmtTime(duration) + '  ·  ' + Math.round(pct) + '%';
+        els.makeProgress.style.width = pct + '%';
+        els.makeLabel.textContent = '영상 만드는 중… ' + Math.round(pct) + '%  (' + fmtTime(cur) + ' / ' + fmtTime(duration) + ')';
         els.seek.value = cur;
         requestAnimationFrame(monitorRecording);
     }
@@ -922,7 +963,8 @@
         audioEl.onended = null;
         els.playBtn.textContent = '▶';
         els.stopBtn.disabled = true;
-        els.recMain.textContent = '영상 인코딩 마무리 중…';
+        els.makeProgress.style.width = '100%';
+        els.makeLabel.textContent = '영상 마무리 중…';
     }
 
     function finishRecording(ext) {
@@ -935,15 +977,26 @@
         baseName = baseName.replace(/[\\/:*?"<>|]+/g, '_');
         const fname = baseName + '.' + ext;
 
+        // remember for the download button + the hidden link
+        madeVideo = { url: url, fname: fname };
         els.downloadLink.href = url;
         els.downloadLink.download = fname;
+
         const sizeMB = (blob.size / 1048576).toFixed(1);
         els.resultSub.textContent = '파일명: ' + fname + '  ·  크기: ' + sizeMB + ' MB  ·  길이: ' + fmtTime(duration);
         els.result.classList.add('show');
-        els.recStatus.classList.remove('show');
-        els.progressFill.style.width = '0%';
 
+        // the make button now becomes a DOWNLOAD button
+        els.renderBtn.classList.remove('recording');
+        els.renderBtn.classList.add('done');
+        els.makeProgress.style.width = '0%';
+        els.makeLabel.textContent = '⬇ 영상 다운로드';
         els.renderBtn.disabled = false;
+
+        // re-enable option toggles
+        els.resBtn.disabled = false;
+        els.fmtBtn.disabled = (formatOptions.length < 2);
+
         showToast('영상이 완성되었습니다 · 다운로드하세요');
         els.result.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -963,11 +1016,24 @@
     }
     wireDrop(els.drop, els.fileInput, loadAudioFile);
 
-    els.renderBtn.addEventListener('click', startRecording);
+    els.renderBtn.addEventListener('click', () => {
+        // if a finished video is ready, this button acts as a download button
+        if (els.renderBtn.classList.contains('done') && madeVideo) {
+            els.downloadLink.click();
+            return;
+        }
+        startRecording();
+    });
     els.stopBtn.addEventListener('click', stopRecording);
 
     // draw an initial idle frame so canvas isn't pure black behind placeholder
     drawFrame();
+
+    // keep the page at the top on first load (don't let the browser restore a
+    // previous scroll position or jump to the canvas/preview)
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+    window.addEventListener('load', () => window.scrollTo(0, 0));
 
     // warn if not running over a real browser context for captureStream
     if (!HTMLCanvasElement.prototype.captureStream) {
