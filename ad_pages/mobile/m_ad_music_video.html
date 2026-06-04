@@ -841,7 +841,7 @@
     let library = [];
     let current = null;
     let toastTimer = null;
-    let shuffle = false;
+    let shuffle = true;
     let repeat = false;           // repeat the whole list
     let ytPlayer = null;          // YouTube IFrame API player (for auto-advance)
     let ytReady = false;
@@ -1173,6 +1173,7 @@
             ytPlayer.playVideo();
         }
     });
+    els.shuffleBtn.classList.toggle('active', shuffle);
     els.shuffleBtn.addEventListener('click', () => {
         shuffle = !shuffle;
         els.shuffleBtn.classList.toggle('active', shuffle);
