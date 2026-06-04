@@ -823,8 +823,9 @@
                     // it isn't already playing (avoid restarting from 0)
                     if (pendingVideoId) {
                         var v = pendingVideoId; pendingVideoId = null;
-                        var st = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
-                        if (st !== YT.PlayerState.PLAYING && st !== YT.PlayerState.BUFFERING) startVideo(v);
+                        // always load through the API so play/pause controls work,
+                        // even if the direct-src iframe was already playing
+                        startVideo(v);
                     }
                 },
                 onStateChange: (e) => {
@@ -1412,14 +1413,31 @@
     els.previewBtn.addEventListener('click', () => {
         const playing = els.previewBtn.classList.contains('active');
         if (playing) {
-            // act as a stop button
-            if (ytReady && ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
-            else els.player.src = 'https://www.youtube-nocookie.com/embed/?enablejsapi=1&rel=0';
+            // act as a pause button (일시정지)
+            const st = (ytReady && ytPlayer && ytPlayer.getPlayerState)
+                ? ytPlayer.getPlayerState() : -1;
+            if (ytPlayerReady && ytPlayer && ytPlayer.pauseVideo &&
+                (st === YT.PlayerState.PLAYING || st === YT.PlayerState.BUFFERING)) {
+                // the API player is actually controlling the current video → pause it
+                ytPlayer.pauseVideo();
+            } else if (ytReady && ytPlayer && ytPlayerReady && ytPlayer.stopVideo) {
+                ytPlayer.stopVideo();
+            } else {
+                // API isn't controlling the iframe (loaded via direct src) → reset it
+                els.player.src = 'https://www.youtube-nocookie.com/embed/?enablejsapi=1&rel=0';
+            }
             syncPreviewBtn(-1);
             return;
         }
         const id = parseVideoId(els.linkInput.value);
-        if (!id) { showToast('유효한 유튜브 링크/ID가 아닙니다', true); els.linkInput.focus(); return; }
+        if (!id) {
+            // no link pasted → if a video is loaded, resume it instead
+            if (current && ytPlayerReady && ytPlayer && ytPlayer.playVideo) {
+                ytPlayer.playVideo();
+                return;
+            }
+            showToast('유효한 유튜브 링크/ID가 아닙니다', true); els.linkInput.focus(); return;
+        }
         userInteracted = true;        // allow scroll-to-player on an explicit click
         play(id);
     });
