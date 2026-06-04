@@ -350,6 +350,47 @@
         font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--gray); line-height: 1.9;
     }
     .lib-error { border-color: var(--accent); color: #ffb3b3; }
+
+    /* ---------- search modal ---------- */
+    .find-search {
+        display: flex; align-items: center; gap: 10px;
+        padding: 11px 14px; background: var(--bg);
+        border: 1px solid var(--line); border-radius: 11px;
+        transition: border-color 0.16s;
+    }
+    .find-search:focus-within { border-color: var(--accent); }
+    .find-search-ic { font-size: 1rem; color: var(--gray); line-height: 1; }
+    .find-search input {
+        flex: 1; min-width: 0; background: transparent; border: none; outline: none;
+        color: var(--ink); font-family: 'Noto Sans KR', sans-serif; font-size: 0.95rem;
+    }
+    .find-search input::placeholder { color: var(--gray); }
+    .find-results { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; }
+    .find-row {
+        display: flex; align-items: center; gap: 12px;
+        padding: 11px 13px; background: var(--panel-2);
+        border: 1px solid var(--line); border-radius: 10px;
+    }
+    .find-row .fr-no {
+        flex-shrink: 0; min-width: 34px; text-align: center;
+        font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 500;
+        color: var(--accent); background: var(--accent-soft);
+        border-radius: 7px; padding: 4px 6px;
+    }
+    .find-row .fr-main { flex: 1; min-width: 0; }
+    .find-row .fr-name {
+        font-size: 0.92rem; color: var(--ink); line-height: 1.4;
+        overflow: hidden; text-overflow: ellipsis;
+    }
+    .find-row .fr-date {
+        margin-top: 3px; font-family: 'DM Mono', monospace;
+        font-size: 0.7rem; letter-spacing: 0.04em; color: var(--gray);
+    }
+    .find-empty, .find-hint {
+        text-align: center; padding: 26px 14px;
+        font-family: 'DM Mono', monospace; font-size: 0.78rem;
+        color: var(--gray); line-height: 1.7;
+    }
     .spinner {
         width: 26px; height: 26px; margin: 0 auto 14px;
         border: 3px solid var(--line); border-top-color: var(--accent);
@@ -532,6 +573,7 @@
                 <span class="vol-ic" id="volIc">&#128266;</span>
                 <input type="range" id="volSlider" class="vol-slider" min="0" max="100" value="100" aria-label="볼륨">
             </div>
+            <button class="ctrl-btn" id="findBtn" title="보관함에서 제목 검색">&#128269; 찾기</button>
         </div>
 
         <!-- hidden write-url config (kept for wiring) -->
@@ -638,6 +680,23 @@
     </div>
 </div>
 
+<!-- ===== search modal (find by title in library) ===== -->
+<div class="modal-overlay" id="findModal" aria-hidden="true">
+    <div class="modal-sm" role="dialog" aria-modal="true" aria-label="제목 검색">
+        <div class="ms-head">
+            <div class="ms-title">제목 검색</div>
+            <button class="modal-close" id="findClose" title="닫기">&times;</button>
+        </div>
+        <div class="ms-body" style="display:block;">
+            <div class="find-search">
+                <span class="find-search-ic">&#128269;</span>
+                <input id="findInput" type="text" placeholder="제목을 입력하세요" autocomplete="off">
+            </div>
+            <div id="findResults" class="find-results"></div>
+        </div>
+    </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -662,6 +721,12 @@
         timeLabel: document.getElementById('timeLabel'),
         volSlider: document.getElementById('volSlider'),
         volIc: document.getElementById('volIc'),
+        findBtn: document.getElementById('findBtn'),
+        // find (search-in-library) modal
+        findModal: document.getElementById('findModal'),
+        findClose: document.getElementById('findClose'),
+        findInput: document.getElementById('findInput'),
+        findResults: document.getElementById('findResults'),
         // search launch (popup) + add-by-link
         searchLaunch: document.getElementById('searchLaunch'),
         toggleAddBtn: document.getElementById('toggleAddBtn'),
@@ -1398,6 +1463,52 @@
 
     // wiring
     els.searchLaunch.addEventListener('click', openSearchPopup);
+
+    /* ---------- find: search library by title (substring/contains) ---------- */
+    function renderFindResults() {
+        const q = els.findInput.value.trim().toLowerCase();
+        if (!q) {
+            // initial / empty state: show only the search box
+            els.findResults.innerHTML = '';
+            return;
+        }
+        const matches = library.filter(v => (v.title || '').toLowerCase().includes(q));
+        if (!matches.length) {
+            els.findResults.innerHTML = '<div class="find-empty">검색 결과가 없습니다.</div>';
+            return;
+        }
+        els.findResults.innerHTML = matches.map(v =>
+            '<div class="find-row" data-id="' + v.id + '">' +
+                '<div class="fr-no">' + (v.no ? escapeHtml(String(v.no)) : '–') + '</div>' +
+                '<div class="fr-main">' +
+                    '<div class="fr-name">' + escapeHtml(v.title || '유튜브 영상') + '</div>' +
+                    '<div class="fr-date">등록 일자: ' + (v.time ? escapeHtml(v.time) : '–') + '</div>' +
+                '</div>' +
+            '</div>'
+        ).join('');
+    }
+
+    function openFindModal() {
+        els.findInput.value = '';
+        els.findResults.innerHTML = '';
+        openModal(els.findModal);
+        els.findInput.focus();
+    }
+
+    els.findBtn.addEventListener('click', openFindModal);
+    els.findClose.addEventListener('click', () => closeModal(els.findModal));
+    els.findModal.addEventListener('click', (e) => { if (e.target === els.findModal) closeModal(els.findModal); });
+    els.findInput.addEventListener('input', renderFindResults);
+    // click a result → play it and close
+    els.findResults.addEventListener('click', (e) => {
+        const row = e.target.closest('.find-row');
+        if (!row) return;
+        const id = row.getAttribute('data-id');
+        closeModal(els.findModal);
+        userInteracted = true;
+        play(id);
+    });
+
     els.toggleAddBtn.addEventListener('click', () => {
         const open = els.addPanel.style.display === 'none';
         els.addPanel.style.display = open ? 'block' : 'none';
@@ -1490,6 +1601,7 @@
             if (els.howtoModal.classList.contains('show')) closeModal(els.howtoModal);
             if (els.delModal.classList.contains('show')) { deleteTargetId = null; closeModal(els.delModal); }
             if (els.editModal.classList.contains('show')) { editTargetId = null; closeModal(els.editModal); }
+            if (els.findModal.classList.contains('show')) closeModal(els.findModal);
         }
     });
 
