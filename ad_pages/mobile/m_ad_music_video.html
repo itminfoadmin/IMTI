@@ -12,6 +12,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* never let any element push past the device width */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    img, iframe, video, svg, input, pre { max-width: 100%; }
     :root {
         --bg: #0e0e10;
         --panel: #17171b;
@@ -80,7 +83,7 @@
 
     /* ---------- layout ---------- */
     .stage {
-        max-width: 1180px; margin: 0 auto;
+        max-width: 1180px; width: 100%; margin: 0 auto;
         padding: calc(40px + var(--safe-top)) calc(5% + var(--safe-right)) calc(80px + var(--safe-bottom)) calc(5% + var(--safe-left));
         display: grid; grid-template-columns: 1fr; gap: 30px;
     }
@@ -445,7 +448,8 @@
         }
 
         /* video keeps its 16:9 ratio but fills the full width */
-        .player-frame { border-radius: 12px; }
+        .player-frame { border-radius: 12px; width: 100%; max-width: 100%; }
+        .player-shell, .addbar, .playlist-box, .controls, .addrow { max-width: 100%; }
         .now-title { font-size: 1.08rem; margin-top: 14px; line-height: 1.3; }
         .now-meta { margin-top: 5px; }
         .toggle-video { font-size: 1.02rem; padding: 14px; margin-top: 14px; }
