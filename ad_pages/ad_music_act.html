@@ -33,47 +33,18 @@
         background-attachment: fixed;
     }
 
-    /* ---------- header ---------- */
-    header {
-        position: sticky; top: 0; z-index: 50;
-        display: flex; align-items: center; gap: 20px;
-        padding: 16px 5%;
-        background: rgba(14,14,16,0.82);
-        backdrop-filter: blur(14px);
-        border-bottom: 1px solid var(--line);
-    }
-    .logo {
-        font-family: 'Bricolage Grotesque', sans-serif;
-        font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
-        display: flex; align-items: center; gap: 9px; flex-shrink: 0; cursor: default;
-    }
-    .logo .play {
-        width: 30px; height: 30px; border-radius: 8px; background: var(--accent);
-        display: grid; place-items: center; box-shadow: 0 4px 16px -4px var(--accent);
-    }
-    .logo .play::before {
-        content: ''; width: 14px; height: 14px;
-        background:
-          linear-gradient(#fff,#fff) 1px 2px/2px 10px no-repeat,
-          linear-gradient(#fff,#fff) 6px 0/2px 14px no-repeat,
-          linear-gradient(#fff,#fff) 11px 4px/2px 8px no-repeat;
-    }
-    .logo span { color: var(--accent); }
-    .logo .tag {
-        font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 400;
-        color: var(--gray); letter-spacing: 0.04em; margin-left: 2px;
-    }
-
     /* ---------- layout ---------- */
+    html, body { height: 100%; }
+    body { overflow: hidden; }
     .stage {
-        width: 100%; margin: 0;
-        padding: 28px 28px 80px 28px;
-        display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 26px;
-        align-items: stretch;
+        width: 100%; margin: 0; height: 100vh;
+        padding: 18px 22px;
+        display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 22px;
+        align-items: stretch; overflow: hidden;
     }
-    .col { display: flex; flex-direction: column; gap: 22px; }
-    .col-left > section:last-child { display: flex; flex-direction: column; flex: 1; }
-    .col-left .preview-frame { flex: 0 0 auto; }
+    .col { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+    .col-left > section:first-child { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    .col-left > section:first-child .preview-frame { flex: 1 1 auto; aspect-ratio: auto; min-height: 180px; }
 
     .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; gap: 12px; }
     .sec-title { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em; }
@@ -172,39 +143,45 @@
     .drop.loaded .d-big { color: var(--ok); }
 
     /* ---------- instrument mixer ---------- */
-    .mixer-panel { display: flex; flex-direction: column; flex: 1; }
-    .mixer { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .mixer-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 14px 16px; }
+    .mixer-panel .panel-title { flex: 0 0 auto; }
+    .mixer {
+        display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(7, 1fr);
+        grid-auto-flow: column; gap: 8px;
+        flex: 1; min-height: 0; overflow-y: auto;
+        padding-right: 4px; margin-right: -4px;
+    }
+    .mixer::-webkit-scrollbar { width: 8px; }
+    .mixer::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
     .track {
-        background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px;
-        padding: 18px 20px; display: grid; align-items: center; gap: 8px 20px;
-        grid-template-columns: minmax(150px, 1fr) 2.4fr auto;
-        position: relative; overflow: hidden; flex: 1; min-height: 0;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+        padding: 7px 10px; display: flex; flex-direction: column; gap: 5px;
+        position: relative; overflow: hidden; justify-content: center;
     }
     .track .meter {
         position: absolute; left:0; bottom:0; width:100%; height:0%;
         background: linear-gradient(0deg, var(--tk,var(--accent)) 0%, transparent 100%);
         opacity: 0.16; pointer-events:none; transition: height 0.06s linear;
     }
-    .track .tk-head { display:flex; align-items:center; gap:11px; position:relative; z-index:1; grid-column:1; }
-    .track .tk-dot { width:13px; height:13px; border-radius:50%; flex-shrink:0; background: var(--tk,var(--accent)); box-shadow:0 0 12px -1px var(--tk,var(--accent)); }
-    .track .tk-name { font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:1.15rem; line-height:1.15; }
-    .track .tk-range { font-family:'DM Mono',monospace; font-size:0.66rem; color:var(--gray); margin-top:3px; letter-spacing:0.02em; }
+    .track .tk-head { display:flex; align-items:center; gap:7px; position:relative; z-index:1; }
+    .track .tk-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; background: var(--tk,var(--accent)); box-shadow:0 0 9px -1px var(--tk,var(--accent)); }
+    .track .tk-name { font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:0.86rem; line-height:1.05; }
+    .track .tk-range { font-family:'DM Mono',monospace; font-size:0.52rem; color:var(--gray); margin-top:1px; letter-spacing:0.02em; }
+    .track .tk-val { margin-left:auto; font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--ink-soft); }
     .track .fader {
-        -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:99px;
+        -webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:99px;
         background: var(--line); outline:none; cursor:pointer; position:relative; z-index:1; accent-color: var(--tk, var(--accent));
-        grid-column:2;
     }
     .track .fader::-webkit-slider-thumb {
-        -webkit-appearance:none; width:22px; height:22px; border-radius:50%;
-        background: var(--tk,var(--accent)); border:4px solid var(--panel-2);
+        -webkit-appearance:none; width:15px; height:15px; border-radius:50%;
+        background: var(--tk,var(--accent)); border:3px solid var(--panel-2);
         box-shadow:0 2px 8px -2px rgba(0,0,0,0.6); cursor:pointer;
     }
-    .track .fader::-moz-range-thumb { width:20px; height:20px; border-radius:50%; border:4px solid var(--panel-2); background: var(--tk,var(--accent)); cursor:pointer; }
-    .track .tk-side { grid-column:3; display:flex; align-items:center; gap:10px; position:relative; z-index:1; }
-    .track .tk-val { font-family:'DM Mono',monospace; font-size:0.9rem; color:var(--ink-soft); min-width:50px; text-align:right; }
+    .track .fader::-moz-range-thumb { width:13px; height:13px; border-radius:50%; border:3px solid var(--panel-2); background: var(--tk,var(--accent)); cursor:pointer; }
+    .track .tk-foot { display:flex; align-items:center; gap:6px; position:relative; z-index:1; }
     .track .solo, .track .mute {
-        font-family:'DM Mono',monospace; font-size:0.66rem; letter-spacing:0.04em;
-        padding:7px 11px; border-radius:8px; cursor:pointer; border:1px solid var(--line);
+        flex:1; text-align:center; font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.04em;
+        padding:4px 0; border-radius:5px; cursor:pointer; border:1px solid var(--line);
         background: var(--panel); color: var(--gray); transition: all 0.14s;
     }
     .track .solo:hover, .track .mute:hover { color: var(--ink); border-color: var(--ink-soft); }
@@ -214,23 +191,25 @@
 
     /* delay buttons */
     .field label { display:block; font-size:0.82rem; color:var(--ink-soft); margin-bottom:9px; font-weight:500; }
-    .delay-btns { display:flex; gap:7px; flex-wrap:nowrap; }
+    .delay-btns { display:flex; gap:6px; flex-wrap:nowrap; }
     .dbtn {
-        flex:1; min-width:0; padding:13px 0; text-align:center; cursor:pointer;
-        background: var(--panel-2); border:1px solid var(--line); border-radius:11px; color:var(--ink-soft);
-        font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:1rem; transition: all 0.14s;
+        flex:1; min-width:0; padding:11px 0; text-align:center; cursor:pointer;
+        background: var(--panel-2); border:1px solid var(--line); border-radius:10px; color:var(--ink-soft);
+        font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:0.95rem; transition: all 0.14s;
     }
     .dbtn:hover { border-color: var(--accent); color: var(--ink); }
     .dbtn.active { background: var(--accent); border-color: var(--accent); color:#fff; box-shadow:0 6px 16px -6px var(--accent); }
-    .dbtn .u { display:block; font-family:'DM Mono',monospace; font-size:0.56rem; font-weight:400; color:inherit; opacity:0.8; margin-top:2px; }
+    .dbtn .u { display:block; font-family:'DM Mono',monospace; font-size:0.52rem; font-weight:400; color:inherit; opacity:0.8; margin-top:2px; }
 
-    /* file-attach + delay side by side, each half width */
-    .ctrl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
-    .ctrl-row .panel { display: flex; flex-direction: column; }
-    .ctrl-row .drop { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-    .ctrl-row .delay-btns { flex: 1; align-content: center; }
-
-    .master-panel { padding: 14px 18px; }
+    .file-panel { flex: 0 0 auto; padding: 10px 14px; }
+    .file-row { display: flex; align-items: center; gap: 14px; }
+    .file-title { margin-bottom: 0; flex: 0 0 auto; white-space: nowrap; }
+    .file-row .drop { flex: 1; padding: 12px 18px; text-align: left; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .file-row .drop .d-big { margin-bottom: 0; font-size: 0.98rem; white-space: nowrap; }
+    .file-row .drop .d-sm { white-space: nowrap; }
+    .file-row .drop.loaded .d-sm { color: var(--gray); }
+    .file-reset { margin-left: 0; flex: 0 0 auto; }
+    .master-panel { padding: 11px 16px; }
     .master-row { display:flex; align-items:center; gap:13px; flex-wrap:wrap; }
     .master-row label { margin:0; min-width:104px; font-size:0.92rem; color:var(--ink-soft); font-weight:700; font-family:'Bricolage Grotesque',sans-serif; }
     .master-row input[type="range"] { flex:1; min-width:150px; accent-color: var(--accent); height:6px; cursor:pointer; }
@@ -247,37 +226,20 @@
 
     @media (max-width: 860px) {
         .stage { grid-template-columns: 1fr; align-items: start; }
-        .col-left > section:last-child { display: block; }
     }
-    @media (max-width: 540px) {
-        .ctrl-row { grid-template-columns: 1fr; }
-        .track { grid-template-columns: 1fr; gap: 12px; }
-        .track .tk-side { justify-content: flex-start; }
+    @media (max-width: 480px) {
+        .mixer { grid-template-columns: 1fr; }
+        .delay-btns { flex-wrap: wrap; }
+        .dbtn { min-width: 48px; }
     }
 </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">
-        <span class="play"></span>
-        악기<span>믹서</span>
-        <span class="tag">SOUND SPLIT · DELAY</span>
-    </div>
-</header>
-
 <div class="stage">
 
-    <!-- ============ LEFT : player ============ -->
+    <!-- ============ LEFT : player + delay ============ -->
     <div class="col col-left">
-        <section class="panel master-panel">
-            <div class="master-row">
-                <label>🎚 마스터 볼륨</label>
-                <input type="range" id="masterVol" min="0" max="150" value="100">
-                <span class="tk-val" id="masterVal" style="min-width:44px;">100%</span>
-            </div>
-        </section>
-
         <section>
             <div class="sec-head">
                 <div class="sec-title">재생</div>
@@ -301,40 +263,50 @@
                 <button class="mute-btn" id="muteBtn" title="소리 끄기 / 켜기">🔊 소리 켜짐</button>
             </div>
         </section>
+
+        <section class="panel">
+            <div class="panel-title"><span class="num">*</span> 지연 시작</div>
+            <div class="panel-sub">▶ 후 선택한 시간만큼 카운트다운하고 영상·소리가 함께 시작됩니다.</div>
+            <div class="delay-btns" id="delayBtns">
+                <div class="dbtn active" data-d="0">0<span class="u">즉시</span></div>
+                <div class="dbtn" data-d="1">1<span class="u">초</span></div>
+                <div class="dbtn" data-d="2">2<span class="u">초</span></div>
+                <div class="dbtn" data-d="3">3<span class="u">초</span></div>
+                <div class="dbtn" data-d="4">4<span class="u">초</span></div>
+                <div class="dbtn" data-d="5">5<span class="u">초</span></div>
+                <div class="dbtn" data-d="6">6<span class="u">초</span></div>
+                <div class="dbtn" data-d="7">7<span class="u">초</span></div>
+                <div class="dbtn" data-d="8">8<span class="u">초</span></div>
+                <div class="dbtn" data-d="9">9<span class="u">초</span></div>
+                <div class="dbtn" data-d="10">10<span class="u">초</span></div>
+            </div>
+        </section>
     </div>
 
-    <!-- ============ RIGHT : controls ============ -->
+    <!-- ============ RIGHT : mixer ============ -->
     <div class="col col-right">
-        <div class="ctrl-row">
-            <section class="panel">
-                <div class="panel-title">
-                    <span class="num">1</span> 파일 첨부
-                    <button class="reset-btn" id="resetBtn" title="이전 음악·동영상 정보 초기화">↺ 초기화</button>
-                </div>
-                <div class="panel-sub">MP3·동영상을 올리면 왼쪽에서 재생됩니다.</div>
+        <section class="panel file-panel">
+            <div class="file-row">
+                <div class="panel-title file-title"><span class="num">*</span> 파일 첨부</div>
                 <div class="drop" id="drop">
                     <div class="d-big" id="dropBig">＋ 파일 선택 / 끌어놓기</div>
                     <div class="d-sm" id="dropSm">.mp3 · .wav · .mp4 · .webm 등</div>
                 </div>
-                <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none;">
-            </section>
+                <button class="reset-btn file-reset" id="resetBtn" title="이전 음악·동영상 정보 초기화">↺ 초기화</button>
+            </div>
+            <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none;">
+        </section>
 
-            <section class="panel">
-                <div class="panel-title"><span class="num">2</span> 지연 시작</div>
-                <div class="panel-sub">▶ 후 카운트다운하고 시작합니다.</div>
-                <div class="delay-btns" id="delayBtns">
-                    <div class="dbtn active" data-d="0">0<span class="u">즉시</span></div>
-                    <div class="dbtn" data-d="1">1<span class="u">초</span></div>
-                    <div class="dbtn" data-d="2">2<span class="u">초</span></div>
-                    <div class="dbtn" data-d="3">3<span class="u">초</span></div>
-                    <div class="dbtn" data-d="4">4<span class="u">초</span></div>
-                    <div class="dbtn" data-d="5">5<span class="u">초</span></div>
-                </div>
-            </section>
-        </div>
+        <section class="panel master-panel">
+            <div class="master-row">
+                <label>🎚 마스터 볼륨</label>
+                <input type="range" id="masterVol" min="0" max="150" value="100">
+                <span class="tk-val" id="masterVal" style="min-width:44px;">100%</span>
+            </div>
+        </section>
 
         <section class="panel mixer-panel">
-            <div class="panel-title"><span class="num">3</span> 악기별 소리 크기 조절</div>
+            <div class="panel-title"><span class="num">*</span> 악기별 소리 크기 조절</div>
             <div class="mixer" id="mixer"></div>
         </section>
     </div>
@@ -349,12 +321,20 @@
 
     // ---- bands: parallel band-splits, each a true isolatable fader ----
     const BANDS = [
-        { id:'sub',   name:'서브 베이스', range:'~80 Hz',     color:'#8b5cf6', lo:0,    hi:80 },
-        { id:'bass',  name:'베이스·킥',   range:'80–250 Hz',  color:'#ff4d4d', lo:80,   hi:250 },
-        { id:'lomid', name:'로우 미드',   range:'250–800 Hz', color:'#fb923c', lo:250,  hi:800 },
-        { id:'mid',   name:'보컬·기타',   range:'0.8–3 kHz',  color:'#fbbf24', lo:800,  hi:3000 },
-        { id:'himid', name:'프레즌스',    range:'3–7 kHz',    color:'#4ade80', lo:3000, hi:7000 },
-        { id:'high',  name:'심벌·하이햇', range:'7 kHz+',     color:'#38bdf8', lo:7000, hi:24000 },
+        { id:'subbass',  name:'서브 베이스',   range:'20–50 Hz',    color:'#7c3aed', lo:0,     hi:50 },
+        { id:'lowbass',  name:'로우 베이스',   range:'50–90 Hz',    color:'#9333ea', lo:50,    hi:90 },
+        { id:'bass',     name:'베이스',        range:'90–150 Hz',   color:'#c026d3', lo:90,    hi:150 },
+        { id:'kick',     name:'킥·로우',       range:'150–250 Hz',  color:'#ec4899', lo:150,   hi:250 },
+        { id:'lomid',    name:'로우 미드',     range:'250–400 Hz',  color:'#f43f5e', lo:250,   hi:400 },
+        { id:'mid1',     name:'미드 (보컬↓)',  range:'400–700 Hz',  color:'#ff4d4d', lo:400,   hi:700 },
+        { id:'mid2',     name:'미드 (보컬↑)',  range:'0.7–1.2 kHz', color:'#fb7185', lo:700,   hi:1200 },
+        { id:'himid1',   name:'하이 미드↓',    range:'1.2–2 kHz',   color:'#fb923c', lo:1200,  hi:2000 },
+        { id:'himid2',   name:'하이 미드↑',    range:'2–3.2 kHz',   color:'#fbbf24', lo:2000,  hi:3200 },
+        { id:'presence', name:'프레즌스',      range:'3.2–5 kHz',   color:'#facc15', lo:3200,  hi:5000 },
+        { id:'brilliance',name:'브릴리언스',   range:'5–7 kHz',     color:'#a3e635', lo:5000,  hi:7000 },
+        { id:'air1',     name:'심벌·하이햇',   range:'7–10 kHz',    color:'#4ade80', lo:7000,  hi:10000 },
+        { id:'air2',     name:'에어',          range:'10–14 kHz',   color:'#2dd4bf', lo:10000, hi:14000 },
+        { id:'ultra',    name:'초고음',        range:'14 kHz+',     color:'#38bdf8', lo:14000, hi:24000 },
     ];
 
     const els = {
@@ -414,10 +394,10 @@
             t.innerHTML =
                 '<div class="meter" data-meter="'+b.id+'"></div>' +
                 '<div class="tk-head"><span class="tk-dot"></span>' +
-                    '<div><div class="tk-name">'+b.name+'</div><div class="tk-range">'+b.range+'</div></div></div>' +
+                    '<div><div class="tk-name">'+b.name+'</div><div class="tk-range">'+b.range+'</div></div>' +
+                    '<span class="tk-val" data-val="'+b.id+'">100%</span></div>' +
                 '<input type="range" class="fader" min="0" max="150" value="100" data-fader="'+b.id+'">' +
-                '<div class="tk-side">' +
-                    '<span class="tk-val" data-val="'+b.id+'">100%</span>' +
+                '<div class="tk-foot">' +
                     '<span class="solo" data-solo="'+b.id+'">SOLO</span>' +
                     '<span class="mute" data-mute="'+b.id+'">MUTE</span></div>';
             els.mixer.appendChild(t);
