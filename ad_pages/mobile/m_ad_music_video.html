@@ -740,7 +740,7 @@
         <!-- volume: own full-width row beneath the transport buttons -->
         <div class="vol-row" title="볼륨">
             <span class="vol-ic" id="volIc">&#128266;</span>
-            <input type="range" id="volSlider" class="vol-slider" min="0" max="100" value="100" aria-label="볼륨">
+            <input type="range" id="volSlider" class="vol-slider" min="0" max="100" value="55" aria-label="볼륨">
         </div>
 
         <!-- hidden write-url config (kept for wiring) -->
@@ -1416,7 +1416,7 @@
     setInterval(updateTimeLabel, 500);
 
     /* ---------- 볼륨 컨트롤 ---------- */
-    let lastVol = 100;
+    let lastVol = 55;
     function applyVolume(v) {
         v = Math.max(0, Math.min(100, v));
         if (ytReady && ytPlayer && ytPlayer.setVolume) {
@@ -1904,6 +1904,11 @@
 
     // init
     if (writeUrl) els.writeUrlInput.value = writeUrl;
+
+    // always start at 55% volume
+    els.volSlider.value = 55;
+    lastVol = 55;
+    applyVolume(55);
 
     // load the YouTube IFrame API (enables end-of-video auto-advance)
     (function loadYT() {
