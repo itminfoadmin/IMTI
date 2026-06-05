@@ -929,6 +929,7 @@
     let currentItem = null;       // full library record of the playing song
     let toastTimer = null;
     let shuffle = true;
+    let shuffleBag = [];          // remaining ids in the current shuffle cycle (each video once per cycle)
     let repeat = false;           // repeat the whole list
     let ytPlayer = null;          // YouTube IFrame API player (for auto-advance)
     let ytReady = false;
@@ -1134,6 +1135,8 @@
     function play(id, title) {
         const keepY = window.scrollY;
         current = id;
+        // a video that starts now is "used" for this shuffle cycle
+        if (shuffle) shuffleBag = shuffleBag.filter(bid => bid !== id);
         hideEmbedError();
         els.playerPlaceholder.classList.add('hide');
 
@@ -1282,13 +1285,33 @@
         return library.findIndex(v => v.id === current);
     }
 
+    // refill the shuffle bag with every library id, optionally avoiding `exceptId`
+    // as the first pick so a new cycle doesn't immediately repeat the last video
+    function refillShuffleBag(exceptId) {
+        let ids = library.map(v => v.id);
+        for (let i = ids.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [ids[i], ids[j]] = [ids[j], ids[i]];
+        }
+        if (ids.length > 1 && exceptId != null && ids[ids.length - 1] === exceptId) {
+            // bag is popped from the end; swap so the just-played video isn't next
+            [ids[ids.length - 1], ids[ids.length - 2]] = [ids[ids.length - 2], ids[ids.length - 1]];
+        }
+        shuffleBag = ids;
+    }
+
     // pick the next index given shuffle/repeat; returns -1 if nothing to play
     function nextIndex(idx) {
         if (!library.length) return -1;
         if (shuffle) {
             if (library.length === 1) return repeat ? idx : -1;
-            let n; do { n = Math.floor(Math.random() * library.length); } while (n === idx);
-            return n;
+            const currentId = (idx !== -1 && library[idx]) ? library[idx].id : null;
+            // drop any ids that no longer exist in the library
+            shuffleBag = shuffleBag.filter(id => library.some(v => v.id === id));
+            if (!shuffleBag.length) refillShuffleBag(currentId);
+            let nextId = shuffleBag.pop();
+            const n = library.findIndex(v => v.id === nextId);
+            return n === -1 ? nextIndex(idx) : n;
         }
         if (idx < library.length - 1) return idx + 1;
         return repeat ? 0 : -1;   // wrap only if repeat is on
@@ -1318,9 +1341,9 @@
     // updateTimeLabel. If the title overflows its box, enable a left-scroll marquee.
     function renderCollapsedInfo() {
         if (!currentItem) return;
-        const no = currentItem.no ? ('No. ' + currentItem.no) : '';
-        els.ciNo.textContent = no;
-        els.ciNo.style.display = no ? '' : 'none';
+        // hide the library video number (e.g. "No. 39") from the collapsed panel
+        els.ciNo.textContent = '';
+        els.ciNo.style.display = 'none';
         els.ciTitle.textContent = currentItem.title || '(제목 없음)';
         els.ciDate.textContent = currentItem.time ? ('등록일 ' + currentItem.time) : '';
         els.ciDate.style.display = currentItem.time ? '' : 'none';
@@ -1417,6 +1440,7 @@
     els.shuffleBtn.classList.toggle('active', shuffle);
     els.shuffleBtn.addEventListener('click', () => {
         shuffle = !shuffle;
+        shuffleBag = [];   // start a fresh cycle next time shuffle picks a video
         els.shuffleBtn.classList.toggle('active', shuffle);
         showToast(shuffle ? '셔플 켜짐' : '셔플 꺼짐');
         updateControls();
@@ -1425,8 +1449,13 @@
     // start playing the whole library from the top
     function playAll() {
         if (!library.length) { showToast('보관함이 비어 있습니다', true); return; }
-        const startIdx = shuffle ? Math.floor(Math.random() * library.length) : 0;
-        play(library[startIdx].id);
+        if (shuffle) {
+            shuffleBag = [];               // fresh shuffle cycle
+            const n = nextIndex(currentIndex());
+            if (n !== -1) play(library[n].id);
+            return;
+        }
+        play(library[0].id);
     }
 
     /* ---------- library grid (sheet-backed) ---------- */
