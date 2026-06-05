@@ -1153,7 +1153,25 @@
         renderCollapsedInfo();
         updateControls();
         updateMediaSession();
+        // The YouTube iframe injects its OWN Media Session metadata/handlers on
+        // every loadVideoById, which clears the page's next/prev handlers (so the
+        // car's skip buttons & steering-wheel remote stop working). Re-assert the
+        // page's ownership right after loading, and again shortly after (the
+        // iframe rewrites the session asynchronously once the new video starts).
+        reassertMediaSession();
+        setMediaPlaybackState('playing');
+        setTimeout(reassertMediaSession, 600);
+        setTimeout(reassertMediaSession, 1500);
+        setTimeout(reassertMediaSession, 3000);
         keepScroll(keepY);
+    }
+
+    // Reclaim the single navigator.mediaSession from the YouTube iframe by
+    // re-registering our handlers and re-publishing our metadata/position.
+    function reassertMediaSession() {
+        setupMediaSession();
+        updateMediaSession();
+        updatePositionState();
     }
 
     /* ---------- 블루투스/잠금화면 미디어 컨트롤 (Media Session API) ---------- */
@@ -1260,7 +1278,9 @@
     let positionTicker = null;
     function startPositionTicker() {
         stopPositionTicker();
-        positionTicker = setInterval(updatePositionState, 5000);
+        // Re-assert handlers + position regularly. This both keeps the head unit's
+        // progress bar live and continuously reclaims next/prev from the iframe.
+        positionTicker = setInterval(reassertMediaSession, 3000);
     }
     function stopPositionTicker() {
         if (positionTicker) { clearInterval(positionTicker); positionTicker = null; }
