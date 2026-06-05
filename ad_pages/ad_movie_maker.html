@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>뮤직 비디오 메이커 · MP3 → 영상</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --bg: #0e0e10;
+        --panel: #17171b;
+        --panel-2: #1e1e24;
+        --line: #2a2a31;
+        --ink: #f4f4f5;
+        --ink-soft: #b8b8c0;
+        --gray: #76767f;
+        --accent: #ff4d4d;
+        --accent-soft: #2a1416;
+        --ok: #4ade80;
+    }
+    html { font-size: 15px; }
+    body {
+        font-family: 'Noto Sans KR', sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        background-image: radial-gradient(circle at 15% 0%, #1a1320 0%, transparent 45%),
+                          radial-gradient(circle at 85% 100%, #101820 0%, transparent 45%);
+        background-attachment: fixed;
+    }
+
+    /* ---------- layout : full-viewport console ---------- */
+    html, body { height: 100%; }
+    body { overflow: hidden; }
+    .stage {
+        width: 100%; margin: 0; height: 100vh;
+        padding: 18px 22px;
+        display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 22px;
+        align-items: stretch; overflow: hidden;
+    }
+    .col { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+    /* left preview stretches to fill the column height */
+    .col-left > section.preview-shell { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    .col-left > section.preview-shell .preview-frame { flex: 1 1 auto; aspect-ratio: auto; min-height: 180px; }
+    /* right column scrolls internally if content overflows the viewport */
+    .col-right { overflow-y: auto; padding-right: 4px; margin-right: -4px; }
+    .col-right::-webkit-scrollbar { width: 8px; }
+    .col-right::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+
+    .sec-head {
+        display: flex; align-items: baseline; justify-content: space-between;
+        margin-bottom: 4px; gap: 12px;
+    }
+    .sec-title {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
+    }
+    .sec-sub { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--gray); letter-spacing: 0.04em; }
+    /* invisible header-height spacer so the right column's first panel
+       lines up with the top of the left preview frame */
+    .col-right .head-spacer { height: 1.35rem; margin-bottom: 4px; flex: 0 0 auto; }
+
+    /* ---------- preview frame ---------- */
+    .preview-frame {
+        position: relative; width: 100%; aspect-ratio: 16/9;
+        border-radius: 16px; overflow: hidden;
+        background: #000;
+        border: 1px solid var(--line);
+        box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9);
+    }
+    .preview-frame canvas { width: 100%; height: 100%; display: block; }
+    .preview-empty {
+        position: absolute; inset: 0; display: grid; place-items: center;
+        text-align: center; color: var(--gray);
+        font-family: 'DM Mono', monospace; font-size: 0.8rem; letter-spacing: 0.04em;
+        background: repeating-linear-gradient(45deg, #121216 0 10px, #15151a 10px 20px);
+        pointer-events: none;
+    }
+    .preview-empty.hide { display: none; }
+    .preview-empty .pe-big {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
+        font-size: 1.25rem; color: var(--ink-soft); margin-bottom: 8px;
+    }
+
+    /* transport bar under preview */
+    .transport {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        margin-top: 16px; padding: 12px 14px;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+    }
+    .play-btn {
+        width: 46px; height: 46px; flex-shrink: 0; border-radius: 11px;
+        background: var(--accent); border: none; color: #fff; cursor: pointer;
+        display: grid; place-items: center; font-size: 1.1rem;
+        box-shadow: 0 6px 18px -8px var(--accent);
+        transition: filter 0.16s, transform 0.1s;
+    }
+    .play-btn:hover { filter: brightness(1.1); }
+    .play-btn:active { transform: translateY(1px); }
+    .play-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .seek { flex: 1; min-width: 160px; accent-color: var(--accent); cursor: pointer; height: 4px; }
+    .time-label {
+        font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--ink-soft);
+        letter-spacing: 0.04em; white-space: nowrap; min-width: 92px; text-align: right;
+    }
+    .mute-btn {
+        flex-shrink: 0; padding: 9px 14px; border-radius: 9px; cursor: pointer;
+        background: var(--panel); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem; white-space: nowrap;
+        transition: background 0.16s, color 0.16s, border-color 0.16s;
+    }
+    .mute-btn:hover { background: var(--line); color: var(--ink); }
+    .mute-btn.muted { background: var(--accent-soft); border-color: var(--accent); color: #ffb3b3; }
+
+    /* ---------- panels ---------- */
+    .panel {
+        border: 1px solid var(--line); border-radius: 16px;
+        background: var(--panel); padding: 18px;
+        box-shadow: 0 18px 50px -30px rgba(0,0,0,0.8);
+    }
+    .panel + .panel { margin-top: 0; }
+    .panel-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+        font-size: 1.15rem; margin-bottom: 4px;
+        display: flex; align-items: center; gap: 9px;
+    }
+    .panel-title .num {
+        width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+        background: var(--accent-soft); color: var(--accent);
+        display: grid; place-items: center; font-family: 'DM Mono', monospace;
+        font-size: 0.8rem; font-weight: 500;
+    }
+    .panel-sub { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--gray); margin-bottom: 16px; letter-spacing: 0.03em; line-height: 1.7; }
+
+    /* dropzone */
+    .drop {
+        border: 1px dashed var(--line); border-radius: 13px;
+        padding: 18px 20px; text-align: center; cursor: pointer;
+        background: var(--panel-2); transition: border-color 0.18s, background 0.18s;
+    }
+    /* background-design panel grows to fill leftover height so the right column
+       matches the left preview column's height */
+    .bg-panel { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+    .bg-panel .bg-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 2px; }
+    .bg-panel .bg-scroll::-webkit-scrollbar { width: 7px; }
+    .bg-panel .bg-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+
+    /* sub-group heading inside a panel */
+    .grp { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 14px; }
+    .grp:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+    .grp-label {
+        font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--gray);
+        letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px;
+    }
+
+    /* segmented control (text position / fit mode) */
+    .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+    .seg-btn {
+        flex: 1; min-width: 60px; padding: 9px 10px; text-align: center; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.84rem; transition: all 0.14s;
+    }
+    .seg-btn:hover { border-color: var(--accent); color: var(--ink); }
+    .seg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -4px var(--accent); }
+
+    /* slider row with value badge */
+    .slider-row { display: flex; align-items: center; gap: 12px; }
+    .slider-row input[type="range"] { flex: 1; accent-color: var(--accent); height: 5px; cursor: pointer; }
+    .slider-row .s-val {
+        font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--ink-soft);
+        min-width: 48px; text-align: right; white-space: nowrap;
+    }
+
+    /* toggle switch */
+    .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .switch-row .sw-label { font-size: 0.86rem; color: var(--ink-soft); }
+    .switch {
+        position: relative; width: 46px; height: 26px; border-radius: 99px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); transition: background 0.16s, border-color 0.16s; flex-shrink: 0;
+    }
+    .switch::after {
+        content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+        border-radius: 50%; background: var(--gray); transition: transform 0.16s, background 0.16s;
+    }
+    .switch.on { background: var(--accent-soft); border-color: var(--accent); }
+    .switch.on::after { transform: translateX(20px); background: var(--accent); }
+
+    /* background image drop / thumbnail */
+    .imgdrop {
+        border: 1px dashed var(--line); border-radius: 11px; padding: 14px;
+        display: flex; align-items: center; gap: 12px; cursor: pointer;
+        background: var(--panel-2); transition: border-color 0.18s, background 0.18s;
+    }
+    .imgdrop:hover, .imgdrop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .imgdrop.loaded { border-style: solid; border-color: var(--ok); }
+    .imgdrop .thumb {
+        width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0; background-size: cover;
+        background-position: center; background-color: var(--bg); border: 1px solid var(--line);
+        display: grid; place-items: center; color: var(--gray); font-size: 1.3rem;
+    }
+    .imgdrop .id-big { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 0.96rem; color: var(--ink-soft); }
+    .imgdrop.loaded .id-big { color: var(--ok); }
+    .imgdrop .id-sm { font-family: 'DM Mono', monospace; font-size: 0.64rem; color: var(--gray); margin-top: 3px; }
+    .img-clear {
+        margin-left: auto; flex-shrink: 0; padding: 7px 12px; border-radius: 8px; cursor: pointer;
+        background: var(--panel); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'DM Mono', monospace; font-size: 0.68rem; transition: all 0.14s;
+    }
+    .img-clear:hover { border-color: var(--accent); color: #ffb3b3; background: var(--accent-soft); }
+    .fit-wrap.disabled { opacity: 0.4; pointer-events: none; }
+    .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .drop .d-big {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
+        font-size: 1.1rem; color: var(--ink-soft); margin-bottom: 6px;
+    }
+    .drop .d-sm { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray); }
+    .drop.loaded { border-style: solid; border-color: var(--ok); background: var(--panel-2); }
+    .drop.loaded .d-big { color: var(--ok); }
+
+    /* form fields */
+    .field { margin-bottom: 15px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+        display: block; font-size: 0.84rem; color: var(--ink-soft);
+        margin-bottom: 7px; font-weight: 500;
+    }
+    .field input[type="text"], .field textarea, .field select {
+        width: 100%; padding: 11px 13px; background: var(--bg);
+        border: 1px solid var(--line); border-radius: 9px; color: var(--ink);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.92rem; outline: none;
+        transition: border-color 0.16s;
+    }
+    .field textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+    .field-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .field-row .field { flex: 1; min-width: 150px; margin-bottom: 0; }
+    .bg-row .field:nth-child(1) { flex: 1.1; }
+    .bg-row .field:nth-child(2) { flex: 2; }
+    .bg-row .field:nth-child(3) { flex: 0.7; min-width: 120px; }
+    .field .hint { font-family: 'DM Mono', monospace; font-size: 0.64rem; color: var(--gray); margin-top: 6px; }
+
+    /* color row */
+    .color-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+    .swatch {
+        width: 38px; height: 38px; border-radius: 9px; cursor: pointer;
+        border: 2px solid var(--line); transition: transform 0.1s, border-color 0.16s;
+    }
+    .swatch:hover { transform: scale(1.08); }
+    .swatch.active { border-color: var(--ink); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+    input[type="color"] { width: 44px; height: 38px; padding: 2px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); cursor: pointer; }
+
+    /* style chips */
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+        padding: 9px 15px; border-radius: 99px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-size: 0.85rem; transition: background 0.16s, color 0.16s, border-color 0.16s;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--ink); }
+    .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -4px var(--accent); }
+
+    /* export */
+    .make-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+    .btn-primary {
+        flex: 1; min-width: 200px; padding: 15px 22px; border: none; border-radius: 12px;
+        background: var(--accent); color: #fff; cursor: pointer;
+        font-family: 'Noto Sans KR', sans-serif; font-size: 1.05rem; font-weight: 700;
+        box-shadow: 0 8px 24px -8px var(--accent);
+        display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+        transition: filter 0.16s, transform 0.1s;
+    }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary[disabled] { opacity: 0.45; cursor: not-allowed; filter: none; }
+    .btn-ghost {
+        padding: 15px 20px; border-radius: 12px; cursor: pointer; flex-shrink: 0;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.95rem; font-weight: 600;
+        transition: background 0.16s, color 0.16s;
+    }
+    .btn-ghost:hover { background: var(--line); color: var(--ink); }
+    .btn-ghost[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+    /* make button doubling as a progress bar */
+    .make-btn { position: relative; overflow: hidden; }
+    .make-btn .make-progress {
+        position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+        background: rgba(255,255,255,0.22); transition: width 0.2s; pointer-events: none;
+    }
+    .make-btn .make-label { position: relative; z-index: 1; }
+    .make-btn.recording { cursor: default; }
+    /* make button after completion = download button */
+    .make-btn.done { background: var(--ok); box-shadow: 0 8px 24px -8px var(--ok); }
+    .make-btn.done:hover { filter: brightness(1.06); }
+
+    /* option toggle buttons (resolution / format) */
+    .opt-btn {
+        flex-shrink: 0; padding: 0 18px; border-radius: 12px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.9rem; font-weight: 600;
+        white-space: nowrap; transition: background 0.16s, color 0.16s, border-color 0.16s;
+    }
+    .opt-btn:hover { border-color: var(--accent); color: var(--ink); }
+    .opt-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* result */
+    .result {
+        margin-top: 16px; padding: 16px; border-radius: 12px;
+        background: var(--accent-soft); border: 1px solid var(--accent);
+        display: none;
+    }
+    .result.show { display: block; }
+    .result .r-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700;
+        font-size: 1.05rem; color: var(--ink); margin-bottom: 10px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .result .r-sub { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--ink-soft); line-height: 1.7; margin-bottom: 14px; }
+    .result a.download {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 12px 22px; border-radius: 11px; text-decoration: none;
+        background: var(--ink); color: var(--bg); font-weight: 700; font-size: 0.95rem;
+        transition: filter 0.16s, transform 0.1s;
+    }
+    .result a.download:hover { filter: brightness(0.92); }
+    .result a.download:active { transform: translateY(1px); }
+
+    .warn {
+        font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #ffb3b3;
+        background: var(--accent-soft); border: 1px solid var(--accent);
+        border-radius: 9px; padding: 10px 13px; line-height: 1.7; margin-bottom: 16px;
+        display: none;
+    }
+    .warn.show { display: block; }
+
+    /* toast */
+    .toast {
+        position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+        background: var(--panel-2); border: 1px solid var(--line);
+        color: var(--ink); padding: 12px 20px; border-radius: 99px;
+        font-family: 'DM Mono', monospace; font-size: 0.78rem;
+        opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 300;
+        box-shadow: 0 16px 40px -16px rgba(0,0,0,0.8);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err { border-color: var(--accent); color: #ffb3b3; }
+
+    /* stack to a single scrolling column on narrow screens */
+    @media (max-width: 860px) {
+        body { overflow: auto; }
+        .stage { grid-template-columns: 1fr; height: auto; min-height: 100vh; align-items: start; overflow: visible; }
+        .col-right { overflow: visible; }
+        .col-right .head-spacer { display: none; }
+        .bg-panel { display: block; }
+        .bg-panel .bg-scroll { overflow: visible; }
+        .col-left > section.preview-shell .preview-frame { aspect-ratio: 16/9; }
+    }
+    @media (max-width: 600px) {
+        .field-row { flex-direction: column; gap: 12px; }
+        .btn-primary, .btn-ghost { min-width: 100%; }
+        .make-row .opt-btn { flex: 1; }
+        .transport { gap: 8px; }
+        .mute-btn { margin-left: auto; }
+    }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+    <!-- ============ LEFT : preview + transport ============ -->
+    <div class="col col-left">
+        <section class="preview-shell">
+            <div class="sec-head">
+                <div class="sec-title">미리보기</div>
+                <div class="sec-sub">1920 × 1080 · 16:9</div>
+            </div>
+            <div class="preview-frame">
+                <canvas id="canvas" width="1920" height="1080"></canvas>
+                <div class="preview-empty" id="previewEmpty">
+                    <div>
+                        <div class="pe-big">MP3 파일을 올려주세요</div>
+                        <div>오른쪽에서 음악을 추가하면 여기에서 영상이 미리 보입니다</div>
+                    </div>
+                </div>
+            </div>
+            <div class="transport">
+                <button class="play-btn" id="playBtn" disabled>▶</button>
+                <input type="range" class="seek" id="seek" min="0" max="100" value="0" step="0.1" disabled>
+                <span class="time-label" id="timeLabel">0:00 / 0:00</span>
+                <button class="mute-btn" id="muteBtn" title="소리 끄기 / 켜기">🔊 소리 켜짐</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============ RIGHT : settings panels ============ -->
+    <div class="col col-right">
+
+        <div class="head-spacer" aria-hidden="true"></div>
+
+        <!-- 1) MP3 -->
+        <section class="panel">
+            <div class="panel-title"><span class="num">1</span> 음악 파일 (MP3)</div>
+            <div class="panel-sub">유튜브에 올릴 음원을 선택하세요. 영상 길이는 음악 길이에 자동으로 맞춰집니다.</div>
+            <div class="drop" id="drop">
+                <div class="d-big" id="dropBig">＋ MP3 파일 선택 또는 끌어놓기</div>
+                <div class="d-sm" id="dropSm">.mp3 · .wav · .m4a · .ogg 지원</div>
+            </div>
+            <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.ogg" style="display:none;">
+        </section>
+
+        <!-- 2) 정보 -->
+        <section class="panel">
+            <div class="panel-title"><span class="num">2</span> 화면에 표시할 정보</div>
+            <div class="panel-sub">제목·아티스트는 영상 위에 텍스트로 표시됩니다.</div>
+            <div class="field-row">
+                <div class="field">
+                    <label>제목 (곡명)</label>
+                    <input type="text" id="songTitle" placeholder="예: 봄날의 멜로디" maxlength="60">
+                </div>
+                <div class="field">
+                    <label>아티스트 / 부제</label>
+                    <input type="text" id="songArtist" placeholder="예: 홍길동" maxlength="60">
+                </div>
+            </div>
+        </section>
+
+        <!-- 3) 배경 -->
+        <section class="panel bg-panel">
+            <div class="panel-title"><span class="num">3</span> 배경 디자인</div>
+            <div class="panel-sub">색상·이미지·시각 효과와 텍스트 배치까지 세밀하게 꾸밀 수 있습니다.</div>
+
+            <div class="bg-scroll">
+
+                <!-- 배경 이미지 -->
+                <div class="grp">
+                    <div class="grp-label">배경 이미지</div>
+                    <div class="imgdrop" id="imgDrop">
+                        <div class="thumb" id="imgThumb">＋</div>
+                        <div>
+                            <div class="id-big" id="imgBig">이미지 선택 또는 끌어놓기</div>
+                            <div class="id-sm" id="imgSm">.jpg · .png · .webp · .gif</div>
+                        </div>
+                        <button class="img-clear" id="imgClear" style="display:none;">✕ 제거</button>
+                    </div>
+                    <input type="file" id="imgInput" accept="image/*" style="display:none;">
+
+                    <div class="fit-wrap disabled" id="fitWrap" style="margin-top:10px;">
+                        <label style="display:block; font-size:0.82rem; color:var(--ink-soft); margin-bottom:7px; font-weight:500;">이미지 맞춤</label>
+                        <div class="seg" id="fitSeg">
+                            <div class="seg-btn active" data-fit="cover">채우기</div>
+                            <div class="seg-btn" data-fit="contain">맞추기</div>
+                            <div class="seg-btn" data-fit="stretch">늘이기</div>
+                        </div>
+                        <div class="switch-row" style="margin-top:12px;">
+                            <span class="sw-label">어둡게 덮기 (글자 가독성)</span>
+                            <div class="switch on" id="overlaySwitch" role="switch" aria-checked="true"></div>
+                        </div>
+                        <div class="slider-row" id="overlayRow" style="margin-top:10px;">
+                            <input type="range" id="overlayRange" min="0" max="90" value="45">
+                            <span class="s-val" id="overlayVal">45%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 배경 색상 (이미지 없을 때) -->
+                <div class="grp">
+                    <div class="grp-label">배경 색상 (이미지가 없을 때)</div>
+                    <div class="color-grid" id="colorGrid">
+                        <div class="swatch active" data-color="#0e0e10" style="background:#0e0e10;" title="검은색"></div>
+                        <div class="swatch" data-color="#808080" style="background:#808080;" title="회색"></div>
+                        <div class="swatch" data-color="#ffffff" style="background:#ffffff;" title="흰색"></div>
+                        <div class="swatch" data-color="#7ec8e3" style="background:#7ec8e3;" title="하늘색"></div>
+                        <div class="swatch" data-color="#4caf50" style="background:#4caf50;" title="초록색"></div>
+                        <input type="color" id="bgColorPicker" value="#0e0e10" title="직접 선택" style="margin-left:2px;">
+                    </div>
+                </div>
+
+                <!-- 시각 효과 -->
+                <div class="grp">
+                    <div class="grp-label">시각 효과</div>
+                    <div class="field" style="margin-bottom:12px;">
+                        <label>스타일</label>
+                        <div class="chips" id="styleChips">
+                            <div class="chip active" data-style="bars">막대 스펙트럼</div>
+                            <div class="chip" data-style="wave">파형</div>
+                            <div class="chip" data-style="circle">원형 스펙트럼</div>
+                            <div class="chip" data-style="pulse">펄스 글로우</div>
+                            <div class="chip" data-style="none">없음 (정적)</div>
+                        </div>
+                    </div>
+                    <div class="field" style="margin-bottom:12px;">
+                        <label>포인트 색상 (시각 효과 색)</label>
+                        <input type="color" id="accentColor" value="#ff4d4d">
+                    </div>
+                    <div class="field">
+                        <label>시각 효과 크기</label>
+                        <div class="slider-row">
+                            <input type="range" id="vizScale" min="50" max="160" value="100">
+                            <span class="s-val" id="vizScaleVal">100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 텍스트 배치 -->
+                <div class="grp">
+                    <div class="grp-label">텍스트 배치</div>
+                    <div class="field" style="margin-bottom:12px;">
+                        <label>세로 위치</label>
+                        <div class="seg" id="textPosSeg">
+                            <div class="seg-btn" data-pos="top">위</div>
+                            <div class="seg-btn active" data-pos="center">가운데</div>
+                            <div class="seg-btn" data-pos="bottom">아래</div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>텍스트 크기</label>
+                        <div class="slider-row">
+                            <input type="range" id="textScale" min="60" max="160" value="100">
+                            <span class="s-val" id="textScaleVal">100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 마무리 효과 -->
+                <div class="grp">
+                    <div class="grp-label">마무리 효과</div>
+                    <div class="switch-row">
+                        <span class="sw-label">비네트 (가장자리 어둡게)</span>
+                        <div class="switch" id="vignetteSwitch" role="switch" aria-checked="false"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4) 내보내기 -->
+        <section class="panel">
+            <div class="panel-title"><span class="num">4</span> 영상 만들기</div>
+
+            <div class="warn" id="codecWarn"></div>
+
+            <div class="make-row">
+                <button class="btn-primary make-btn" id="renderBtn" disabled>
+                    <span class="make-progress" id="makeProgress"></span>
+                    <span class="make-label" id="makeLabel">🎬 영상 만들기 시작</span>
+                </button>
+                <button class="opt-btn" id="resBtn" data-value="1920x1080" title="해상도 전환">1080p</button>
+                <button class="opt-btn" id="fmtBtn" title="형식 전환">형식</button>
+                <button class="btn-ghost" id="stopBtn" disabled>■ 중지</button>
+            </div>
+
+            <div class="result" id="result">
+                <div class="r-title">✓ 영상이 완성되었습니다</div>
+                <div class="r-sub" id="resultSub"></div>
+            </div>
+            <a id="downloadLink" download style="display:none;"></a>
+        </section>
+
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ---------- elements ----------
+    const els = {
+        canvas: document.getElementById('canvas'),
+        previewEmpty: document.getElementById('previewEmpty'),
+        playBtn: document.getElementById('playBtn'),
+        seek: document.getElementById('seek'),
+        timeLabel: document.getElementById('timeLabel'),
+        muteBtn: document.getElementById('muteBtn'),
+        drop: document.getElementById('drop'),
+        dropBig: document.getElementById('dropBig'),
+        dropSm: document.getElementById('dropSm'),
+        fileInput: document.getElementById('fileInput'),
+        songTitle: document.getElementById('songTitle'),
+        songArtist: document.getElementById('songArtist'),
+        colorGrid: document.getElementById('colorGrid'),
+        bgColorPicker: document.getElementById('bgColorPicker'),
+        styleChips: document.getElementById('styleChips'),
+        accentColor: document.getElementById('accentColor'),
+        imgDrop: document.getElementById('imgDrop'),
+        imgInput: document.getElementById('imgInput'),
+        imgThumb: document.getElementById('imgThumb'),
+        imgBig: document.getElementById('imgBig'),
+        imgSm: document.getElementById('imgSm'),
+        imgClear: document.getElementById('imgClear'),
+        fitWrap: document.getElementById('fitWrap'),
+        fitSeg: document.getElementById('fitSeg'),
+        overlaySwitch: document.getElementById('overlaySwitch'),
+        overlayRow: document.getElementById('overlayRow'),
+        overlayRange: document.getElementById('overlayRange'),
+        overlayVal: document.getElementById('overlayVal'),
+        vizScale: document.getElementById('vizScale'),
+        vizScaleVal: document.getElementById('vizScaleVal'),
+        textPosSeg: document.getElementById('textPosSeg'),
+        textScale: document.getElementById('textScale'),
+        textScaleVal: document.getElementById('textScaleVal'),
+        vignetteSwitch: document.getElementById('vignetteSwitch'),
+        resBtn: document.getElementById('resBtn'),
+        fmtBtn: document.getElementById('fmtBtn'),
+        renderBtn: document.getElementById('renderBtn'),
+        stopBtn: document.getElementById('stopBtn'),
+        makeProgress: document.getElementById('makeProgress'),
+        makeLabel: document.getElementById('makeLabel'),
+        result: document.getElementById('result'),
+        resultSub: document.getElementById('resultSub'),
+        downloadLink: document.getElementById('downloadLink'),
+        codecWarn: document.getElementById('codecWarn'),
+        toast: document.getElementById('toast'),
+    };
+
+    const ctx = els.canvas.getContext('2d');
+
+    // ---------- state ----------
+    let audioFile = null;
+    let audioEl = null;          // HTMLAudioElement for preview + recording
+    let audioObjectUrl = null;
+    let bgColor = '#0e0e10';
+    let accent = '#ff4d4d';
+    let vizStyle = 'bars';
+    // ---- extended background-design state ----
+    let bgImage = null;          // HTMLImageElement when a background image is loaded
+    let bgImageUrl = null;
+    let bgFit = 'cover';         // cover | contain | stretch
+    let overlayOn = true;
+    let overlayStrength = 0.45;  // 0..0.9
+    let vizScale = 1.0;          // 0.5..1.6
+    let textPos = 'center';      // top | center | bottom
+    let textScale = 1.0;         // 0.6..1.6
+    let vignetteOn = false;
+    let duration = 0;
+    let animId = null;
+
+    // Web Audio for analyser
+    let audioCtx = null;
+    let analyser = null;
+    let srcNode = null;
+    let outGain = null;          // controls speaker output (muted during recording)
+    let recGain = null;          // gain feeding the recorded stream
+    let freqData = null;
+    let timeData = null;
+    let audioGraphBuilt = false;
+
+    // recording
+    let recorder = null;
+    let recChunks = [];
+    let recording = false;
+    let recStartTime = 0;
+    let soundOn = true;          // mute/unmute toggle for preview + recorded audio
+    let madeVideo = null;        // { url, fname } of the most recent finished video
+
+    // ---------- toast ----------
+    let toastTimer = null;
+    function showToast(msg, isErr) {
+        els.toast.textContent = msg;
+        els.toast.classList.toggle('err', !!isErr);
+        els.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => els.toast.classList.remove('show'), 3200);
+    }
+
+    function fmtTime(s) {
+        if (!isFinite(s) || s < 0) s = 0;
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return m + ':' + String(sec).padStart(2, '0');
+    }
+
+    // ---------- codec / format detection ----------
+    const formatOptions = [];   // de-duplicated by ext, richest label first
+    let fmtIndex = 0;
+    function detectFormats() {
+        const candidates = [
+            { label: 'MP4 (H.264)', short: 'MP4', mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', ext: 'mp4' },
+            { label: 'MP4', short: 'MP4', mime: 'video/mp4', ext: 'mp4' },
+            { label: 'WebM (VP9)', short: 'WebM', mime: 'video/webm;codecs=vp9,opus', ext: 'webm' },
+            { label: 'WebM (VP8)', short: 'WebM', mime: 'video/webm;codecs=vp8,opus', ext: 'webm' },
+            { label: 'WebM', short: 'WebM', mime: 'video/webm', ext: 'webm' },
+        ];
+        const added = {};
+        candidates.forEach(c => {
+            if (typeof MediaRecorder === 'undefined') return;
+            if (added[c.ext]) return;
+            if (MediaRecorder.isTypeSupported(c.mime)) {
+                added[c.ext] = true;
+                formatOptions.push(c);
+            }
+        });
+
+        if (formatOptions.length === 0) {
+            els.codecWarn.textContent = '이 브라우저는 영상 녹화(MediaRecorder)를 지원하지 않습니다. 최신 Chrome 또는 Edge를 사용해 주세요.';
+            els.codecWarn.classList.add('show');
+            els.renderBtn.disabled = true;
+            els.fmtBtn.disabled = true;
+            els.fmtBtn.textContent = '형식 없음';
+            return;
+        }
+        if (!added['mp4']) {
+            els.codecWarn.innerHTML = '이 브라우저는 MP4 직접 녹화를 지원하지 않아 <b>WebM</b>으로 저장됩니다. 유튜브는 WebM 업로드를 지원하므로 그대로 올리면 됩니다. (Chrome 최신 버전에서 MP4 옵션이 나타날 수 있습니다.)';
+            els.codecWarn.classList.add('show');
+        }
+        // disable the format toggle if there's only one choice
+        els.fmtBtn.disabled = (formatOptions.length < 2);
+        updateFmtBtn();
+    }
+    function updateFmtBtn() {
+        els.fmtBtn.textContent = formatOptions[fmtIndex].short;
+    }
+    function currentFormat() { return formatOptions[fmtIndex]; }
+    detectFormats();
+
+    // when a finished video is showing, any option change returns the button
+    // to "make" mode so the user can render again with new settings
+    function resetMakeButton() {
+        if (!els.renderBtn.classList.contains('done')) return;
+        els.renderBtn.classList.remove('done');
+        els.makeLabel.textContent = '🎬 영상 만들기 시작';
+        els.result.classList.remove('show');
+    }
+
+    // resolution toggle (1080p <-> 720p)
+    els.resBtn.addEventListener('click', () => {
+        if (els.resBtn.dataset.value === '1920x1080') {
+            els.resBtn.dataset.value = '1280x720';
+            els.resBtn.textContent = '720p';
+        } else {
+            els.resBtn.dataset.value = '1920x1080';
+            els.resBtn.textContent = '1080p';
+        }
+        resetMakeButton();
+    });
+    // format toggle (cycles through available formats)
+    els.fmtBtn.addEventListener('click', () => {
+        if (formatOptions.length < 2) return;
+        fmtIndex = (fmtIndex + 1) % formatOptions.length;
+        updateFmtBtn();
+        resetMakeButton();
+    });
+
+    // ---------- audio loading ----------
+    function loadAudioFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith('audio/') && !/\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(file.name)) {
+            showToast('오디오 파일이 아닙니다', true); return;
+        }
+        audioFile = file;
+        if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
+        audioObjectUrl = URL.createObjectURL(file);
+
+        if (!audioEl) {
+            audioEl = new Audio();
+            audioEl.addEventListener('loadedmetadata', () => {
+                duration = audioEl.duration;
+                els.seek.max = duration;
+                els.seek.disabled = false;
+                els.playBtn.disabled = false;
+                els.renderBtn.disabled = (formatOptions.length === 0);
+                updateTimeLabel();
+            });
+            audioEl.addEventListener('timeupdate', () => {
+                if (!recording) { els.seek.value = audioEl.currentTime; updateTimeLabel(); }
+            });
+            audioEl.addEventListener('ended', () => {
+                if (!recording) { els.playBtn.textContent = '▶'; }
+            });
+        }
+        audioEl.src = audioObjectUrl;
+        audioEl.load();
+
+        // auto-fill title from filename if empty
+        if (!els.songTitle.value.trim()) {
+            els.songTitle.value = file.name.replace(/\.[^.]+$/, '');
+        }
+        els.drop.classList.add('loaded');
+        els.dropBig.textContent = '✓ ' + file.name;
+        els.dropSm.textContent = '다른 파일로 바꾸려면 다시 클릭하세요';
+        els.previewEmpty.classList.add('hide');
+        showToast('음악을 불러왔습니다');
+        startPreviewLoop();
+    }
+
+    function updateTimeLabel() {
+        const cur = audioEl ? audioEl.currentTime : 0;
+        els.timeLabel.textContent = fmtTime(cur) + ' / ' + fmtTime(duration);
+    }
+
+    // build Web Audio graph (once). Must be after a user gesture.
+    function buildAudioGraph() {
+        if (audioGraphBuilt || !audioEl) return;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            srcNode = audioCtx.createMediaElementSource(audioEl);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            outGain = audioCtx.createGain();
+            outGain.gain.value = 1;
+            srcNode.connect(analyser);
+            analyser.connect(outGain);
+            outGain.connect(audioCtx.destination);
+            freqData = new Uint8Array(analyser.frequencyBinCount);
+            timeData = new Uint8Array(analyser.fftSize);
+            audioGraphBuilt = true;
+        } catch (e) {
+            console.warn('audio graph error', e);
+        }
+    }
+
+    // ---------- preview / play ----------
+    els.playBtn.addEventListener('click', () => {
+        if (!audioEl) return;
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        buildAudioGraph();
+        applySound();
+        if (audioEl.paused) { audioEl.play(); els.playBtn.textContent = '⏸'; }
+        else { audioEl.pause(); els.playBtn.textContent = '▶'; }
+    });
+    els.seek.addEventListener('input', () => {
+        if (audioEl) { audioEl.currentTime = parseFloat(els.seek.value); updateTimeLabel(); }
+    });
+
+    // mute / unmute — affects both preview playback and the recorded video
+    function applySound() {
+        if (audioEl) audioEl.muted = !soundOn;     // preview speaker (no graph yet)
+        if (outGain) outGain.gain.value = soundOn ? 1 : 0;   // speaker via graph
+        if (recGain) recGain.gain.value = soundOn ? 1.6 : 0; // recorded track
+    }
+    els.muteBtn.addEventListener('click', () => {
+        soundOn = !soundOn;
+        applySound();
+        els.muteBtn.textContent = soundOn ? '🔊 소리 켜짐' : '🔇 소리 꺼짐';
+        els.muteBtn.classList.toggle('muted', !soundOn);
+    });
+
+    // ---------- color & style selectors ----------
+    els.colorGrid.addEventListener('click', (e) => {
+        const sw = e.target.closest('.swatch');
+        if (!sw) return;
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+        bgColor = sw.dataset.color;
+        if (els.bgColorPicker) els.bgColorPicker.value = bgColor;
+    });
+    els.styleChips.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        vizStyle = chip.dataset.style;
+    });
+    els.accentColor.addEventListener('input', () => { accent = els.accentColor.value; });
+
+    // custom background color picker (acts like an extra swatch)
+    els.bgColorPicker.addEventListener('input', () => {
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+        bgColor = els.bgColorPicker.value;
+    });
+
+    // ---- background image ----
+    function loadImageFile(file) {
+        if (!file || !file.type.startsWith('image/')) { showToast('이미지 파일을 선택하세요', true); return; }
+        if (bgImageUrl) URL.revokeObjectURL(bgImageUrl);
+        bgImageUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            bgImage = img;
+            els.imgThumb.style.backgroundImage = 'url(' + bgImageUrl + ')';
+            els.imgThumb.textContent = '';
+            els.imgBig.textContent = file.name.length > 26 ? file.name.slice(0, 24) + '…' : file.name;
+            els.imgSm.textContent = img.naturalWidth + ' × ' + img.naturalHeight + ' px';
+            els.imgDrop.classList.add('loaded');
+            els.imgClear.style.display = '';
+            els.fitWrap.classList.remove('disabled');
+            // reveal the canvas preview even if no audio is loaded yet
+            els.previewEmpty.classList.add('hide');
+            startPreviewLoop();
+        };
+        img.onerror = () => showToast('이미지를 불러오지 못했습니다', true);
+        img.src = bgImageUrl;
+    }
+    function clearImage() {
+        bgImage = null;
+        if (bgImageUrl) { URL.revokeObjectURL(bgImageUrl); bgImageUrl = null; }
+        els.imgThumb.style.backgroundImage = '';
+        els.imgThumb.textContent = '＋';
+        els.imgBig.textContent = '이미지 선택 또는 끌어놓기';
+        els.imgSm.textContent = '.jpg · .png · .webp · .gif';
+        els.imgDrop.classList.remove('loaded');
+        els.imgClear.style.display = 'none';
+        els.fitWrap.classList.add('disabled');
+        els.imgInput.value = '';
+        // if there's also no audio, stop the preview and show the placeholder again
+        if (!audioFile) {
+            if (animId) { cancelAnimationFrame(animId); animId = null; }
+            const W = els.canvas.width, H = els.canvas.height;
+            ctx.clearRect(0, 0, W, H);
+            els.previewEmpty.classList.remove('hide');
+        }
+    }
+    els.imgDrop.addEventListener('click', (e) => { if (e.target === els.imgClear) return; els.imgInput.click(); });
+    els.imgInput.addEventListener('change', () => { if (els.imgInput.files[0]) loadImageFile(els.imgInput.files[0]); });
+    els.imgClear.addEventListener('click', (e) => { e.stopPropagation(); clearImage(); });
+    ['dragenter', 'dragover'].forEach(ev => els.imgDrop.addEventListener(ev, (e) => { e.preventDefault(); els.imgDrop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(ev => els.imgDrop.addEventListener(ev, (e) => { e.preventDefault(); els.imgDrop.classList.remove('over'); }));
+    els.imgDrop.addEventListener('drop', (e) => { const f = e.dataTransfer.files[0]; if (f) loadImageFile(f); });
+
+    // fit-mode segmented control
+    els.fitSeg.addEventListener('click', (e) => {
+        const b = e.target.closest('.seg-btn'); if (!b) return;
+        els.fitSeg.querySelectorAll('.seg-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        bgFit = b.dataset.fit;
+    });
+
+    // overlay toggle + strength
+    els.overlaySwitch.addEventListener('click', () => {
+        overlayOn = !overlayOn;
+        els.overlaySwitch.classList.toggle('on', overlayOn);
+        els.overlaySwitch.setAttribute('aria-checked', overlayOn);
+        els.overlayRow.style.opacity = overlayOn ? '1' : '0.4';
+        els.overlayRow.style.pointerEvents = overlayOn ? 'auto' : 'none';
+    });
+    els.overlayRange.addEventListener('input', () => {
+        overlayStrength = parseInt(els.overlayRange.value, 10) / 100;
+        els.overlayVal.textContent = els.overlayRange.value + '%';
+    });
+
+    // visualizer size
+    els.vizScale.addEventListener('input', () => {
+        vizScale = parseInt(els.vizScale.value, 10) / 100;
+        els.vizScaleVal.textContent = els.vizScale.value + '%';
+    });
+
+    // text position
+    els.textPosSeg.addEventListener('click', (e) => {
+        const b = e.target.closest('.seg-btn'); if (!b) return;
+        els.textPosSeg.querySelectorAll('.seg-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        textPos = b.dataset.pos;
+    });
+    // text size
+    els.textScale.addEventListener('input', () => {
+        textScale = parseInt(els.textScale.value, 10) / 100;
+        els.textScaleVal.textContent = els.textScale.value + '%';
+    });
+
+    // vignette toggle
+    els.vignetteSwitch.addEventListener('click', () => {
+        vignetteOn = !vignetteOn;
+        els.vignetteSwitch.classList.toggle('on', vignetteOn);
+        els.vignetteSwitch.setAttribute('aria-checked', vignetteOn);
+    });
+
+    // ---------- drawing ----------
+    function drawFrame() {
+        const W = els.canvas.width, H = els.canvas.height;
+
+        if (bgImage) {
+            // base fill (letterbox color for 'contain')
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, W, H);
+            drawImageFitted(bgImage, W, H, bgFit);
+            // dark overlay for text legibility
+            if (overlayOn && overlayStrength > 0) {
+                ctx.fillStyle = 'rgba(0,0,0,' + overlayStrength + ')';
+                ctx.fillRect(0, 0, W, H);
+            }
+        } else {
+            // background fill
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, W, H);
+
+            // subtle radial accent glow on plain background
+            const g = ctx.createRadialGradient(W * 0.5, H * 0.42, 0, W * 0.5, H * 0.42, W * 0.7);
+            g.addColorStop(0, hexA(accent, 0.10));
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        // analyser data
+        let level = 0;
+        if (analyser) {
+            analyser.getByteFrequencyData(freqData);
+            analyser.getByteTimeDomainData(timeData);
+            let sum = 0;
+            for (let i = 0; i < freqData.length; i++) sum += freqData[i];
+            level = sum / freqData.length / 255; // 0..1
+        }
+
+        drawVisualizer(W, H, level);
+        drawText(W, H, level);
+
+        // vignette finishing effect
+        if (vignetteOn) {
+            const vg = ctx.createRadialGradient(W * 0.5, H * 0.5, Math.min(W, H) * 0.3, W * 0.5, H * 0.5, Math.max(W, H) * 0.72);
+            vg.addColorStop(0, 'rgba(0,0,0,0)');
+            vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+            ctx.fillStyle = vg;
+            ctx.fillRect(0, 0, W, H);
+        }
+    }
+
+    // draw an image into the canvas honoring cover / contain / stretch
+    function drawImageFitted(img, W, H, fit) {
+        const iw = img.naturalWidth, ih = img.naturalHeight;
+        if (fit === 'stretch') { ctx.drawImage(img, 0, 0, W, H); return; }
+        const scale = fit === 'contain'
+            ? Math.min(W / iw, H / ih)
+            : Math.max(W / iw, H / ih);
+        const dw = iw * scale, dh = ih * scale;
+        ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    }
+
+    function drawVisualizer(W, H, level) {
+        if (!analyser || vizStyle === 'none') return;
+        ctx.save();
+
+        if (vizStyle === 'bars') {
+            const n = 48;
+            const gap = 6;
+            const totalGap = gap * (n - 1);
+            const bw = (W * 0.8 - totalGap) / n;
+            const startX = W * 0.1;
+            const baseY = H * 0.82;
+            const step = Math.floor(freqData.length / n);
+            for (let i = 0; i < n; i++) {
+                const v = freqData[i * step] / 255;
+                const bh = Math.max(4, v * H * 0.34 * vizScale);
+                const x = startX + i * (bw + gap);
+                const grad = ctx.createLinearGradient(0, baseY - bh, 0, baseY);
+                grad.addColorStop(0, accent);
+                grad.addColorStop(1, hexA(accent, 0.35));
+                ctx.fillStyle = grad;
+                roundRectFill(x, baseY - bh, bw, bh, Math.min(bw / 2, 5));
+            }
+        } else if (vizStyle === 'wave') {
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = accent;
+            ctx.shadowColor = accent;
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            const cy = H * 0.7;
+            const amp = H * 0.16 * vizScale;
+            const len = timeData.length;
+            for (let i = 0; i < len; i++) {
+                const x = (i / (len - 1)) * W;
+                const y = cy + ((timeData[i] - 128) / 128) * amp;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        } else if (vizStyle === 'circle') {
+            const cx = W * 0.5, cy = H * 0.52;
+            const baseR = Math.min(W, H) * 0.16 * vizScale;
+            const n = 72;
+            const step = Math.floor(freqData.length / n);
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = accent;
+            for (let i = 0; i < n; i++) {
+                const v = freqData[i * step] / 255;
+                const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
+                const r1 = baseR + 10;
+                const r2 = baseR + 10 + v * Math.min(W, H) * 0.18 * vizScale;
+                ctx.globalAlpha = 0.45 + v * 0.55;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(ang) * r1, cy + Math.sin(ang) * r1);
+                ctx.lineTo(cx + Math.cos(ang) * r2, cy + Math.sin(ang) * r2);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+            ctx.beginPath();
+            ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+            ctx.strokeStyle = hexA(accent, 0.5);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else if (vizStyle === 'pulse') {
+            const cx = W * 0.5, cy = H * 0.5;
+            const r = Math.min(W, H) * (0.18 + level * 0.22) * vizScale;
+            const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            g.addColorStop(0, hexA(accent, 0.55));
+            g.addColorStop(0.6, hexA(accent, 0.18));
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function isLight(hex) {
+        const h = hex.replace('#', '');
+        const r = parseInt(h.substring(0, 2), 16);
+        const g = parseInt(h.substring(2, 4), 16);
+        const b = parseInt(h.substring(4, 6), 16);
+        // perceived luminance
+        return (0.299 * r + 0.587 * g + 0.114 * b) > 150;
+    }
+
+    function drawText(W, H, level) {
+        const title = els.songTitle.value.trim();
+        const artist = els.songArtist.value.trim();
+        if (!title && !artist) return;
+
+        // when an image backs the canvas, prefer light text (overlay darkens it);
+        // only treat as "light" when a plain light color fills the frame.
+        const light = bgImage ? false : isLight(bgColor);
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.shadowColor = light ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 24;
+
+        // vertical anchor based on chosen position
+        const cy = textPos === 'top' ? H * 0.20 : textPos === 'bottom' ? H * 0.82 : H * 0.5;
+
+        if (title) {
+            const fs = Math.round(W * 0.052 * textScale);
+            ctx.font = '800 ' + fs + "px 'Bricolage Grotesque', sans-serif";
+            ctx.fillStyle = light ? '#15151a' : '#f4f4f5';
+            ctx.fillText(title, W / 2, cy - (artist ? fs * 0.45 : 0));
+        }
+        if (artist) {
+            const fs2 = Math.round(W * 0.026 * textScale);
+            ctx.font = "500 " + fs2 + "px 'DM Mono', monospace";
+            ctx.fillStyle = accent;
+            ctx.fillText(artist, W / 2, cy + (title ? fs2 * 1.4 : 0));
+        }
+        ctx.restore();
+    }
+
+    function roundRectFill(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    function hexA(hex, a) {
+        const h = hex.replace('#', '');
+        const r = parseInt(h.substring(0, 2), 16);
+        const g = parseInt(h.substring(2, 4), 16);
+        const b = parseInt(h.substring(4, 6), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
+
+    // continuous preview render loop
+    function startPreviewLoop() {
+        if (animId) return;
+        const loop = () => { drawFrame(); animId = requestAnimationFrame(loop); };
+        animId = requestAnimationFrame(loop);
+    }
+
+    // ---------- recording ----------
+    function setCanvasSize() {
+        const res = els.resBtn.dataset.value.split('x');
+        els.canvas.width = parseInt(res[0], 10);
+        els.canvas.height = parseInt(res[1], 10);
+    }
+
+    async function startRecording() {
+        if (!audioEl || recording) return;
+        if (formatOptions.length === 0) { showToast('이 브라우저는 녹화를 지원하지 않습니다', true); return; }
+
+        setCanvasSize();
+        els.result.classList.remove('show');
+
+        // ensure audio graph is ready and resumed (user gesture present)
+        buildAudioGraph();
+        if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
+
+        // build combined stream: canvas video + audio
+        const fps = 30;
+        const canvasStream = els.canvas.captureStream(fps);
+
+        // route audio into a destination we can record (with a boost so the
+        // recorded track isn't too quiet)
+        let audioStream;
+        try {
+            const recDest = audioCtx.createMediaStreamDestination();
+            recGain = audioCtx.createGain();
+            recGain.gain.value = soundOn ? 1.6 : 0;   // amplify (or mute) recorded audio
+            analyser.connect(recGain);  // analyser already gets the source; tap it for recording
+            recGain.connect(recDest);
+            audioStream = recDest.stream;
+        } catch (e) {
+            showToast('오디오 스트림 생성 실패', true); return;
+        }
+
+        const mixed = new MediaStream();
+        canvasStream.getVideoTracks().forEach(t => mixed.addTrack(t));
+        audioStream.getAudioTracks().forEach(t => mixed.addTrack(t));
+
+        const mime = currentFormat().mime;
+        const ext = currentFormat().ext;
+
+        try {
+            recorder = new MediaRecorder(mixed, { mimeType: mime, videoBitsPerSecond: 8000000 });
+        } catch (e) {
+            try { recorder = new MediaRecorder(mixed); }
+            catch (e2) { showToast('녹화 시작 실패: ' + e2.message, true); return; }
+        }
+
+        recChunks = [];
+        recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size > 0) recChunks.push(ev.data); };
+        recorder.onstop = () => finishRecording(ext);
+
+        // start from the beginning
+        audioEl.currentTime = 0;
+        recording = true;
+        recStartTime = performance.now();
+
+        recorder.start(200);
+        await audioEl.play();
+        els.playBtn.textContent = '⏸';
+
+        // UI — the make button itself becomes the progress bar
+        els.renderBtn.disabled = true;
+        els.renderBtn.classList.remove('done');
+        els.renderBtn.classList.add('recording');
+        els.makeProgress.style.width = '0%';
+        els.makeLabel.textContent = '영상 만드는 중… 0%';
+        els.stopBtn.disabled = false;
+        els.resBtn.disabled = true;
+        els.fmtBtn.disabled = true;
+
+        monitorRecording();
+
+        // auto-stop slightly after audio ends
+        audioEl.onended = () => { if (recording) stopRecording(); };
+    }
+
+    function monitorRecording() {
+        if (!recording) return;
+        const cur = audioEl.currentTime;
+        const pct = duration ? Math.min(100, (cur / duration) * 100) : 0;
+        els.makeProgress.style.width = pct + '%';
+        els.makeLabel.textContent = '영상 만드는 중… ' + Math.round(pct) + '%  (' + fmtTime(cur) + ' / ' + fmtTime(duration) + ')';
+        els.seek.value = cur;
+        requestAnimationFrame(monitorRecording);
+    }
+
+    function stopRecording() {
+        if (!recording) return;
+        recording = false;
+        try { recorder.stop(); } catch (e) {}
+        try { audioEl.pause(); } catch (e) {}
+        audioEl.onended = null;
+        els.playBtn.textContent = '▶';
+        els.stopBtn.disabled = true;
+        els.makeProgress.style.width = '100%';
+        els.makeLabel.textContent = '영상 마무리 중…';
+    }
+
+    function finishRecording(ext) {
+        const blob = new Blob(recChunks, { type: recChunks[0] ? recChunks[0].type : 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const title = els.songTitle.value.trim();
+        const artist = els.songArtist.value.trim();
+        let baseName = title || 'music_video';
+        if (title && artist) baseName = title + '-' + artist;
+        baseName = baseName.replace(/[\\/:*?"<>|]+/g, '_');
+        const fname = baseName + '.' + ext;
+
+        // remember for the download button + the hidden link
+        madeVideo = { url: url, fname: fname };
+        els.downloadLink.href = url;
+        els.downloadLink.download = fname;
+
+        const sizeMB = (blob.size / 1048576).toFixed(1);
+        els.resultSub.textContent = '파일명: ' + fname + '  ·  크기: ' + sizeMB + ' MB  ·  길이: ' + fmtTime(duration);
+        els.result.classList.add('show');
+
+        // the make button now becomes a DOWNLOAD button
+        els.renderBtn.classList.remove('recording');
+        els.renderBtn.classList.add('done');
+        els.makeProgress.style.width = '0%';
+        els.makeLabel.textContent = '⬇ 영상 다운로드';
+        els.renderBtn.disabled = false;
+
+        // re-enable option toggles
+        els.resBtn.disabled = false;
+        els.fmtBtn.disabled = (formatOptions.length < 2);
+
+        showToast('영상이 완성되었습니다 · 다운로드하세요');
+        els.result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // ---------- file / drop wiring ----------
+    function wireDrop(dropEl, inputEl, onFile, accept) {
+        dropEl.addEventListener('click', () => inputEl.click());
+        inputEl.addEventListener('change', () => { if (inputEl.files[0]) onFile(inputEl.files[0]); });
+        ['dragenter', 'dragover'].forEach(ev =>
+            dropEl.addEventListener(ev, (e) => { e.preventDefault(); dropEl.classList.add('over'); }));
+        ['dragleave', 'drop'].forEach(ev =>
+            dropEl.addEventListener(ev, (e) => { e.preventDefault(); dropEl.classList.remove('over'); }));
+        dropEl.addEventListener('drop', (e) => {
+            const f = e.dataTransfer.files[0];
+            if (f) onFile(f);
+        });
+    }
+    wireDrop(els.drop, els.fileInput, loadAudioFile);
+
+    els.renderBtn.addEventListener('click', () => {
+        // if a finished video is ready, this button acts as a download button
+        if (els.renderBtn.classList.contains('done') && madeVideo) {
+            els.downloadLink.click();
+            return;
+        }
+        startRecording();
+    });
+    els.stopBtn.addEventListener('click', stopRecording);
+
+    // draw an initial idle frame so canvas isn't pure black behind placeholder
+    drawFrame();
+
+    // keep the page at the top on first load (don't let the browser restore a
+    // previous scroll position or jump to the canvas/preview)
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+    window.addEventListener('load', () => window.scrollTo(0, 0));
+
+    // warn if not running over a real browser context for captureStream
+    if (!HTMLCanvasElement.prototype.captureStream) {
+        els.codecWarn.textContent = '이 브라우저는 Canvas 영상 캡처를 지원하지 않습니다. 최신 Chrome 또는 Edge에서 열어주세요.';
+        els.codecWarn.classList.add('show');
+        els.renderBtn.disabled = true;
+    }
+})();
+</script>
+</body>
+</html>

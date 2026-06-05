@@ -33,98 +33,64 @@
         background-attachment: fixed;
     }
 
-    /* ---------- header ---------- */
-    header {
-        position: sticky; top: 0; z-index: 50;
-        display: flex; align-items: center; gap: 20px;
-        padding: 16px 5%;
-        background: rgba(14,14,16,0.82);
-        backdrop-filter: blur(14px);
-        border-bottom: 1px solid var(--line);
-    }
-    .logo {
-        font-family: 'Bricolage Grotesque', sans-serif;
-        font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
-        display: flex; align-items: center; gap: 9px; flex-shrink: 0;
-        cursor: default;
-    }
-    .logo .play {
-        width: 30px; height: 30px; border-radius: 8px;
-        background: var(--accent);
-        display: grid; place-items: center;
-        box-shadow: 0 4px 16px -4px var(--accent);
-        position: relative;
-    }
-    /* music-note glyph inside the logo badge */
-    .logo .play::before {
-        content: '♪'; color: #fff; font-size: 1rem; line-height: 1;
-        font-family: 'Noto Sans KR', sans-serif;
-    }
-    .logo span { color: var(--accent); }
-    .logo .tag {
-        font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 400;
-        color: var(--gray); letter-spacing: 0.04em; margin-left: 2px;
-    }
-
-    /* ---------- layout ---------- */
+    /* ---------- layout : full-viewport console ---------- */
+    html, body { height: 100%; }
+    body { overflow: hidden; }
     .stage {
-        max-width: 1180px; margin: 0 auto;
-        padding: 40px 5% 90px 5%;
-        display: grid; grid-template-columns: 1fr; gap: 30px;
+        width: 100%; margin: 0; height: 100vh;
+        padding: 18px 22px;
+        display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 22px;
+        align-items: stretch; overflow: hidden;
     }
+    .col { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+    /* left preview stretches to fill the column height */
+    .col-left > section.preview-shell { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    .col-left > section.preview-shell .preview-frame { flex: 1 1 auto; aspect-ratio: auto; min-height: 180px; }
 
-    .sec-head {
-        display: flex; align-items: baseline; justify-content: space-between;
-        margin-bottom: 4px; gap: 12px;
-    }
-    .sec-title {
-        font-family: 'Bricolage Grotesque', sans-serif;
-        font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em;
-    }
-    .sec-sub { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray); letter-spacing: 0.04em; }
+    .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; gap: 12px; }
+    /* invisible header-height spacer so the right column's first panel
+       lines up with the top of the left preview frame */
+    .col-right .head-spacer { height: 1.35rem; margin-bottom: 4px; flex: 0 0 auto; }
+    .sec-title { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em; }
+    .sec-sub { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--gray); letter-spacing: 0.04em; }
 
     /* ---------- video preview frame ---------- */
     .preview-frame {
         position: relative; width: 100%; aspect-ratio: 16/9;
-        border-radius: 16px; overflow: hidden;
-        background: #000;
-        border: 1px solid var(--line);
-        box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9);
+        border-radius: 16px; overflow: hidden; background: #000;
+        border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9);
     }
     .preview-frame video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
     .preview-empty {
-        position: absolute; inset: 0; display: grid; place-items: center;
-        text-align: center; color: var(--gray);
-        font-family: 'DM Mono', monospace; font-size: 0.8rem; letter-spacing: 0.04em;
-        background: repeating-linear-gradient(45deg, #121216 0 10px, #15151a 10px 20px);
-        pointer-events: none;
+        position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+        color: var(--gray); font-family: 'DM Mono', monospace; font-size: 0.8rem; letter-spacing: 0.04em;
+        background: repeating-linear-gradient(45deg, #121216 0 10px, #15151a 10px 20px); pointer-events: none;
     }
     .preview-empty.hide { display: none; }
     .preview-empty .pe-big {
         font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
-        font-size: 1.25rem; color: var(--ink-soft); margin-bottom: 8px;
+        font-size: 1.2rem; color: var(--ink-soft); margin-bottom: 8px;
     }
 
     /* transport bar under preview */
     .transport {
         display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-        margin-top: 16px; padding: 12px 14px;
+        margin-top: 14px; padding: 12px 14px;
         background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
     }
     .play-btn {
         width: 46px; height: 46px; flex-shrink: 0; border-radius: 11px;
         background: var(--accent); border: none; color: #fff; cursor: pointer;
         display: grid; place-items: center; font-size: 1.1rem;
-        box-shadow: 0 6px 18px -8px var(--accent);
-        transition: filter 0.16s, transform 0.1s;
+        box-shadow: 0 6px 18px -8px var(--accent); transition: filter 0.16s, transform 0.1s;
     }
     .play-btn:hover { filter: brightness(1.1); }
     .play-btn:active { transform: translateY(1px); }
     .play-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
-    .seek { flex: 1; min-width: 160px; accent-color: var(--accent); cursor: pointer; height: 4px; }
+    .seek { flex: 1; min-width: 130px; accent-color: var(--accent); cursor: pointer; height: 4px; }
     .time-label {
         font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--ink-soft);
-        letter-spacing: 0.04em; white-space: nowrap; min-width: 92px; text-align: right;
+        letter-spacing: 0.04em; white-space: nowrap; min-width: 90px; text-align: right;
     }
     .mute-btn {
         flex-shrink: 0; padding: 9px 14px; border-radius: 9px; cursor: pointer;
@@ -137,47 +103,51 @@
 
     /* ---------- panels ---------- */
     .panel {
-        border: 1px solid var(--line); border-radius: 16px;
-        background: var(--panel); padding: 18px;
-        box-shadow: 0 18px 50px -30px rgba(0,0,0,0.8);
+        border: 1px solid var(--line); border-radius: 16px; background: var(--panel);
+        padding: 18px; box-shadow: 0 18px 50px -30px rgba(0,0,0,0.8);
     }
     .panel-title {
         font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
-        font-size: 1.15rem; margin-bottom: 4px;
-        display: flex; align-items: center; gap: 9px;
+        font-size: 1.1rem; margin-bottom: 4px; display: flex; align-items: center; gap: 9px;
     }
     .panel-title .num {
         width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
-        background: var(--accent-soft); color: var(--accent);
-        display: grid; place-items: center; font-family: 'DM Mono', monospace;
-        font-size: 0.8rem; font-weight: 500;
+        background: var(--accent-soft); color: var(--accent); display: grid; place-items: center;
+        font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 500;
     }
-    .panel-sub { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--gray); margin-bottom: 16px; letter-spacing: 0.03em; line-height: 1.7; }
+    .panel-sub { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--gray); margin-bottom: 15px; letter-spacing: 0.03em; line-height: 1.7; }
+
+    /* right column scrolls internally if content overflows the viewport */
+    .col-right { overflow-y: auto; padding-right: 4px; margin-right: -4px; }
+    .col-right::-webkit-scrollbar { width: 8px; }
+    .col-right::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+
+    /* file panel : compact inline drop like the reference's file-panel */
+    .file-panel { padding: 12px 16px; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+    .file-panel .panel-sub { margin-bottom: 12px; flex: 0 0 auto; }
+    .file-row { display: flex; align-items: stretch; gap: 14px; flex: 1 1 auto; min-height: 0; }
+    .file-row .panel-title { margin-bottom: 0; flex: 0 0 auto; white-space: nowrap; align-self: center; }
 
     /* dropzone */
     .drop {
-        border: 1px dashed var(--line); border-radius: 13px;
-        padding: 30px 20px; text-align: center; cursor: pointer;
-        background: var(--panel-2); transition: border-color 0.18s, background 0.18s;
+        border: 1px dashed var(--line); border-radius: 13px; padding: 16px 18px;
+        text-align: center; cursor: pointer; background: var(--panel-2);
+        transition: border-color 0.18s, background 0.18s;
     }
     .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
-    .drop .d-big {
-        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
-        font-size: 1.1rem; color: var(--ink-soft); margin-bottom: 6px;
-    }
-    .drop .d-sm { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray); }
+    .file-row .drop { flex: 1; padding: 12px 18px; text-align: left; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; min-height: 0; }
+    .drop .d-big { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 1.0rem; color: var(--ink-soft); margin-bottom: 0; white-space: nowrap; }
+    .drop .d-sm { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--gray); white-space: nowrap; }
     .drop.loaded { border-style: solid; border-color: var(--ok); background: var(--panel-2); }
     .drop.loaded .d-big { color: var(--ok); }
+    .drop.loaded .d-sm { color: var(--gray); }
 
     /* form fields */
-    .field { margin-bottom: 15px; }
+    .field { margin-bottom: 14px; }
     .field:last-child { margin-bottom: 0; }
-    .field label {
-        display: block; font-size: 0.84rem; color: var(--ink-soft);
-        margin-bottom: 7px; font-weight: 500;
-    }
+    .field label { display: block; font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 7px; font-weight: 500; }
     .field input[type="text"], .field select {
-        width: 100%; padding: 11px 13px; background: var(--bg);
+        width: 100%; padding: 10px 13px; background: var(--bg);
         border: 1px solid var(--line); border-radius: 9px; color: var(--ink);
         font-family: 'Noto Sans KR', sans-serif; font-size: 0.92rem; outline: none;
         transition: border-color 0.16s;
@@ -185,13 +155,13 @@
     .field input:focus, .field select:focus { border-color: var(--accent); }
     .field-row { display: flex; gap: 12px; flex-wrap: wrap; }
     .field-row .field { flex: 1; min-width: 150px; margin-bottom: 0; }
-    .field .hint { font-family: 'DM Mono', monospace; font-size: 0.64rem; color: var(--gray); margin-top: 6px; }
+    .field .hint { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--gray); margin-top: 6px; }
 
     /* trim row */
     .trim-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
     .trim-row .field { flex: 1; min-width: 130px; margin-bottom: 0; }
     .time-input {
-        width: 100%; padding: 11px 13px; background: var(--bg);
+        width: 100%; padding: 10px 13px; background: var(--bg);
         border: 1px solid var(--line); border-radius: 9px; color: var(--ink);
         font-family: 'DM Mono', monospace; font-size: 0.92rem; outline: none;
         transition: border-color 0.16s;
@@ -199,11 +169,12 @@
     .time-input:focus { border-color: var(--accent); }
 
     /* style chips (format / quality) */
-    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
     .chip {
         padding: 9px 15px; border-radius: 99px; cursor: pointer;
         background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
-        font-size: 0.85rem; transition: background 0.16s, color 0.16s, border-color 0.16s;
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.84rem;
+        transition: background 0.16s, color 0.16s, border-color 0.16s;
     }
     .chip:hover { border-color: var(--accent); color: var(--ink); }
     .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -4px var(--accent); }
@@ -211,9 +182,9 @@
     /* export */
     .make-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
     .btn-primary {
-        flex: 1; min-width: 200px; padding: 15px 22px; border: none; border-radius: 12px;
+        flex: 1; min-width: 200px; padding: 14px 22px; border: none; border-radius: 12px;
         background: var(--accent); color: #fff; cursor: pointer;
-        font-family: 'Noto Sans KR', sans-serif; font-size: 1.05rem; font-weight: 700;
+        font-family: 'Noto Sans KR', sans-serif; font-size: 1.02rem; font-weight: 700;
         box-shadow: 0 8px 24px -8px var(--accent);
         display: inline-flex; align-items: center; justify-content: center; gap: 9px;
         transition: filter 0.16s, transform 0.1s;
@@ -222,7 +193,7 @@
     .btn-primary:active { transform: translateY(1px); }
     .btn-primary[disabled] { opacity: 0.45; cursor: not-allowed; filter: none; }
     .btn-ghost {
-        padding: 15px 20px; border-radius: 12px; cursor: pointer; flex-shrink: 0;
+        padding: 14px 20px; border-radius: 12px; cursor: pointer; flex-shrink: 0;
         background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
         font-family: 'Noto Sans KR', sans-serif; font-size: 0.95rem; font-weight: 600;
         transition: background 0.16s, color 0.16s;
@@ -244,8 +215,7 @@
     /* result */
     .result {
         margin-top: 16px; padding: 16px; border-radius: 12px;
-        background: var(--accent-soft); border: 1px solid var(--accent);
-        display: none;
+        background: var(--accent-soft); border: 1px solid var(--accent); display: none;
     }
     .result.show { display: block; }
     .result .r-title {
@@ -253,7 +223,7 @@
         font-size: 1.05rem; color: var(--ink); margin-bottom: 10px;
         display: flex; align-items: center; gap: 8px;
     }
-    .result .r-sub { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--ink-soft); line-height: 1.7; margin-bottom: 14px; }
+    .result .r-sub { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--ink-soft); line-height: 1.7; margin-bottom: 14px; }
     .result audio { width: 100%; margin-bottom: 14px; }
     .result a.download {
         display: inline-flex; align-items: center; gap: 8px;
@@ -265,141 +235,150 @@
     .result a.download:active { transform: translateY(1px); }
 
     .warn {
-        font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #ffb3b3;
+        font-family: 'DM Mono', monospace; font-size: 0.66rem; color: #ffb3b3;
         background: var(--accent-soft); border: 1px solid var(--accent);
-        border-radius: 9px; padding: 10px 13px; line-height: 1.7; margin-bottom: 16px;
-        display: none;
+        border-radius: 9px; padding: 10px 13px; line-height: 1.7; margin-bottom: 14px; display: none;
     }
     .warn.show { display: block; }
 
     /* toast */
     .toast {
         position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
-        background: var(--panel-2); border: 1px solid var(--line);
-        color: var(--ink); padding: 12px 20px; border-radius: 99px;
-        font-family: 'DM Mono', monospace; font-size: 0.78rem;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+        padding: 12px 20px; border-radius: 99px; font-family: 'DM Mono', monospace; font-size: 0.78rem;
         opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 300;
         box-shadow: 0 16px 40px -16px rgba(0,0,0,0.8);
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .toast.err { border-color: var(--accent); color: #ffb3b3; }
 
+    /* stack to a single scrolling column on narrow screens */
+    @media (max-width: 860px) {
+        body { overflow: auto; }
+        .stage { grid-template-columns: 1fr; height: auto; min-height: 100vh; align-items: start; overflow: visible; }
+        .col-right { overflow: visible; }
+        .col-right .head-spacer { display: none; }
+        .col-left > section.preview-shell .preview-frame { aspect-ratio: 16/9; }
+    }
     @media (max-width: 600px) {
         .field-row, .trim-row { flex-direction: column; gap: 12px; }
         .btn-primary, .btn-ghost { min-width: 100%; }
-        .transport { gap: 8px; }
-        .mute-btn { margin-left: auto; }
+        .file-row { flex-direction: column; align-items: stretch; gap: 10px; }
+        .file-row .drop { justify-content: center; text-align: center; }
     }
 </style>
-</head>
-<body>
 
-<header>
-    <div class="logo">
-        <span class="play"></span>
-        뮤직<span>추출기</span>
-        <span class="tag">VIDEO → MP3</span>
-    </div>
-</header>
+<body>
 
 <div class="stage">
 
-    <!-- ===== 1) 동영상 ===== -->
-    <section class="panel">
-        <div class="panel-title"><span class="num">1</span> 동영상 파일</div>
-        <div class="panel-sub">소리를 추출할 동영상을 선택하세요. 모든 처리는 브라우저 안에서만 이루어집니다. 인터넷 연결 없이 오프라인에서도 동작하며, 파일은 어디에도 업로드되지 않습니다.</div>
-        <div class="drop" id="drop">
-            <div class="d-big" id="dropBig">＋ 동영상 파일 선택 또는 끌어놓기</div>
-            <div class="d-sm" id="dropSm">.mp4 · .webm · .mov · .mkv · .avi 지원</div>
-        </div>
-        <input type="file" id="fileInput" accept="video/*,.mp4,.webm,.mov,.mkv,.avi,.m4v" style="display:none;">
-    </section>
-
-    <!-- ===== preview ===== -->
-    <section class="preview-shell">
-        <div class="sec-head">
-            <div class="sec-title">미리보기</div>
-            <div class="sec-sub" id="vidMeta">— · —</div>
-        </div>
-        <div class="preview-frame">
-            <video id="video" playsinline></video>
-            <div class="preview-empty" id="previewEmpty">
-                <div>
-                    <div class="pe-big">동영상 파일을 올려주세요</div>
-                    <div>위에서 영상을 추가하면 여기에서 재생됩니다</div>
+    <!-- ============ LEFT : preview + transport ============ -->
+    <div class="col col-left">
+        <section class="preview-shell">
+            <div class="sec-head">
+                <div class="sec-title">미리보기</div>
+                <div class="sec-sub" id="vidMeta">— · —</div>
+            </div>
+            <div class="preview-frame">
+                <video id="video" playsinline></video>
+                <div class="preview-empty" id="previewEmpty">
+                    <div>
+                        <div class="pe-big">동영상 파일을 올려주세요</div>
+                        <div>오른쪽에서 영상을 추가하면 여기에서 재생됩니다</div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="transport">
-            <button class="play-btn" id="playBtn" disabled>▶</button>
-            <input type="range" class="seek" id="seek" min="0" max="100" value="0" step="0.1" disabled>
-            <span class="time-label" id="timeLabel">0:00 / 0:00</span>
-            <button class="mute-btn" id="muteBtn" title="소리 끄기 / 켜기">🔊 소리 켜짐</button>
-        </div>
-    </section>
-
-    <!-- ===== 2) 옵션 ===== -->
-    <section class="panel">
-        <div class="panel-title"><span class="num">2</span> 추출 옵션</div>
-        <div class="panel-sub">출력 형식과 음질, 자를 구간을 정할 수 있습니다.</div>
-
-        <div class="field">
-            <label>출력 형식</label>
-            <div class="chips" id="fmtChips">
-                <div class="chip active" data-fmt="mp3">MP3</div>
-                <div class="chip" data-fmt="wav">WAV (무손실)</div>
+            <div class="transport">
+                <button class="play-btn" id="playBtn" disabled>▶</button>
+                <input type="range" class="seek" id="seek" min="0" max="100" value="0" step="0.1" disabled>
+                <span class="time-label" id="timeLabel">0:00 / 0:00</span>
+                <button class="mute-btn" id="muteBtn" title="소리 끄기 / 켜기">🔊 소리 켜짐</button>
             </div>
-        </div>
+        </section>
+    </div>
 
-        <div class="field" id="qualityField">
-            <label>MP3 음질 (비트레이트)</label>
-            <div class="chips" id="qChips">
-                <div class="chip" data-kbps="128">128 kbps</div>
-                <div class="chip active" data-kbps="192">192 kbps</div>
-                <div class="chip" data-kbps="256">256 kbps</div>
-                <div class="chip" data-kbps="320">320 kbps</div>
+    <!-- ============ RIGHT : file + options + extract ============ -->
+    <div class="col col-right">
+
+        <div class="head-spacer" aria-hidden="true"></div>
+
+        <!-- 1) 동영상 파일 -->
+        <section class="panel file-panel">
+            <div class="panel-sub">소리를 추출할 동영상을 선택하세요. 모든 처리는 브라우저 안에서만 이루어집니다. 인터넷 연결 없이 오프라인에서도 동작하며, 파일은 어디에도 업로드되지 않습니다.</div>
+            <div class="file-row">
+                <div class="panel-title"><span class="num">1</span> 동영상 파일</div>
+                <div class="drop" id="drop">
+                    <div class="d-big" id="dropBig">＋ 파일 선택 / 끌어놓기</div>
+                    <div class="d-sm" id="dropSm">.mp4 · .webm · .mov · .mkv · .avi</div>
+                </div>
             </div>
-        </div>
+            <input type="file" id="fileInput" accept="video/*,.mp4,.webm,.mov,.mkv,.avi,.m4v" style="display:none;">
+        </section>
 
-        <div class="field">
-            <label>출력 파일명</label>
-            <input type="text" id="outName" placeholder="예: 추출된_오디오" maxlength="80">
-            <div class="hint">확장자는 형식에 따라 자동으로 붙습니다.</div>
-        </div>
+        <!-- 2) 추출 옵션 -->
+        <section class="panel">
+            <div class="panel-title"><span class="num">2</span> 추출 옵션</div>
+            <div class="panel-sub">출력 형식과 음질, 자를 구간을 정할 수 있습니다.</div>
 
-        <div class="trim-row">
             <div class="field">
-                <label>시작 (초)</label>
-                <input type="text" class="time-input" id="trimStart" value="0" inputmode="decimal">
+                <label>출력 형식</label>
+                <div class="chips" id="fmtChips">
+                    <div class="chip active" data-fmt="mp3">MP3</div>
+                    <div class="chip" data-fmt="wav">WAV (무손실)</div>
+                </div>
             </div>
+
+            <div class="field" id="qualityField">
+                <label>MP3 음질 (비트레이트)</label>
+                <div class="chips" id="qChips">
+                    <div class="chip" data-kbps="128">128 kbps</div>
+                    <div class="chip active" data-kbps="192">192 kbps</div>
+                    <div class="chip" data-kbps="256">256 kbps</div>
+                    <div class="chip" data-kbps="320">320 kbps</div>
+                </div>
+            </div>
+
             <div class="field">
-                <label>끝 (초, 비우면 끝까지)</label>
-                <input type="text" class="time-input" id="trimEnd" placeholder="끝까지" inputmode="decimal">
+                <label>출력 파일명</label>
+                <input type="text" id="outName" placeholder="예: 추출된_오디오" maxlength="80">
+                <div class="hint">확장자는 형식에 따라 자동으로 붙습니다.</div>
             </div>
-        </div>
-    </section>
 
-    <!-- ===== 3) 추출 ===== -->
-    <section class="panel">
-        <div class="panel-title"><span class="num">3</span> 오디오 추출하기</div>
+            <div class="trim-row">
+                <div class="field">
+                    <label>시작 (초)</label>
+                    <input type="text" class="time-input" id="trimStart" value="0" inputmode="decimal">
+                </div>
+                <div class="field">
+                    <label>끝 (초, 비우면 끝까지)</label>
+                    <input type="text" class="time-input" id="trimEnd" placeholder="끝까지" inputmode="decimal">
+                </div>
+            </div>
+        </section>
 
-        <div class="warn" id="codecWarn"></div>
+        <!-- 3) 오디오 추출하기 -->
+        <section class="panel">
+            <div class="panel-title"><span class="num">3</span> 오디오 추출하기</div>
 
-        <div class="make-row">
-            <button class="btn-primary make-btn" id="extractBtn" disabled>
-                <span class="make-progress" id="makeProgress"></span>
-                <span class="make-label" id="makeLabel">🎵 MP3 추출 시작</span>
-            </button>
-            <button class="btn-ghost" id="cancelBtn" disabled>■ 중지</button>
-        </div>
+            <div class="warn" id="codecWarn"></div>
 
-        <div class="result" id="result">
-            <div class="r-title">✓ 오디오 추출이 완료되었습니다</div>
-            <div class="r-sub" id="resultSub"></div>
-            <audio id="resultAudio" controls></audio>
-            <a id="downloadLink" class="download" download>⬇ 파일 다운로드</a>
-        </div>
-    </section>
+            <div class="make-row">
+                <button class="btn-primary make-btn" id="extractBtn" disabled>
+                    <span class="make-progress" id="makeProgress"></span>
+                    <span class="make-label" id="makeLabel">🎵 MP3 추출 시작</span>
+                </button>
+                <button class="btn-ghost" id="cancelBtn" disabled>■ 중지</button>
+            </div>
+
+            <div class="result" id="result">
+                <div class="r-title">✓ 오디오 추출이 완료되었습니다</div>
+                <div class="r-sub" id="resultSub"></div>
+                <audio id="resultAudio" controls></audio>
+                <a id="downloadLink" class="download" download>⬇ 파일 다운로드</a>
+            </div>
+        </section>
+
+    </div>
 
 </div>
 
