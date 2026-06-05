@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>악기 믹서 · 사운드 분리 & 지연 재생</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --bg: #0e0e10;
+        --panel: #17171b;
+        --panel-2: #1e1e24;
+        --line: #2a2a31;
+        --ink: #f4f4f5;
+        --ink-soft: #b8b8c0;
+        --gray: #76767f;
+        --accent: #ff4d4d;
+        --accent-soft: #2a1416;
+        --ok: #4ade80;
+    }
+    html { font-size: 15px; }
+    body {
+        font-family: 'Noto Sans KR', sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        background-image: radial-gradient(circle at 15% 0%, #1a1320 0%, transparent 45%),
+                          radial-gradient(circle at 85% 100%, #101820 0%, transparent 45%);
+        background-attachment: fixed;
+    }
+
+    /* ---------- header ---------- */
+    header {
+        position: sticky; top: 0; z-index: 50;
+        display: flex; align-items: center; gap: 20px;
+        padding: 16px 5%;
+        background: rgba(14,14,16,0.82);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--line);
+    }
+    .logo {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
+        display: flex; align-items: center; gap: 9px; flex-shrink: 0; cursor: default;
+    }
+    .logo .play {
+        width: 30px; height: 30px; border-radius: 8px; background: var(--accent);
+        display: grid; place-items: center; box-shadow: 0 4px 16px -4px var(--accent);
+    }
+    .logo .play::before {
+        content: ''; width: 14px; height: 14px;
+        background:
+          linear-gradient(#fff,#fff) 1px 2px/2px 10px no-repeat,
+          linear-gradient(#fff,#fff) 6px 0/2px 14px no-repeat,
+          linear-gradient(#fff,#fff) 11px 4px/2px 8px no-repeat;
+    }
+    .logo span { color: var(--accent); }
+    .logo .tag {
+        font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 400;
+        color: var(--gray); letter-spacing: 0.04em; margin-left: 2px;
+    }
+
+    /* ---------- layout ---------- */
+    .stage {
+        width: 100%; margin: 0;
+        padding: 28px 28px 80px 28px;
+        display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 26px;
+        align-items: stretch;
+    }
+    .col { display: flex; flex-direction: column; gap: 22px; }
+    .col-left > section:last-child { display: flex; flex-direction: column; flex: 1; }
+    .col-left .preview-frame { flex: 0 0 auto; }
+
+    .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; gap: 12px; }
+    .sec-title { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em; }
+    .sec-sub { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--gray); letter-spacing: 0.04em; }
+
+    /* ---------- preview frame ---------- */
+    .preview-frame {
+        position: relative; width: 100%; aspect-ratio: 16/9;
+        border-radius: 16px; overflow: hidden; background: #000;
+        border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9);
+    }
+    .preview-frame video { width: 100%; height: 100%; display: block; background:#000; object-fit: contain; }
+    .preview-frame canvas { position:absolute; inset:0; width: 100%; height: 100%; display: none; }
+    .preview-frame.audio-mode canvas { display:block; }
+    .preview-frame.audio-mode video { display:none; }
+    .preview-empty {
+        position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+        color: var(--gray); font-family: 'DM Mono', monospace; font-size: 0.8rem; letter-spacing: 0.04em;
+        background: repeating-linear-gradient(45deg, #121216 0 10px, #15151a 10px 20px); pointer-events: none;
+    }
+    .preview-empty.hide { display: none; }
+    .preview-empty .pe-big {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
+        font-size: 1.2rem; color: var(--ink-soft); margin-bottom: 8px;
+    }
+    .countdown {
+        position:absolute; inset:0; display:none; place-items:center;
+        background: rgba(8,8,10,0.72); backdrop-filter: blur(3px); z-index:6;
+        font-family:'Bricolage Grotesque',sans-serif; font-weight:800;
+        font-size: clamp(3rem, 11vw, 7rem); color:#fff; pointer-events:none;
+    }
+    .countdown.show { display:grid; }
+
+    /* transport */
+    .transport {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        margin-top: 14px; padding: 12px 14px;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+    }
+    .play-btn {
+        width: 46px; height: 46px; flex-shrink: 0; border-radius: 11px;
+        background: var(--accent); border: none; color: #fff; cursor: pointer;
+        display: grid; place-items: center; font-size: 1.1rem;
+        box-shadow: 0 6px 18px -8px var(--accent); transition: filter 0.16s, transform 0.1s;
+    }
+    .play-btn:hover { filter: brightness(1.1); }
+    .play-btn:active { transform: translateY(1px); }
+    .play-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .seek { flex: 1; min-width: 130px; accent-color: var(--accent); cursor: pointer; height: 4px; }
+    .time-label {
+        font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--ink-soft);
+        letter-spacing: 0.04em; white-space: nowrap; min-width: 90px; text-align: right;
+    }
+    .mute-btn {
+        flex-shrink: 0; padding: 9px 14px; border-radius: 9px; cursor: pointer;
+        background: var(--panel); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem; white-space: nowrap;
+        transition: background 0.16s, color 0.16s, border-color 0.16s;
+    }
+    .mute-btn:hover { background: var(--line); color: var(--ink); }
+    .mute-btn.muted { background: var(--accent-soft); border-color: var(--accent); color: #ffb3b3; }
+
+    /* ---------- panels ---------- */
+    .panel {
+        border: 1px solid var(--line); border-radius: 16px; background: var(--panel);
+        padding: 18px; box-shadow: 0 18px 50px -30px rgba(0,0,0,0.8);
+    }
+    .panel-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+        font-size: 1.1rem; margin-bottom: 4px; display: flex; align-items: center; gap: 9px;
+    }
+    .reset-btn {
+        margin-left: auto; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 400;
+        transition: all 0.14s;
+    }
+    .reset-btn:hover { border-color: var(--accent); color: #ffb3b3; background: var(--accent-soft); }
+    .panel-title .num {
+        width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+        background: var(--accent-soft); color: var(--accent); display: grid; place-items: center;
+        font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 500;
+    }
+    .panel-sub { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--gray); margin-bottom: 15px; letter-spacing: 0.03em; line-height: 1.7; }
+
+    /* dropzone */
+    .drop {
+        border: 1px dashed var(--line); border-radius: 13px; padding: 24px 18px;
+        text-align: center; cursor: pointer; background: var(--panel-2);
+        transition: border-color 0.18s, background 0.18s;
+    }
+    .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .drop .d-big { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--ink-soft); margin-bottom: 6px; }
+    .drop .d-sm { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--gray); }
+    .drop.loaded { border-style: solid; border-color: var(--ok); background: var(--panel-2); }
+    .drop.loaded .d-big { color: var(--ok); }
+
+    /* ---------- instrument mixer ---------- */
+    .mixer-panel { display: flex; flex-direction: column; flex: 1; }
+    .mixer { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .track {
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px;
+        padding: 18px 20px; display: grid; align-items: center; gap: 8px 20px;
+        grid-template-columns: minmax(150px, 1fr) 2.4fr auto;
+        position: relative; overflow: hidden; flex: 1; min-height: 0;
+    }
+    .track .meter {
+        position: absolute; left:0; bottom:0; width:100%; height:0%;
+        background: linear-gradient(0deg, var(--tk,var(--accent)) 0%, transparent 100%);
+        opacity: 0.16; pointer-events:none; transition: height 0.06s linear;
+    }
+    .track .tk-head { display:flex; align-items:center; gap:11px; position:relative; z-index:1; grid-column:1; }
+    .track .tk-dot { width:13px; height:13px; border-radius:50%; flex-shrink:0; background: var(--tk,var(--accent)); box-shadow:0 0 12px -1px var(--tk,var(--accent)); }
+    .track .tk-name { font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:1.15rem; line-height:1.15; }
+    .track .tk-range { font-family:'DM Mono',monospace; font-size:0.66rem; color:var(--gray); margin-top:3px; letter-spacing:0.02em; }
+    .track .fader {
+        -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:99px;
+        background: var(--line); outline:none; cursor:pointer; position:relative; z-index:1; accent-color: var(--tk, var(--accent));
+        grid-column:2;
+    }
+    .track .fader::-webkit-slider-thumb {
+        -webkit-appearance:none; width:22px; height:22px; border-radius:50%;
+        background: var(--tk,var(--accent)); border:4px solid var(--panel-2);
+        box-shadow:0 2px 8px -2px rgba(0,0,0,0.6); cursor:pointer;
+    }
+    .track .fader::-moz-range-thumb { width:20px; height:20px; border-radius:50%; border:4px solid var(--panel-2); background: var(--tk,var(--accent)); cursor:pointer; }
+    .track .tk-side { grid-column:3; display:flex; align-items:center; gap:10px; position:relative; z-index:1; }
+    .track .tk-val { font-family:'DM Mono',monospace; font-size:0.9rem; color:var(--ink-soft); min-width:50px; text-align:right; }
+    .track .solo, .track .mute {
+        font-family:'DM Mono',monospace; font-size:0.66rem; letter-spacing:0.04em;
+        padding:7px 11px; border-radius:8px; cursor:pointer; border:1px solid var(--line);
+        background: var(--panel); color: var(--gray); transition: all 0.14s;
+    }
+    .track .solo:hover, .track .mute:hover { color: var(--ink); border-color: var(--ink-soft); }
+    .track .solo.on { background: #1a2e1a; border-color: var(--ok); color: var(--ok); }
+    .track .mute.on { background: var(--accent-soft); border-color: var(--accent); color: #ffb3b3; }
+    .track.muted-track { opacity: 0.55; }
+
+    /* delay buttons */
+    .field label { display:block; font-size:0.82rem; color:var(--ink-soft); margin-bottom:9px; font-weight:500; }
+    .delay-btns { display:flex; gap:7px; flex-wrap:nowrap; }
+    .dbtn {
+        flex:1; min-width:0; padding:13px 0; text-align:center; cursor:pointer;
+        background: var(--panel-2); border:1px solid var(--line); border-radius:11px; color:var(--ink-soft);
+        font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:1rem; transition: all 0.14s;
+    }
+    .dbtn:hover { border-color: var(--accent); color: var(--ink); }
+    .dbtn.active { background: var(--accent); border-color: var(--accent); color:#fff; box-shadow:0 6px 16px -6px var(--accent); }
+    .dbtn .u { display:block; font-family:'DM Mono',monospace; font-size:0.56rem; font-weight:400; color:inherit; opacity:0.8; margin-top:2px; }
+
+    /* file-attach + delay side by side, each half width */
+    .ctrl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
+    .ctrl-row .panel { display: flex; flex-direction: column; }
+    .ctrl-row .drop { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .ctrl-row .delay-btns { flex: 1; align-content: center; }
+
+    .master-panel { padding: 14px 18px; }
+    .master-row { display:flex; align-items:center; gap:13px; flex-wrap:wrap; }
+    .master-row label { margin:0; min-width:104px; font-size:0.92rem; color:var(--ink-soft); font-weight:700; font-family:'Bricolage Grotesque',sans-serif; }
+    .master-row input[type="range"] { flex:1; min-width:150px; accent-color: var(--accent); height:6px; cursor:pointer; }
+
+    .toast {
+        position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+        padding: 12px 20px; border-radius: 99px; font-family: 'DM Mono', monospace; font-size: 0.78rem;
+        opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 300;
+        box-shadow: 0 16px 40px -16px rgba(0,0,0,0.8);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err { border-color: var(--accent); color: #ffb3b3; }
+
+    @media (max-width: 860px) {
+        .stage { grid-template-columns: 1fr; align-items: start; }
+        .col-left > section:last-child { display: block; }
+    }
+    @media (max-width: 540px) {
+        .ctrl-row { grid-template-columns: 1fr; }
+        .track { grid-template-columns: 1fr; gap: 12px; }
+        .track .tk-side { justify-content: flex-start; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <span class="play"></span>
+        악기<span>믹서</span>
+        <span class="tag">SOUND SPLIT · DELAY</span>
+    </div>
+</header>
+
+<div class="stage">
+
+    <!-- ============ LEFT : player ============ -->
+    <div class="col col-left">
+        <section class="panel master-panel">
+            <div class="master-row">
+                <label>🎚 마스터 볼륨</label>
+                <input type="range" id="masterVol" min="0" max="150" value="100">
+                <span class="tk-val" id="masterVal" style="min-width:44px;">100%</span>
+            </div>
+        </section>
+
+        <section>
+            <div class="sec-head">
+                <div class="sec-title">재생</div>
+                <div class="sec-sub" id="mediaKind">미디어 없음</div>
+            </div>
+            <div class="preview-frame" id="previewFrame">
+                <video id="video" playsinline></video>
+                <canvas id="canvas" width="1280" height="720"></canvas>
+                <div class="countdown" id="countdown"></div>
+                <div class="preview-empty" id="previewEmpty">
+                    <div>
+                        <div class="pe-big">파일을 올려주세요</div>
+                        <div>음악·동영상을 추가하면 여기에서 재생됩니다</div>
+                    </div>
+                </div>
+            </div>
+            <div class="transport">
+                <button class="play-btn" id="playBtn" disabled>▶</button>
+                <input type="range" class="seek" id="seek" min="0" max="100" value="0" step="0.1" disabled>
+                <span class="time-label" id="timeLabel">0:00 / 0:00</span>
+                <button class="mute-btn" id="muteBtn" title="소리 끄기 / 켜기">🔊 소리 켜짐</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============ RIGHT : controls ============ -->
+    <div class="col col-right">
+        <div class="ctrl-row">
+            <section class="panel">
+                <div class="panel-title">
+                    <span class="num">1</span> 파일 첨부
+                    <button class="reset-btn" id="resetBtn" title="이전 음악·동영상 정보 초기화">↺ 초기화</button>
+                </div>
+                <div class="panel-sub">MP3·동영상을 올리면 왼쪽에서 재생됩니다.</div>
+                <div class="drop" id="drop">
+                    <div class="d-big" id="dropBig">＋ 파일 선택 / 끌어놓기</div>
+                    <div class="d-sm" id="dropSm">.mp3 · .wav · .mp4 · .webm 등</div>
+                </div>
+                <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none;">
+            </section>
+
+            <section class="panel">
+                <div class="panel-title"><span class="num">2</span> 지연 시작</div>
+                <div class="panel-sub">▶ 후 카운트다운하고 시작합니다.</div>
+                <div class="delay-btns" id="delayBtns">
+                    <div class="dbtn active" data-d="0">0<span class="u">즉시</span></div>
+                    <div class="dbtn" data-d="1">1<span class="u">초</span></div>
+                    <div class="dbtn" data-d="2">2<span class="u">초</span></div>
+                    <div class="dbtn" data-d="3">3<span class="u">초</span></div>
+                    <div class="dbtn" data-d="4">4<span class="u">초</span></div>
+                    <div class="dbtn" data-d="5">5<span class="u">초</span></div>
+                </div>
+            </section>
+        </div>
+
+        <section class="panel mixer-panel">
+            <div class="panel-title"><span class="num">3</span> 악기별 소리 크기 조절</div>
+            <div class="mixer" id="mixer"></div>
+        </section>
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ---- bands: parallel band-splits, each a true isolatable fader ----
+    const BANDS = [
+        { id:'sub',   name:'서브 베이스', range:'~80 Hz',     color:'#8b5cf6', lo:0,    hi:80 },
+        { id:'bass',  name:'베이스·킥',   range:'80–250 Hz',  color:'#ff4d4d', lo:80,   hi:250 },
+        { id:'lomid', name:'로우 미드',   range:'250–800 Hz', color:'#fb923c', lo:250,  hi:800 },
+        { id:'mid',   name:'보컬·기타',   range:'0.8–3 kHz',  color:'#fbbf24', lo:800,  hi:3000 },
+        { id:'himid', name:'프레즌스',    range:'3–7 kHz',    color:'#4ade80', lo:3000, hi:7000 },
+        { id:'high',  name:'심벌·하이햇', range:'7 kHz+',     color:'#38bdf8', lo:7000, hi:24000 },
+    ];
+
+    const els = {
+        drop: document.getElementById('drop'),
+        dropBig: document.getElementById('dropBig'),
+        dropSm: document.getElementById('dropSm'),
+        fileInput: document.getElementById('fileInput'),
+        frame: document.getElementById('previewFrame'),
+        video: document.getElementById('video'),
+        canvas: document.getElementById('canvas'),
+        previewEmpty: document.getElementById('previewEmpty'),
+        countdown: document.getElementById('countdown'),
+        mediaKind: document.getElementById('mediaKind'),
+        playBtn: document.getElementById('playBtn'),
+        seek: document.getElementById('seek'),
+        timeLabel: document.getElementById('timeLabel'),
+        muteBtn: document.getElementById('muteBtn'),
+        delayBtns: document.getElementById('delayBtns'),
+        mixer: document.getElementById('mixer'),
+        masterVol: document.getElementById('masterVol'),
+        masterVal: document.getElementById('masterVal'),
+        toast: document.getElementById('toast'),
+        resetBtn: document.getElementById('resetBtn'),
+    };
+    const cvx = els.canvas.getContext('2d');
+
+    let mediaEl = null, isVideo = false, objURL = null, duration = 0;
+    let masterMuted = false, delaySeconds = 0, countdownTimer = null, animId = null;
+    let currentName = '';
+
+    // audio graph
+    let audioCtx = null, srcNode = null, masterGain = null, analyser = null;
+    const bandGain = {}, bandState = {};
+    let graphBuilt = false;
+    BANDS.forEach(b => { bandState[b.id] = { vol:100, mute:false, solo:false }; });
+
+    function showToast(msg, err) {
+        els.toast.textContent = msg;
+        els.toast.classList.toggle('err', !!err);
+        els.toast.classList.add('show');
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => els.toast.classList.remove('show'), 2600);
+    }
+    function fmtTime(s) {
+        if (!isFinite(s) || s < 0) s = 0;
+        const m = Math.floor(s/60), ss = Math.floor(s%60);
+        return m + ':' + (ss<10?'0':'') + ss;
+    }
+
+    // ---- mixer UI ----
+    function buildMixerUI() {
+        els.mixer.innerHTML = '';
+        BANDS.forEach(b => {
+            const t = document.createElement('div');
+            t.className = 'track';
+            t.style.setProperty('--tk', b.color);
+            t.innerHTML =
+                '<div class="meter" data-meter="'+b.id+'"></div>' +
+                '<div class="tk-head"><span class="tk-dot"></span>' +
+                    '<div><div class="tk-name">'+b.name+'</div><div class="tk-range">'+b.range+'</div></div></div>' +
+                '<input type="range" class="fader" min="0" max="150" value="100" data-fader="'+b.id+'">' +
+                '<div class="tk-side">' +
+                    '<span class="tk-val" data-val="'+b.id+'">100%</span>' +
+                    '<span class="solo" data-solo="'+b.id+'">SOLO</span>' +
+                    '<span class="mute" data-mute="'+b.id+'">MUTE</span></div>';
+            els.mixer.appendChild(t);
+            const fader = t.querySelector('[data-fader]'), valEl = t.querySelector('[data-val]');
+            fader.addEventListener('input', () => {
+                bandState[b.id].vol = parseInt(fader.value,10);
+                valEl.textContent = fader.value + '%';
+                applyBand(b.id);
+            });
+            t.querySelector('[data-solo]').addEventListener('click', e => {
+                bandState[b.id].solo = !bandState[b.id].solo;
+                e.target.classList.toggle('on', bandState[b.id].solo);
+                applyAllBands();
+            });
+            t.querySelector('[data-mute]').addEventListener('click', e => {
+                bandState[b.id].mute = !bandState[b.id].mute;
+                e.target.classList.toggle('on', bandState[b.id].mute);
+                t.classList.toggle('muted-track', bandState[b.id].mute);
+                applyAllBands();
+            });
+        });
+    }
+
+    // ---- audio graph: parallel band-pass split ----
+    function buildAudioGraph() {
+        if (graphBuilt || !mediaEl) return;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            srcNode = audioCtx.createMediaElementSource(mediaEl);
+            masterGain = audioCtx.createGain();
+
+            BANDS.forEach(b => {
+                // build a band-pass for each split out of low/high passes in series,
+                // then its own gain — summed in parallel into masterGain
+                let node = srcNode;
+                if (b.lo > 0) {
+                    const hp = audioCtx.createBiquadFilter();
+                    hp.type = 'highpass'; hp.frequency.value = b.lo; hp.Q.value = 0.7;
+                    node.connect(hp); node = hp;
+                }
+                if (b.hi < 24000) {
+                    const lp = audioCtx.createBiquadFilter();
+                    lp.type = 'lowpass'; lp.frequency.value = b.hi; lp.Q.value = 0.7;
+                    node.connect(lp); node = lp;
+                }
+                const g = audioCtx.createGain();
+                g.gain.value = 1;
+                node.connect(g);
+                g.connect(masterGain);
+                bandGain[b.id] = g;
+            });
+
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 2048;
+            masterGain.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            graphBuilt = true;
+            applyAllBands();
+            applyMaster();
+        } catch (e) {
+            showToast('오디오 초기화 실패: ' + e.message, true);
+        }
+    }
+
+    function applyBand(id) {
+        if (!graphBuilt) return;
+        const st = bandState[id];
+        const anySolo = BANDS.some(b => bandState[b.id].solo);
+        let pct = st.vol;
+        if (st.mute) pct = 0;
+        if (anySolo && !st.solo) pct = 0;
+        const lin = pct / 100;           // 0..1.5 linear gain per band
+        try { bandGain[id].gain.setTargetAtTime(lin, audioCtx.currentTime, 0.02); } catch(e){}
+    }
+    function applyAllBands() { BANDS.forEach(b => applyBand(b.id)); }
+
+    function applyMaster() {
+        if (!graphBuilt) return;
+        const v = masterMuted ? 0 : (parseInt(els.masterVol.value,10)/100);
+        try { masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02); } catch(e){}
+    }
+
+    // ---- load file ----
+    function loadFile(file) {
+        if (!file) return;
+        const name = (file.name||'').toLowerCase();
+        const type = file.type || '';
+        isVideo = type.startsWith('video') || /\.(mp4|webm|mov|mkv|m4v|ogv)$/.test(name);
+        currentName = file.name;
+
+        stopCountdown();
+        if (objURL) { URL.revokeObjectURL(objURL); objURL = null; }
+        if (animId) { cancelAnimationFrame(animId); animId = null; }
+        if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; graphBuilt = false; }
+        Object.keys(bandGain).forEach(k => delete bandGain[k]);
+
+        objURL = URL.createObjectURL(file);
+        mediaEl = els.video;          // single media element for both audio & video
+        mediaEl.src = objURL;
+        mediaEl.muted = false;
+
+        if (isVideo) {
+            els.frame.classList.remove('audio-mode');
+            els.mediaKind.textContent = '동영상 · ' + file.name;
+        } else {
+            els.frame.classList.add('audio-mode');
+            els.mediaKind.textContent = '오디오 · ' + file.name;
+            startVizLoop();
+        }
+
+        mediaEl.onloadedmetadata = () => {
+            duration = mediaEl.duration || 0;
+            els.seek.max = duration || 100;
+            els.seek.disabled = false;
+            els.playBtn.disabled = false;
+            els.previewEmpty.classList.add('hide');
+            updateTime();
+        };
+        mediaEl.ontimeupdate = updateTime;
+        mediaEl.onended = () => { els.playBtn.textContent = '▶'; };
+
+        els.drop.classList.add('loaded');
+        els.dropBig.textContent = '✓ ' + file.name;
+        els.dropSm.textContent = '다른 파일을 올리려면 다시 클릭';
+        showToast('파일을 불러왔습니다');
+    }
+
+    function updateTime() {
+        const cur = mediaEl ? mediaEl.currentTime : 0;
+        els.seek.value = cur;
+        els.timeLabel.textContent = fmtTime(cur) + ' / ' + fmtTime(duration);
+    }
+
+    // ---- audio-mode visualizer: bar waveform + filename ----
+    function startVizLoop() {
+        if (animId) cancelAnimationFrame(animId);
+        const W = els.canvas.width, H = els.canvas.height;
+        const bars = 72;
+        const draw = () => {
+            // bg
+            const bgGrad = cvx.createLinearGradient(0,0,0,H);
+            bgGrad.addColorStop(0,'#141019'); bgGrad.addColorStop(1,'#0b0b0d');
+            cvx.fillStyle = bgGrad; cvx.fillRect(0,0,W,H);
+
+            // bars
+            const bw = W / bars, baseY = H * 0.72;
+            if (graphBuilt && analyser) {
+                const buf = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(buf);
+                const step = Math.floor(buf.length / bars);
+                for (let i=0;i<bars;i++){
+                    let v=0; for(let j=0;j<step;j++) v+=buf[i*step+j]; v/=step;
+                    const h = Math.max(3, (v/255) * H * 0.55);
+                    const hue = (i/bars)*210;
+                    cvx.fillStyle = 'hsl('+hue+',82%,60%)';
+                    // mirrored bars around baseY
+                    cvx.fillRect(i*bw + bw*0.18, baseY - h, bw*0.64, h);
+                    cvx.fillStyle = 'hsla('+hue+',82%,60%,0.35)';
+                    cvx.fillRect(i*bw + bw*0.18, baseY, bw*0.64, h*0.5);
+                }
+            } else {
+                // idle flat bars
+                for (let i=0;i<bars;i++){
+                    const hue=(i/bars)*210;
+                    cvx.fillStyle='hsla('+hue+',60%,55%,0.25)';
+                    cvx.fillRect(i*bw+bw*0.18, baseY-4, bw*0.64, 4);
+                }
+            }
+            // baseline
+            cvx.fillStyle='rgba(255,255,255,0.08)'; cvx.fillRect(0, baseY, W, 2);
+
+            // filename
+            cvx.textAlign='center';
+            cvx.fillStyle='#f4f4f5';
+            cvx.font='700 ' + Math.round(H*0.075) + 'px "Bricolage Grotesque", sans-serif';
+            const nm = currentName.length>42 ? currentName.slice(0,40)+'…' : currentName;
+            cvx.fillText(nm, W/2, H*0.20);
+            cvx.fillStyle='#76767f';
+            cvx.font='400 ' + Math.round(H*0.036) + 'px "DM Mono", monospace';
+            cvx.fillText('AUDIO · 막대 파형', W/2, H*0.20 + H*0.075);
+
+            updateMeters();
+            animId = requestAnimationFrame(draw);
+        };
+        animId = requestAnimationFrame(draw);
+    }
+
+    let meterRAF = null;
+    function startVideoMeters() {
+        if (meterRAF) return;
+        const tick = () => { updateMeters(); meterRAF = requestAnimationFrame(tick); };
+        meterRAF = requestAnimationFrame(tick);
+    }
+    function updateMeters() {
+        if (!graphBuilt || !analyser) return;
+        const buf = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(buf);
+        const nyquist = audioCtx.sampleRate/2, binHz = nyquist / buf.length;
+        BANDS.forEach(b => {
+            const i0 = Math.max(1, Math.floor(b.lo/binHz));
+            const i1 = Math.min(buf.length-1, Math.floor(Math.min(b.hi,nyquist)/binHz));
+            let sum=0,n=0; for(let i=i0;i<=i1;i++){ sum+=buf[i]; n++; }
+            const v = n? (sum/n)/255 : 0;
+            const m = document.querySelector('[data-meter="'+b.id+'"]');
+            if (m) m.style.height = Math.min(100, v*130).toFixed(0)+'%';
+        });
+    }
+
+    // ---- play / pause with delay ----
+    function togglePlay() {
+        if (!mediaEl) return;
+        if (countdownTimer) { stopCountdown(); return; }
+        if (mediaEl.paused) {
+            // build + resume the audio graph inside this user gesture
+            if (!graphBuilt) buildAudioGraph();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            if (delaySeconds > 0) startWithDelay(); else doPlay();
+        } else {
+            mediaEl.pause();
+            els.playBtn.textContent = '▶';
+        }
+    }
+    function doPlay() {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        const p = mediaEl.play();
+        if (p && p.then) p.then(() => {
+            els.playBtn.textContent = '⏸';
+            if (isVideo) startVideoMeters();
+        }).catch(err => showToast('재생 실패: ' + err.message, true));
+        else { els.playBtn.textContent = '⏸'; if (isVideo) startVideoMeters(); }
+    }
+    function startWithDelay() {
+        let remaining = delaySeconds;
+        els.playBtn.textContent = '✕';
+        els.countdown.classList.add('show');
+        const tickDown = () => {
+            els.countdown.textContent = remaining > 0.05 ? Math.ceil(remaining) : '시작!';
+            if (remaining <= 0) { stopCountdown(); doPlay(); return; }
+            remaining -= 0.1;
+            countdownTimer = setTimeout(tickDown, 100);
+        };
+        tickDown();
+    }
+    function stopCountdown() {
+        if (countdownTimer) { clearTimeout(countdownTimer); countdownTimer = null; }
+        els.countdown.classList.remove('show');
+        if (mediaEl && mediaEl.paused) els.playBtn.textContent = '▶';
+    }
+
+    // ---- wiring ----
+    els.drop.addEventListener('click', () => els.fileInput.click());
+    els.fileInput.addEventListener('change', () => { if (els.fileInput.files[0]) loadFile(els.fileInput.files[0]); });
+    ['dragenter','dragover'].forEach(ev => els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.add('over'); }));
+    ['dragleave','drop'].forEach(ev => els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.remove('over'); }));
+    els.drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
+
+    els.playBtn.addEventListener('click', togglePlay);
+    els.seek.addEventListener('input', () => { if (mediaEl) { mediaEl.currentTime = parseFloat(els.seek.value); updateTime(); } });
+
+    els.muteBtn.addEventListener('click', () => {
+        masterMuted = !masterMuted;
+        els.muteBtn.classList.toggle('muted', masterMuted);
+        els.muteBtn.textContent = masterMuted ? '🔇 소리 꺼짐' : '🔊 소리 켜짐';
+        if (mediaEl && !graphBuilt) mediaEl.muted = masterMuted;
+        applyMaster();
+    });
+    els.masterVol.addEventListener('input', () => { els.masterVal.textContent = els.masterVol.value + '%'; applyMaster(); });
+
+    els.delayBtns.addEventListener('click', e => {
+        const b = e.target.closest('.dbtn'); if (!b) return;
+        delaySeconds = parseFloat(b.dataset.d);
+        els.delayBtns.querySelectorAll('.dbtn').forEach(x => x.classList.toggle('active', x===b));
+    });
+
+    // ---- reset: clear previous media + all controls ----
+    function resetAll() {
+        stopCountdown();
+        try { mediaEl && mediaEl.pause(); } catch(e){}
+        if (animId) { cancelAnimationFrame(animId); animId = null; }
+        if (meterRAF) { cancelAnimationFrame(meterRAF); meterRAF = null; }
+        if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; graphBuilt = false; }
+        Object.keys(bandGain).forEach(k => delete bandGain[k]);
+        if (objURL) { URL.revokeObjectURL(objURL); objURL = null; }
+
+        els.video.removeAttribute('src');
+        try { els.video.load(); } catch(e){}
+        mediaEl = null; isVideo = false; duration = 0; currentName = '';
+
+        // clear canvas
+        cvx.clearRect(0,0,els.canvas.width,els.canvas.height);
+
+        // reset UI
+        els.frame.classList.remove('audio-mode');
+        els.previewEmpty.classList.remove('hide');
+        els.mediaKind.textContent = '미디어 없음';
+        els.playBtn.textContent = '▶'; els.playBtn.disabled = true;
+        els.seek.value = 0; els.seek.max = 100; els.seek.disabled = true;
+        els.timeLabel.textContent = '0:00 / 0:00';
+        els.drop.classList.remove('loaded');
+        els.dropBig.textContent = '＋ 파일 선택 또는 끌어놓기';
+        els.dropSm.textContent = '.mp3 · .wav · .m4a · .ogg · .mp4 · .webm · .mov';
+        els.fileInput.value = '';
+
+        // reset mute / master / delay / faders
+        masterMuted = false;
+        els.muteBtn.classList.remove('muted');
+        els.muteBtn.textContent = '🔊 소리 켜짐';
+        els.masterVol.value = 100; els.masterVal.textContent = '100%';
+        delaySeconds = 0;
+        els.delayBtns.querySelectorAll('.dbtn').forEach(x => x.classList.toggle('active', x.dataset.d==='0'));
+        BANDS.forEach(b => { bandState[b.id] = { vol:100, mute:false, solo:false }; });
+        buildMixerUI();
+
+        showToast('초기화되었습니다');
+    }
+    els.resetBtn.addEventListener('click', resetAll);
+
+    // init
+    buildMixerUI();
+    els.masterVal.textContent = '100%';
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0,0);
+})();
+</script>
+</body>
+</html>
