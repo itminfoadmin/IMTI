@@ -1,0 +1,2089 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>무비 메이커 · 동영상 편집기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --bg: #0e0e10;
+        --panel: #17171b;
+        --panel-2: #1e1e24;
+        --line: #2a2a31;
+        --ink: #f4f4f5;
+        --ink-soft: #b8b8c0;
+        --gray: #76767f;
+        --accent: #ff4d4d;
+        --accent-soft: #2a1416;
+        --ok: #4ade80;
+    }
+    html { font-size: 15px; }
+    body {
+        font-family: 'Noto Sans KR', sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        background-image: radial-gradient(circle at 15% 0%, #1a1320 0%, transparent 45%),
+                          radial-gradient(circle at 85% 100%, #101820 0%, transparent 45%);
+        background-attachment: fixed;
+    }
+
+    /* ---------- top header (hidden) ---------- */
+    .app-header { display: none; }
+    .app-header .logo-badge {
+        width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+        background: var(--accent); display: grid; place-items: center;
+        box-shadow: 0 4px 16px -4px var(--accent);
+    }
+    .app-header .logo-badge::before {
+        content: ''; width: 0; height: 0;
+        border-left: 9px solid #fff; border-top: 6px solid transparent; border-bottom: 6px solid transparent;
+        margin-left: 2px;
+    }
+    .app-header .app-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+        font-size: 1.3rem; letter-spacing: -0.02em;
+    }
+    .app-header .app-tag {
+        font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--gray);
+        letter-spacing: 0.04em; margin-left: 2px;
+    }
+    .app-header .spacer { flex: 1; }
+    .app-header .hbtn {
+        padding: 9px 16px; border-radius: 9px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.85rem; font-weight: 600;
+        transition: background 0.16s, color 0.16s, border-color 0.16s;
+    }
+    .app-header .hbtn:hover { background: var(--line); color: var(--ink); }
+    .app-header .hbtn.accent { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 6px 18px -8px var(--accent); }
+    .app-header .hbtn.accent:hover { filter: brightness(1.08); background: var(--accent); }
+    .app-header .hbtn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+    /* ---------- layout : full-viewport editor ---------- */
+    html, body { height: 100%; }
+    @media (min-width: 901px) { body { overflow: hidden; } }
+    .stage {
+        width: 100%; margin: 0; height: 100vh;
+        padding: 16px 18px;
+        display: grid;
+        grid-template-columns: 1.25fr 0.75fr;
+        grid-template-rows: minmax(0, 1fr) auto;
+        grid-template-areas: "preview library" "timeline timeline";
+        gap: 16px; overflow: hidden;
+    }
+    .stage > * { min-width: 0; }
+    .col-preview { grid-area: preview; }
+    .col-library { grid-area: library; }
+    .col-timeline { grid-area: timeline; }
+    .col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+
+    .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2px; gap: 12px; }
+    .sec-title { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; }
+    .sec-sub { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--gray); letter-spacing: 0.04em; }
+
+    /* ---------- panels ---------- */
+    .panel {
+        border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
+        padding: 14px; box-shadow: 0 18px 50px -30px rgba(0,0,0,0.8);
+    }
+    .panel-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+        font-size: 1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .panel-title .num {
+        width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+        background: var(--accent-soft); color: var(--accent); display: grid; place-items: center;
+        font-family: 'DM Mono', monospace; font-size: 0.74rem; font-weight: 500;
+    }
+
+    /* ---------- preview ---------- */
+    .preview-frame {
+        position: relative; width: 100%; flex: 1 1 auto; min-height: 0;
+        border-radius: 14px; overflow: hidden; background: #000;
+        border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(0,0,0,0.9);
+        display: grid; place-items: center;
+    }
+    .preview-frame canvas { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .preview-empty {
+        position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+        color: var(--gray); font-family: 'DM Mono', monospace; font-size: 0.8rem; letter-spacing: 0.04em;
+        background: repeating-linear-gradient(45deg, #121216 0 10px, #15151a 10px 20px); pointer-events: none;
+    }
+    .preview-empty.hide { display: none; }
+    .preview-empty .pe-big {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600;
+        font-size: 1.2rem; color: var(--ink-soft); margin-bottom: 8px;
+    }
+
+    /* transport */
+    .transport {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        padding: 7px 10px; flex: 0 0 auto;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+    }
+    .t-btn {
+        width: 34px; height: 34px; flex-shrink: 0; border-radius: 8px;
+        background: var(--panel); border: 1px solid var(--line); color: var(--ink); cursor: pointer;
+        display: grid; place-items: center; font-size: 0.9rem; transition: background 0.14s, border-color 0.14s, transform 0.1s;
+    }
+    .t-btn:hover { background: var(--line); }
+    .t-btn:active { transform: translateY(1px); }
+    .t-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .t-btn.play { width: 38px; height: 38px; background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -6px var(--accent); }
+    .t-btn.play:hover { filter: brightness(1.1); background: var(--accent); }
+    .seek { flex: 1; min-width: 100px; accent-color: var(--accent); cursor: pointer; height: 4px; }
+    .time-label {
+        font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--ink-soft);
+        letter-spacing: 0.04em; white-space: nowrap; min-width: 86px; text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* preview volume bar — now lives inside the audio panel (오른쪽) */
+    .vol-bar { display: none; }
+    .vol-mute {
+        width: 34px; height: 28px; flex-shrink: 0; border-radius: 7px;
+        background: var(--panel); border: 1px solid var(--line); color: var(--ink); cursor: pointer;
+        font-size: 0.9rem; display: grid; place-items: center; transition: background 0.14s, border-color 0.14s;
+    }
+    .vol-mute:hover { background: var(--line); }
+    .vol-mute.muted { background: var(--accent-soft); border-color: var(--accent); color: #ffb3b3; }
+    .vol-slider { flex: 1; accent-color: var(--accent); height: 4px; cursor: pointer; }
+    .vol-val {
+        flex: 0 0 auto; min-width: 40px; text-align: right;
+        font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--ink-soft);
+    }
+    /* inline preview-volume row inside audio panel */
+    .preview-vol-row {
+        display: flex; align-items: center; gap: 10px;
+    }
+    .preview-vol-row label { flex: 0 0 96px; font-size: 0.78rem; color: var(--ink-soft); }
+
+    /* ---------- clip properties (floating overlay over the preview) ---------- */
+    .preview-wrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; }
+    .preview-wrap .preview-frame { flex: 1 1 auto; }
+    .props {
+        position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 20;
+        flex: 0 0 auto; margin: 0; max-height: calc(100% - 24px); overflow-y: auto;
+        background: rgba(23,23,27,0.92); backdrop-filter: blur(8px);
+        box-shadow: 0 24px 60px -20px rgba(0,0,0,0.9);
+    }
+    .props[hidden] { display: none; }
+    .props .panel-title { position: relative; }
+    .props-close {
+        position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+        width: 24px; height: 24px; border-radius: 7px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-size: 1rem; line-height: 1; display: grid; place-items: center;
+    }
+    .props-close:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .prop-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+    .field { flex: 1; min-width: 130px; }
+    .field.full { flex: 1 1 100%; }
+    .field label { display: block; font-size: 0.78rem; color: var(--ink-soft); margin-bottom: 6px; font-weight: 500; }
+    .field input[type="text"], .field input[type="number"] {
+        width: 100%; padding: 9px 12px; background: var(--bg);
+        border: 1px solid var(--line); border-radius: 8px; color: var(--ink);
+        font-family: 'DM Mono', monospace; font-size: 0.85rem; outline: none; transition: border-color 0.16s;
+    }
+    .field input:focus { border-color: var(--accent); }
+    .field .hint { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--gray); margin-top: 5px; }
+
+    .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+    .seg-btn {
+        flex: 1; min-width: 56px; padding: 8px 10px; text-align: center; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; color: var(--ink-soft);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.8rem; transition: all 0.14s;
+    }
+    .seg-btn:hover { border-color: var(--accent); color: var(--ink); }
+    .seg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ---------- media library ---------- */
+    .col-library .panel:first-child { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+    .col-library .audio-panel { flex: 0 0 auto; }
+    .drop {
+        border: 1px dashed var(--line); border-radius: 11px; padding: 16px;
+        text-align: center; cursor: pointer; background: var(--panel-2); flex: 0 0 auto;
+        transition: border-color 0.18s, background 0.18s;
+    }
+    .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .drop .d-big { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 0.95rem; color: var(--ink-soft); }
+    .drop .d-sm { font-family: 'DM Mono', monospace; font-size: 0.64rem; color: var(--gray); margin-top: 4px; }
+
+    .media-list {
+        margin-top: 12px; flex: 1 1 auto; min-height: 0; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 8px; padding-right: 4px; margin-right: -4px;
+    }
+    .media-list::-webkit-scrollbar { width: 8px; }
+    .media-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+    .media-item {
+        display: flex; align-items: center; gap: 10px; padding: 8px;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+    }
+    .media-thumb {
+        width: 64px; height: 40px; flex-shrink: 0; border-radius: 7px; overflow: hidden;
+        background: #000; position: relative; display: grid; place-items: center;
+    }
+    .media-thumb img, .media-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .media-thumb .badge {
+        position: absolute; left: 3px; top: 3px; font-family: 'DM Mono', monospace;
+        font-size: 0.52rem; padding: 1px 4px; border-radius: 4px;
+        background: rgba(0,0,0,0.6); color: #fff; letter-spacing: 0.04em;
+    }
+    .media-main { flex: 1; min-width: 0; }
+    .media-name { font-size: 0.82rem; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .media-meta { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--gray); margin-top: 2px; }
+    .media-add {
+        flex-shrink: 0; padding: 7px 10px; border-radius: 8px; cursor: pointer;
+        background: var(--accent); border: 1px solid var(--accent); color: #fff;
+        font-family: 'DM Mono', monospace; font-size: 0.66rem; white-space: nowrap;
+        transition: filter 0.14s, transform 0.1s;
+    }
+    .media-add:hover { filter: brightness(1.1); }
+    .media-add:active { transform: translateY(1px); }
+    .media-del {
+        flex-shrink: 0; width: 28px; height: 28px; border-radius: 7px; cursor: pointer;
+        background: var(--panel); border: 1px solid var(--line); color: var(--gray);
+        font-size: 0.9rem; display: grid; place-items: center; transition: all 0.14s;
+    }
+    .media-del:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .lib-empty { text-align: center; padding: 28px 14px; font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray); line-height: 1.8; }
+
+    /* ---------- timeline / storyboard ---------- */
+    .col-timeline { min-height: 0; }
+    .timeline-box {
+        border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
+        padding: 12px 14px; box-shadow: 0 18px 50px -30px rgba(0,0,0,0.8);
+    }
+    .tl-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .tl-title { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.05rem; }
+    .tl-meta { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--gray); }
+    .tl-spacer { flex: 1; }
+    .tl-clear {
+        padding: 7px 12px; border-radius: 8px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-family: 'DM Mono', monospace; font-size: 0.68rem; transition: all 0.14s;
+    }
+    .tl-clear:hover { border-color: var(--accent); color: #ffb3b3; background: var(--accent-soft); }
+    .tl-export {
+        padding: 7px 14px; border-radius: 8px; cursor: pointer;
+        background: var(--accent); border: 1px solid var(--accent); color: #fff;
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.74rem; font-weight: 700;
+        white-space: nowrap; transition: filter 0.14s, opacity 0.14s; box-shadow: 0 4px 14px -6px var(--accent);
+    }
+    .tl-export:hover { filter: brightness(1.1); }
+    .tl-export[disabled] { opacity: 0.4; cursor: not-allowed; filter: none; }
+    .tl-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tl-btn {
+        padding: 7px 11px; border-radius: 8px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.74rem; white-space: nowrap;
+        transition: background 0.14s, border-color 0.14s, color 0.14s, transform 0.1s;
+    }
+    .tl-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .tl-btn:active { transform: translateY(1px); }
+    .tl-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -4px var(--accent); }
+    .tl-btn.danger:hover { background: var(--accent); }
+    .tl-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .tl-btn[disabled]:hover { background: var(--panel-2); border-color: var(--line); color: var(--ink); }
+    /* selected library item (insert source) */
+    .media-item.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+    .media-item.bad { border-color: var(--accent); opacity: 0.75; }
+    .media-item.bad .media-meta { color: #ffb3b3; }
+    .media-item.bad .media-thumb { filter: grayscale(0.6); }
+
+    /* timeline scroll container holds the ruler + clip strip stacked */
+    .track {
+        display: flex; flex-direction: column; gap: 4px; overflow-x: auto; overflow-y: hidden;
+        padding: 2px 2px 4px; min-height: 140px;
+        /* scrollbar on top */
+        transform: scaleY(-1);
+    }
+    .track > * { transform: scaleY(-1); }
+    .track::-webkit-scrollbar { height: 14px; }
+    .track::-webkit-scrollbar-track { background: var(--panel-2); border-radius: 99px; }
+    .track::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.5); border-radius: 99px; border: 3px solid var(--panel); }
+    .track::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.82); }
+    /* hide the time ruler (no longer needed at top) */
+    .tl-ruler { display: none; }
+    .track-empty {
+        flex: 1; display: grid; place-items: center; text-align: center;
+        border: 1px dashed var(--line); border-radius: 10px; min-height: 100px;
+        font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray); line-height: 1.7;
+    }
+
+    /* time ruler */
+    .tl-ruler { position: relative; height: 16px; flex: 0 0 auto; min-width: 100%; cursor: pointer; }
+    .tl-tick { position: absolute; top: 0; transform: translateX(-0.5px); }
+    .tl-tick .tk-line { display: block; width: 1px; height: 6px; background: var(--line); }
+    .tl-tick .tk-lbl {
+        position: absolute; top: 6px; left: 3px; white-space: nowrap;
+        font-family: 'DM Mono', monospace; font-size: 0.56rem; color: var(--gray);
+    }
+
+    /* clip strip + playhead */
+    .tl-strip { position: relative; display: flex; gap: 0; min-width: 100%; align-items: stretch; }
+    .tl-playhead {
+        position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent);
+        box-shadow: 0 0 8px -1px var(--accent); pointer-events: none; z-index: 5; left: 0;
+    }
+    .tl-playhead::before {
+        content: ''; position: absolute; top: -2px; left: -4px; width: 10px; height: 10px;
+        border-radius: 2px; background: var(--accent);
+    }
+
+    .clip {
+        position: relative; flex: 0 0 auto; border-radius: 8px; overflow: hidden;
+        border: 2px solid var(--line); background: var(--panel-2); cursor: pointer;
+        display: flex; flex-direction: column; margin-right: 3px;
+        transition: border-color 0.14s, transform 0.1s;
+    }
+    .clip:hover { transform: translateY(-2px); }
+    .clip.selected { border-color: var(--accent); box-shadow: 0 6px 18px -8px var(--accent); }
+    .clip.playing { border-color: var(--ok); }
+
+    /* filmstrip body: frames laid side by side, clipped to the clip width */
+    .clip-film {
+        position: relative; height: 56px; display: flex; overflow: hidden; background: #000;
+    }
+    .clip-film img { height: 100%; width: auto; flex: 1 1 0; min-width: 0; object-fit: cover; display: block; border-right: 1px solid rgba(0,0,0,0.35); }
+    .clip-film.loading {
+        display: grid; place-items: center; color: var(--gray);
+        font-family: 'DM Mono', monospace; font-size: 0.6rem;
+    }
+    .clip-film.title-film {
+        background: linear-gradient(135deg, #20202a, #15151a);
+    }
+    .clip-ttl {
+        position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.68rem; color: #fff;
+        padding: 4px; background: rgba(0,0,0,0.32); pointer-events: none;
+    }
+    .clip-idx {
+        position: absolute; left: 3px; top: 3px; font-family: 'DM Mono', monospace;
+        font-size: 0.56rem; padding: 1px 5px; border-radius: 5px;
+        background: rgba(0,0,0,0.62); color: #fff; letter-spacing: 0.03em;
+    }
+    .clip-foot {
+        display: flex; align-items: center; gap: 6px; padding: 4px 7px;
+        background: var(--panel-2);
+    }
+    .clip-foot .cf-name { flex: 1; min-width: 0; font-size: 0.62rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .clip-foot .cf-dur { flex: 0 0 auto; font-family: 'DM Mono', monospace; font-size: 0.56rem; color: var(--gray); }
+    /* move/delete controls placed above the frame (always visible) */
+    .clip-head {
+        display: flex; align-items: center; gap: 4px; padding: 4px 6px;
+        background: var(--panel); border-bottom: 1px solid var(--line);
+    }
+    .ctool {
+        flex: 1; height: 20px; border-radius: 5px; cursor: pointer; border: 1px solid var(--line);
+        background: var(--panel-2); color: var(--ink-soft); font-size: 0.66rem; display: grid; place-items: center;
+        font-family: 'DM Mono', monospace; transition: background 0.14s, color 0.14s, border-color 0.14s;
+    }
+    .ctool:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .ctool.del { flex: 0 0 22px; }
+    .ctool.del:hover { background: var(--accent); }
+    .clip-trans {
+        position: absolute; right: 2px; top: 50%; transform: translateY(-50%); z-index: 3;
+        font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #fff;
+        background: rgba(255,77,77,0.85); border-radius: 5px; padding: 0 4px;
+    }
+
+    /* ---------- audio panel ---------- */
+    .audio-drop {
+        display: flex; align-items: center; gap: 10px; padding: 11px 12px;
+        border: 1px dashed var(--line); border-radius: 11px; background: var(--panel-2);
+        cursor: pointer; transition: border-color 0.18s, background 0.18s;
+    }
+    .audio-drop:hover, .audio-drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .audio-drop.loaded { border-style: solid; border-color: var(--ok); }
+    .audio-drop .ad-ic {
+        width: 34px; height: 34px; flex-shrink: 0; border-radius: 8px; display: grid; place-items: center;
+        background: var(--bg); border: 1px solid var(--line); color: var(--accent); font-size: 1.1rem;
+    }
+    .audio-drop .ad-main { flex: 1; min-width: 0; }
+    .audio-drop .ad-big { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 0.9rem; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .audio-drop.loaded .ad-big { color: var(--ok); }
+    .audio-drop .ad-sm { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--gray); margin-top: 2px; }
+    .audio-drop .ad-clear {
+        flex-shrink: 0; width: 26px; height: 26px; border-radius: 7px; cursor: pointer;
+        background: var(--panel); border: 1px solid var(--line); color: var(--ink-soft); font-size: 0.8rem;
+    }
+    .audio-drop .ad-clear:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .aud-ctl { margin-top: 12px; display: flex; flex-direction: column; gap: 9px; }
+    .aud-row { display: flex; align-items: center; gap: 10px; }
+    .aud-row label { flex: 0 0 96px; font-size: 0.78rem; color: var(--ink-soft); }
+    .aud-row input[type="range"] { flex: 1; accent-color: var(--accent); height: 4px; cursor: pointer; }
+    .aud-row .aud-val { flex: 0 0 42px; text-align: right; font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--ink-soft); }
+    .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .switch-row .sw-label { font-size: 0.8rem; color: var(--ink-soft); }
+    .switch {
+        position: relative; width: 42px; height: 24px; border-radius: 99px; cursor: pointer; flex-shrink: 0;
+        background: var(--panel-2); border: 1px solid var(--line); transition: background 0.16s, border-color 0.16s;
+    }
+    .switch::after {
+        content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+        border-radius: 50%; background: var(--gray); transition: transform 0.16s, background 0.16s;
+    }
+    .switch.on { background: var(--accent-soft); border-color: var(--accent); }
+    .switch.on::after { transform: translateX(18px); background: var(--accent); }
+
+    /* loading overlay */
+    .loading-overlay {
+        position: fixed; inset: 0; z-index: 400;
+        display: none; align-items: center; justify-content: center;
+        background: rgba(8,8,10,0.7); backdrop-filter: blur(5px);
+    }
+    .loading-overlay.show { display: flex; }
+    .loading-box {
+        display: flex; flex-direction: column; align-items: center; gap: 16px;
+        padding: 28px 36px; border-radius: 16px;
+        background: var(--panel); border: 1px solid var(--line);
+        box-shadow: 0 30px 80px -20px rgba(0,0,0,0.9);
+    }
+    .loading-box .spinner {
+        width: 38px; height: 38px; border-radius: 50%;
+        border: 4px solid var(--line); border-top-color: var(--accent);
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-msg {
+        font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--ink-soft);
+        letter-spacing: 0.03em; text-align: center;
+    }
+
+    /* toast */
+    .toast {
+        position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+        padding: 11px 18px; border-radius: 99px; font-family: 'DM Mono', monospace; font-size: 0.76rem;
+        opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 300;
+        box-shadow: 0 16px 40px -16px rgba(0,0,0,0.8);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err { border-color: var(--accent); color: #ffb3b3; }
+
+    /* stack on narrow screens */
+    @media (max-width: 900px) {
+        body { overflow: auto; }
+        .stage {
+            grid-template-columns: 1fr; height: auto; min-height: 100vh;
+            grid-template-areas: "preview" "library" "timeline";
+            grid-template-rows: none; overflow: visible;
+        }
+        .preview-frame { aspect-ratio: 16/9; flex: none; }
+        .col-library .panel { flex: none; }
+        .media-list { max-height: 320px; overflow-y: auto; }
+    }
+
+    /* ---------- title clip modal ---------- */
+    .title-modal-backdrop {
+        display: none; position: fixed; inset: 0; z-index: 200;
+        background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+    }
+    .title-modal-backdrop.show { display: block; }
+    .title-modal {
+        position: fixed; z-index: 201;
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: min(860px, calc(100vw - 32px));
+        max-height: calc(100vh - 32px);
+        background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+        box-shadow: 0 32px 80px -20px rgba(0,0,0,0.95);
+        display: flex; flex-direction: column;
+        overflow: hidden;
+    }
+    /* 모달 헤더 */
+    .tm-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 20px 14px; border-bottom: 1px solid var(--line); flex-shrink: 0;
+    }
+    .tm-title {
+        font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+        font-size: 1.05rem; display: flex; align-items: center; gap: 8px;
+    }
+    .tm-title .num {
+        width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+        background: var(--accent-soft); color: var(--accent);
+        display: grid; place-items: center;
+        font-family: 'DM Mono', monospace; font-size: 0.76rem;
+    }
+    .tm-close {
+        width: 28px; height: 28px; border-radius: 8px; cursor: pointer;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-size: 1rem; display: grid; place-items: center; transition: all 0.14s; flex-shrink: 0;
+    }
+    .tm-close:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* 2단 본문 */
+    .tm-body {
+        display: flex; flex: 1 1 auto; min-height: 0; overflow: hidden;
+    }
+    /* 왼쪽: 미리보기 */
+    .tm-left {
+        flex: 1 1 0; display: flex; flex-direction: column;
+        padding: 18px 16px 18px 20px; gap: 10px; min-width: 0;
+        border-right: 1px solid var(--line);
+    }
+    .tm-left-label {
+        font-family: 'DM Mono', monospace; font-size: 0.68rem;
+        color: var(--gray); letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0;
+    }
+    .tm-preview-box {
+        flex: 1 1 auto; min-height: 0;
+        background: #000; border-radius: 10px; border: 1px solid var(--line);
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden; position: relative;
+    }
+    .tm-preview-text {
+        word-break: break-word; line-height: 1.35;
+        max-width: 90%; padding: 10px;
+    }
+
+    /* 오른쪽: 컨트롤 */
+    .tm-right {
+        flex: 0 0 300px; display: flex; flex-direction: column;
+        padding: 18px 20px 0 18px; gap: 14px;
+        overflow-y: auto; min-height: 0;
+    }
+    .tm-right::-webkit-scrollbar { width: 5px; }
+    .tm-right::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+
+    .tm-field { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+    .tm-field label { font-size: 0.78rem; color: var(--ink-soft); font-weight: 500; }
+    .tm-field input[type="text"], .tm-field input[type="number"] {
+        width: 100%; padding: 8px 11px;
+        background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+        color: var(--ink); font-family: 'DM Mono', monospace; font-size: 0.85rem;
+        outline: none; transition: border-color 0.16s;
+    }
+    .tm-field input:focus { border-color: var(--accent); }
+    .tm-row { display: flex; gap: 10px; flex-shrink: 0; }
+    .tm-row .tm-field { flex: 1; }
+    .tm-color-swatch { display: flex; gap: 5px; flex-wrap: wrap; }
+    .tm-swatch {
+        width: 24px; height: 24px; border-radius: 6px; cursor: pointer; flex-shrink: 0;
+        border: 2px solid transparent; transition: transform 0.12s, border-color 0.12s;
+    }
+    .tm-swatch:hover { transform: scale(1.18); }
+    .tm-swatch.active { border-color: #fff; box-shadow: 0 0 0 1px rgba(255,255,255,0.4); }
+    .tm-align-row { display: flex; gap: 6px; flex-shrink: 0; }
+    .tm-align-btn {
+        flex: 1; padding: 7px; border-radius: 7px; cursor: pointer; text-align: center;
+        background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-soft);
+        font-size: 0.8rem; transition: all 0.14s;
+    }
+    .tm-align-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .tm-align-btn:hover:not(.active) { border-color: var(--accent); color: var(--ink); }
+    .tm-bg-row { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    .tm-bg-row input[type="color"] { width: 36px; height: 28px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; padding: 2px; flex-shrink: 0; }
+    .tm-bg-row .tm-bg-alpha { flex: 1; accent-color: var(--accent); }
+
+    /* 액션 버튼 (오른쪽 하단 고정) */
+    .tm-actions {
+        display: flex; gap: 8px; flex-shrink: 0;
+        padding: 12px 0 16px; margin-top: auto;
+        border-top: 1px solid var(--line);
+        position: sticky; bottom: 0;
+        background: var(--panel);
+    }
+    .tm-btn {
+        flex: 1; padding: 10px; border-radius: 9px; cursor: pointer;
+        font-family: 'Noto Sans KR', sans-serif; font-size: 0.84rem; font-weight: 700;
+        border: 1px solid var(--line); transition: all 0.14s;
+    }
+    .tm-btn.cancel { background: var(--panel-2); color: var(--ink-soft); }
+    .tm-btn.cancel:hover { background: var(--line); color: var(--ink); }
+    .tm-btn.apply { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px -6px var(--accent); }
+    .tm-btn.apply:hover { filter: brightness(1.1); }
+
+</style>
+</head>
+<body>
+
+
+
+<div class="stage">
+
+    <!-- ============ PREVIEW (left) ============ -->
+    <div class="col col-preview">
+        <span id="previewMeta" hidden></span>
+
+        <div class="preview-wrap">
+            <div class="preview-frame">
+                <canvas id="canvas" width="1280" height="720"></canvas>
+                <div class="preview-empty" id="previewEmpty">
+                    <div>
+                        <div class="pe-big">미리볼 영상이 없습니다</div>
+                        <div>오른쪽에서 미디어를 가져와 스토리보드에 추가하세요</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- selected-clip properties: floating overlay, hidden until a clip is selected -->
+            <div class="panel props" id="props" hidden>
+                <div class="panel-title">
+                    <span class="num">✎</span> 클립 속성
+                    <button class="props-close" id="propsClose" title="닫기">×</button>
+                </div>
+                <div class="prop-body">
+                    <div class="prop-grid">
+                        <div class="field" id="fieldStart">
+                            <label>시작 (초)</label>
+                            <input type="number" id="clipStart" min="0" step="0.1" value="0">
+                            <div class="hint">동영상 클립에서 재생을 시작할 지점</div>
+                        </div>
+                        <div class="field" id="fieldEnd">
+                            <label id="endLabel">길이 / 끝 (초)</label>
+                            <input type="number" id="clipEnd" min="0.1" step="0.1" value="3">
+                            <div class="hint" id="endHint">사진은 표시 시간, 동영상은 종료 지점</div>
+                        </div>
+                    </div>
+                    <div class="field full" style="margin-top:12px;">
+                        <label>자막 / 제목 텍스트 (선택)</label>
+                        <input type="text" id="clipText" placeholder="예: 우리의 여름 여행" maxlength="80">
+                    </div>
+                    <div class="field full" style="margin-top:12px;">
+                        <label>다음 클립으로의 전환</label>
+                        <div class="seg" id="transSeg">
+                            <div class="seg-btn active" data-trans="cut">컷</div>
+                            <div class="seg-btn" data-trans="fade">페이드</div>
+                            <div class="seg-btn" data-trans="slide">슬라이드</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="transport">
+            <button class="t-btn" id="prevBtn" title="이전 클립" disabled>⏮</button>
+            <button class="t-btn play" id="playBtn" title="재생" disabled>▶</button>
+            <button class="t-btn" id="nextBtn" title="다음 클립" disabled>⏭</button>
+            <input type="range" class="seek" id="seek" min="0" max="1000" value="0" step="1" disabled>
+            <span class="time-label" id="timeLabel">0:00 / 0:00</span>
+        </div>
+
+    </div>
+
+    <!-- ============ MEDIA LIBRARY (right) ============ -->
+    <div class="col col-library">
+        <div class="panel">
+            <div class="panel-title"><span class="num">1</span> 미디어 가져오기</div>
+            <div class="drop" id="drop">
+                <div class="d-big">＋ 동영상·사진 선택 / 끌어놓기</div>
+                <div class="d-sm">.mp4 · .webm · .mov · .jpg · .png · .webp · .gif</div>
+            </div>
+            <input type="file" id="fileInput" accept="video/*,image/*,.avi,.wmv,.flv,.mkv,.mov,.m4v,.3gp,.mpg,.mpeg,.ts,.ogv" multiple style="display:none;">
+            <div class="media-list" id="mediaList">
+                <div class="lib-empty" id="mediaEmpty">아직 가져온 미디어가 없습니다.<br>위에서 파일을 선택하세요.</div>
+            </div>
+        </div>
+
+        <!-- audio / music -->
+        <div class="panel audio-panel">
+            <div class="panel-title"><span class="num">2</span> 오디오 / 배경 음악</div>
+
+            <div class="audio-drop" id="audioDrop">
+                <span class="ad-ic">♪</span>
+                <div class="ad-main">
+                    <div class="ad-big" id="audioName">배경 음악 선택 / 끌어놓기</div>
+                    <div class="ad-sm" id="audioMeta">.mp3 · .wav · .m4a · .ogg</div>
+                </div>
+                <button class="ad-clear" id="audioClear" style="display:none;">✕</button>
+            </div>
+            <input type="file" id="audioInput" accept="audio/*" style="display:none;">
+
+            <div class="aud-ctl">
+                <div class="aud-row preview-vol-row">
+                    <label>미리보기 영상 음량</label>
+                    <button class="vol-mute" id="muteBtn" title="음소거">🔊</button>
+                    <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="100" aria-label="미리보기 음량">
+                    <span class="vol-val" id="volVal">100%</span>
+                </div>
+                <div class="aud-row">
+                    <label>배경 음량</label>
+                    <input type="range" id="bgVol" min="0" max="100" value="70">
+                    <span class="aud-val" id="bgVolVal">70%</span>
+                </div>
+                <div class="aud-row">
+                    <label>클립(영상) 음량</label>
+                    <input type="range" id="clipVol" min="0" max="100" value="100">
+                    <span class="aud-val" id="clipVolVal">100%</span>
+                </div>
+                <div class="aud-toggles">
+                    <div class="switch-row">
+                        <span class="sw-label">음악 페이드 인 / 아웃</span>
+                        <div class="switch on" id="fadeSwitch" role="switch" aria-checked="true"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ TIMELINE (bottom, full width) ============ -->
+    <div class="col col-timeline">
+        <div class="timeline-box">
+            <div class="tl-head">
+                <span class="tl-title">스토리보드</span>
+                <span class="tl-meta" id="tlMeta">0개 클립 · 0:00</span>
+                <div class="tl-spacer"></div>
+                <div class="tl-tools">
+                    <button class="tl-btn" id="propsToggle" title="선택한 클립의 속성 패널 열기/닫기" disabled>✎ 속성</button>
+                    <button class="tl-btn" id="setStartBtn" title="재생헤드 위치를 선택한 동영상 클립의 시작 지점으로" disabled>⇤ 시작점</button>
+                    <button class="tl-btn" id="setEndBtn" title="재생헤드 위치를 선택한 동영상 클립의 종료 지점으로" disabled>종료점 ⇥</button>
+                    <button class="tl-btn" id="splitBtn" title="재생헤드 위치에서 클립을 둘로 분할" disabled>✂ 자르기</button>
+                    <button class="tl-btn" id="insertBtn" title="선택한 라이브러리 미디어를 재생헤드 위치에 삽입" disabled>⎀ 삽입</button>
+                    <button class="tl-btn danger" id="delClipBtn" title="선택한 클립 삭제" disabled>🗑 삭제</button>
+                </div>
+                <button class="tl-btn" id="addTitleBtn" title="텍스트 제목 화면을 스토리보드 끝에 추가">＋ 제목 클립</button>
+                <button class="tl-clear" id="clearBtn">↺ 비우기</button>
+                <button class="tl-export" id="exportBtn" disabled>⬇ 내보내기</button>
+            </div>
+            <div class="track" id="track">
+                <div class="track-empty" id="trackEmpty">
+                    미디어 라이브러리에서 “담기”를 누르거나, 헤더의 “제목 클립”으로 텍스트 화면을 추가하세요.
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== Title Clip Modal ===== -->
+<div class="title-modal-backdrop" id="titleModalBackdrop"></div>
+<div class="title-modal" id="titleModal" style="display:none;">
+
+    <!-- 헤더 -->
+    <div class="tm-head">
+        <div class="tm-title"><span class="num">T</span> 제목 클립 추가</div>
+        <button class="tm-close" id="tmClose">×</button>
+    </div>
+
+    <!-- 2단 본문 -->
+    <div class="tm-body">
+
+        <!-- 왼쪽: 미리보기 -->
+        <div class="tm-left">
+            <div class="tm-left-label">미리보기</div>
+            <div class="tm-preview-box" id="tmPreviewBox">
+                <div class="tm-preview-text" id="tmPreviewText">제목을 입력하세요</div>
+            </div>
+        </div>
+
+        <!-- 오른쪽: 편집 컨트롤 -->
+        <div class="tm-right">
+
+            <!-- 텍스트 -->
+            <div class="tm-field">
+                <label>텍스트 내용</label>
+                <input type="text" id="tmText" placeholder="예: 우리의 여름 여행" maxlength="80" value="제목을 입력하세요">
+            </div>
+
+            <!-- 글자 크기 + 표시 시간 -->
+            <div class="tm-row">
+                <div class="tm-field">
+                    <label>글자 크기 (px)</label>
+                    <input type="number" id="tmFontSize" min="12" max="200" value="74">
+                </div>
+                <div class="tm-field">
+                    <label>표시 시간 (초)</label>
+                    <input type="number" id="tmDur" min="0.5" max="60" step="0.5" value="3">
+                </div>
+            </div>
+
+            <!-- 글자 색상 -->
+            <div class="tm-field">
+                <label>글자 색상</label>
+                <div class="tm-color-swatch" id="tmSwatches">
+                    <div class="tm-swatch active" data-color="#f4f4f5" style="background:#f4f4f5;" title="흰색"></div>
+                    <div class="tm-swatch" data-color="#ff4d4d" style="background:#ff4d4d;" title="빨강"></div>
+                    <div class="tm-swatch" data-color="#4ade80" style="background:#4ade80;" title="초록"></div>
+                    <div class="tm-swatch" data-color="#60a5fa" style="background:#60a5fa;" title="파랑"></div>
+                    <div class="tm-swatch" data-color="#facc15" style="background:#facc15;" title="노랑"></div>
+                    <div class="tm-swatch" data-color="#f472b6" style="background:#f472b6;" title="핑크"></div>
+                    <div class="tm-swatch" data-color="#fb923c" style="background:#fb923c;" title="주황"></div>
+                    <div class="tm-swatch" data-color="#000000" style="background:#000;border:1px solid #555;" title="검정"></div>
+                </div>
+                <input type="color" id="tmColorPicker" value="#f4f4f5" style="margin-top:7px;width:100%;height:30px;border-radius:7px;border:1px solid var(--line);background:var(--bg);cursor:pointer;padding:2px;">
+            </div>
+
+            <!-- 배경 색상 / 불투명도 -->
+            <div class="tm-field">
+                <label>배경 색상 / 불투명도</label>
+                <div class="tm-bg-row">
+                    <input type="color" id="tmBgColor" value="#000000">
+                    <input type="range" class="tm-bg-alpha" id="tmBgAlpha" min="0" max="100" value="100">
+                    <span id="tmBgAlphaVal" style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--ink-soft);min-width:34px;text-align:right;">100%</span>
+                </div>
+            </div>
+
+            <!-- 텍스트 정렬 -->
+            <div class="tm-field">
+                <label>텍스트 정렬</label>
+                <div class="tm-align-row" id="tmAlignRow">
+                    <div class="tm-align-btn active" data-align="center">가운데</div>
+                    <div class="tm-align-btn" data-align="left">왼쪽</div>
+                    <div class="tm-align-btn" data-align="right">오른쪽</div>
+                </div>
+            </div>
+
+            <!-- 액션 버튼 -->
+            <div class="tm-actions">
+                <button class="tm-btn cancel" id="tmCancel">취소</button>
+                <button class="tm-btn apply" id="tmApply">✔ 적용</button>
+            </div>
+
+        </div><!-- /tm-right -->
+    </div><!-- /tm-body -->
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="loading-overlay" id="loading">
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <div class="loading-msg" id="loadingMsg">작업 중…</div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const els = {
+        canvas: document.getElementById('canvas'),
+        previewEmpty: document.getElementById('previewEmpty'),
+        previewMeta: document.getElementById('previewMeta'),
+        prevBtn: document.getElementById('prevBtn'),
+        playBtn: document.getElementById('playBtn'),
+        nextBtn: document.getElementById('nextBtn'),
+        seek: document.getElementById('seek'),
+        timeLabel: document.getElementById('timeLabel'),
+        drop: document.getElementById('drop'),
+        fileInput: document.getElementById('fileInput'),
+        mediaList: document.getElementById('mediaList'),
+        mediaEmpty: document.getElementById('mediaEmpty'),
+        track: document.getElementById('track'),
+        trackEmpty: document.getElementById('trackEmpty'),
+        tlMeta: document.getElementById('tlMeta'),
+        clearBtn: document.getElementById('clearBtn'),
+        propsToggle: document.getElementById('propsToggle'),
+        loading: document.getElementById('loading'),
+        loadingMsg: document.getElementById('loadingMsg'),
+        muteBtn: document.getElementById('muteBtn'),
+        volSlider: document.getElementById('volSlider'),
+        volVal: document.getElementById('volVal'),
+        setStartBtn: document.getElementById('setStartBtn'),
+        setEndBtn: document.getElementById('setEndBtn'),
+        splitBtn: document.getElementById('splitBtn'),
+        insertBtn: document.getElementById('insertBtn'),
+        delClipBtn: document.getElementById('delClipBtn'),
+        addTitleBtn: document.getElementById('addTitleBtn'),
+        exportBtn: document.getElementById('exportBtn'),
+        props: document.getElementById('props'),
+        clipStart: document.getElementById('clipStart'),
+        clipEnd: document.getElementById('clipEnd'),
+        clipText: document.getElementById('clipText'),
+        endLabel: document.getElementById('endLabel'),
+        endHint: document.getElementById('endHint'),
+        fieldStart: document.getElementById('fieldStart'),
+        transSeg: document.getElementById('transSeg'),
+        propsClose: document.getElementById('propsClose'),
+        audioDrop: document.getElementById('audioDrop'),
+        audioInput: document.getElementById('audioInput'),
+        audioName: document.getElementById('audioName'),
+        audioMeta: document.getElementById('audioMeta'),
+        audioClear: document.getElementById('audioClear'),
+        bgVol: document.getElementById('bgVol'),
+        bgVolVal: document.getElementById('bgVolVal'),
+        clipVol: document.getElementById('clipVol'),
+        clipVolVal: document.getElementById('clipVolVal'),
+        fadeSwitch: document.getElementById('fadeSwitch'),
+        toast: document.getElementById('toast'),
+    };
+    const ctx = els.canvas.getContext('2d');
+    const W = els.canvas.width, H = els.canvas.height;
+
+    let uid = 1;
+    const media = [];     // imported assets: {id, kind:'video'|'image', name, url, el, duration, w, h}
+    const clips = [];     // storyboard: {id, mediaId, kind, name, start, end, dur, text, trans}
+    let selectedClipId = null;
+    let selectedMediaId = null;   // library item chosen as the "insert" source
+
+    // playback state
+    let playing = false;
+    let playStartWall = 0;     // performance.now() at the moment playback (or seek) anchored
+    let playAnchorTime = 0;    // timeline time corresponding to playStartWall
+    let rafId = null;
+
+    // ---- audio graph (Web Audio) ----
+    let audioCtx = null;
+    let audioDest = null;          // MediaStreamAudioDestinationNode for export
+    let bgGain = null, clipGain = null, masterGain = null;
+    let bgMusic = { el: null, url: null, name: '', node: null, duration: 0 };
+    const videoNodes = {};         // mediaId -> {srcNode, gain} for clip audio
+    let bgVolume = 0.7, clipVolume = 1.0, fadeOn = true;
+    let masterVolume = 1.0, muted = false;   // preview master volume
+
+    function ensureAudio() {
+        if (audioCtx) return;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            audioDest = audioCtx.createMediaStreamDestination();
+            bgGain = audioCtx.createGain();
+            clipGain = audioCtx.createGain();
+            masterGain = audioCtx.createGain();
+            bgGain.gain.value = bgVolume;
+            clipGain.gain.value = clipVolume;
+            masterGain.gain.value = muted ? 0 : masterVolume;
+            // bg + clip → master → (speakers + export destination)
+            bgGain.connect(masterGain);
+            clipGain.connect(masterGain);
+            masterGain.connect(audioCtx.destination);
+            masterGain.connect(audioDest);
+        } catch (_) { audioCtx = null; }
+    }
+    function applyMasterVolume() {
+        if (masterGain) masterGain.gain.value = muted ? 0 : masterVolume;
+    }
+    // connect a media element into a destination gain (once)
+    function connectEl(el, destGain, store) {
+        ensureAudio();
+        if (!audioCtx || store.node) return store.node || null;
+        try {
+            el.muted = false;          // unmute before connecting to Web Audio graph
+            const src = audioCtx.createMediaElementSource(el);
+            src.connect(destGain);
+            store.node = src;
+        } catch (_) {}
+        return store.node;
+    }
+
+    /* ---------- helpers ---------- */
+    function showLoading(msg) { els.loadingMsg.textContent = msg || '작업 중…'; els.loading.classList.add('show'); }
+    function hideLoading() { els.loading.classList.remove('show'); }
+    // show the overlay, let it paint, run the work, then hide
+    function withLoading(msg, work, doneMsg) {
+        showLoading(msg);
+        // two RAFs so the overlay actually paints before heavy work
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            try { work(); } finally {
+                hideLoading();
+                if (doneMsg) showToast(doneMsg);
+            }
+        }));
+    }
+
+    function showToast(msg, err) {
+        els.toast.textContent = msg;
+        els.toast.classList.toggle('err', !!err);
+        els.toast.classList.add('show');
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => els.toast.classList.remove('show'), 2400);
+    }
+    function fmt(s) {
+        if (!isFinite(s) || s < 0) s = 0;
+        const m = Math.floor(s / 60), ss = Math.floor(s % 60);
+        return m + ':' + (ss < 10 ? '0' : '') + ss;
+    }
+    function clipDuration(c) {
+        if (c.kind === 'video') return Math.max(0.1, c.end - c.start);
+        return Math.max(0.1, c.dur);  // image / title
+    }
+    function totalDuration() { return clips.reduce((s, c) => s + clipDuration(c), 0); }
+
+    // returns {clip, index, localTime} for a timeline time, or null
+    function clipAtTime(t) {
+        let acc = 0;
+        for (let i = 0; i < clips.length; i++) {
+            const d = clipDuration(clips[i]);
+            if (t < acc + d || i === clips.length - 1) {
+                return { clip: clips[i], index: i, localTime: Math.max(0, Math.min(d, t - acc)), startAt: acc, dur: d };
+            }
+            acc += d;
+        }
+        return null;
+    }
+    function clipStartTime(index) {
+        let acc = 0;
+        for (let i = 0; i < index; i++) acc += clipDuration(clips[i]);
+        return acc;
+    }
+
+    /* ---------- import media ---------- */
+    // recognize media even when the browser reports an empty/odd MIME type
+    const VIDEO_EXT = ['mp4', 'webm', 'mov', 'm4v', 'ogv', 'mkv', 'avi', 'wmv', 'flv', '3gp', 'mpg', 'mpeg', 'ts'];
+    const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'avif', 'svg'];
+    function extOf(name) { const m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
+    function kindOf(file) {
+        if (file.type.startsWith('video/')) return 'video';
+        if (file.type.startsWith('image/')) return 'image';
+        const e = extOf(file.name);
+        if (VIDEO_EXT.includes(e)) return 'video';
+        if (IMAGE_EXT.includes(e)) return 'image';
+        return null;
+    }
+
+    function importFiles(fileList) {
+        const files = Array.from(fileList || []);
+        let added = 0, skipped = 0;
+        files.forEach(file => {
+            const kind = kindOf(file);
+            if (!kind) { skipped++; return; }
+            added++;
+            const url = URL.createObjectURL(file);
+            const m = { id: uid++, kind, name: file.name, url, el: null, duration: 0, w: 0, h: 0, thumbs: [], playable: true, warned: false };
+            if (kind === 'video') {
+                const v = document.createElement('video');
+                v.preload = 'metadata'; v.muted = true; v.playsInline = true; v.src = url;
+                v.addEventListener('loadedmetadata', () => {
+                    m.duration = v.duration || 0; m.w = v.videoWidth; m.h = v.videoHeight;
+                    m.playable = true;
+                    renderMedia();
+                    extractThumbs(m);   // pull frame thumbnails in the background
+                });
+                // browser can't decode this format/codec (common for .avi)
+                v.addEventListener('error', () => markUnplayable(m));
+                // some browsers never fire metadata for unsupported files → time out
+                setTimeout(() => { if (!m.duration && !m.warned) markUnplayable(m); }, 4000);
+                m.el = v;
+            } else {
+                const img = new Image();
+                img.onload = () => { m.w = img.naturalWidth; m.h = img.naturalHeight; m.playable = true; renderMedia(); renderTrack(); };
+                img.onerror = () => markUnplayable(m);
+                img.src = url;
+                m.el = img;
+            }
+            media.push(m);
+        });
+        if (added) { renderMedia(); showToast(added + '개 미디어를 가져왔습니다' + (skipped ? (' · ' + skipped + '개 제외') : '')); }
+        else showToast('지원하는 미디어 파일이 없습니다', true);
+    }
+
+    // mark a media item as undecodable by this browser and warn the user
+    function markUnplayable(m) {
+        if (m.warned || m.duration) return;   // already handled or actually loaded
+        m.warned = true; m.playable = false;
+        renderMedia();
+        const ext = extOf(m.name).toUpperCase() || '이';
+        showToast(ext + ' 형식은 이 브라우저에서 재생할 수 없습니다 · MP4·WebM 권장', true);
+    }
+
+    // extract evenly-spaced frame thumbnails from a video (filmstrip source)
+    const THUMB_W = 96, THUMB_H = 54;
+    function extractThumbs(m) {
+        if (m.kind !== 'video' || !m.duration) return;
+        // one source frame roughly every 2.5s, clamped to a sane range
+        const count = Math.max(3, Math.min(16, Math.round(m.duration / 2.5)));
+        const grab = document.createElement('video');
+        grab.muted = true; grab.preload = 'auto'; grab.src = m.url; grab.crossOrigin = 'anonymous';
+        const cv = document.createElement('canvas'); cv.width = THUMB_W; cv.height = THUMB_H;
+        const gx = cv.getContext('2d');
+        const times = [];
+        for (let i = 0; i < count; i++) times.push((m.duration * (i + 0.5)) / count);
+        let idx = 0;
+        const thumbs = new Array(count).fill(null);
+        function seekNext() {
+            if (idx >= times.length) { m.thumbs = thumbs.filter(Boolean); renderMedia(); renderTrack(); return; }
+            try { grab.currentTime = Math.min(times[idx], Math.max(0, m.duration - 0.05)); } catch (_) { idx++; seekNext(); }
+        }
+        grab.addEventListener('loadeddata', () => { seekNext(); });
+        grab.addEventListener('seeked', () => {
+            try {
+                // letterbox the frame into the thumb
+                const sw = grab.videoWidth, sh = grab.videoHeight;
+                gx.fillStyle = '#000'; gx.fillRect(0, 0, THUMB_W, THUMB_H);
+                const scale = Math.max(THUMB_W / sw, THUMB_H / sh);
+                const dw = sw * scale, dh = sh * scale;
+                gx.drawImage(grab, (THUMB_W - dw) / 2, (THUMB_H - dh) / 2, dw, dh);
+                thumbs[idx] = cv.toDataURL('image/jpeg', 0.6);
+            } catch (_) {}
+            idx++;
+            seekNext();
+        });
+        grab.addEventListener('error', () => { m.thumbs = thumbs.filter(Boolean); });
+    }
+
+    function renderMedia() {
+        els.mediaEmpty.style.display = media.length ? 'none' : '';
+        // remove existing items (keep the empty placeholder)
+        els.mediaList.querySelectorAll('.media-item').forEach(n => n.remove());
+        media.forEach(m => {
+            const row = document.createElement('div');
+            row.className = 'media-item' + (m.id === selectedMediaId ? ' sel' : '') + (m.playable === false ? ' bad' : '');
+            row.dataset.id = m.id;
+            row.addEventListener('click', (e) => {
+                if (e.target.closest('.media-add') || e.target.closest('.media-del')) return;
+                selectedMediaId = (selectedMediaId === m.id) ? null : m.id;
+                els.mediaList.querySelectorAll('.media-item').forEach(n =>
+                    n.classList.toggle('sel', parseInt(n.dataset.id, 10) === selectedMediaId));
+                updateEditButtons();
+            });
+            const thumb = document.createElement('div');
+            thumb.className = 'media-thumb';
+            if (m.kind === 'image') {
+                const i = document.createElement('img'); i.src = m.url; thumb.appendChild(i);
+            } else {
+                const v = document.createElement('video'); v.src = m.url; v.muted = true; v.preload = 'metadata'; thumb.appendChild(v);
+            }
+            const badge = document.createElement('span');
+            badge.className = 'badge';
+            badge.textContent = m.kind === 'video' ? 'VIDEO' : 'IMG';
+            thumb.appendChild(badge);
+
+            const main = document.createElement('div');
+            main.className = 'media-main';
+            main.innerHTML = '<div class="media-name">' + escapeHtml(m.name) + '</div>' +
+                '<div class="media-meta">' + (m.playable === false
+                    ? '⚠ 재생 불가 (코덱 미지원)'
+                    : (m.kind === 'video' ? (m.duration ? fmt(m.duration) + ' · ' : '') : '사진 · ') +
+                      (m.w ? (m.w + '×' + m.h) : '…')) + '</div>';
+
+            const add = document.createElement('button');
+            add.className = 'media-add'; add.textContent = '＋ 담기';
+            add.addEventListener('click', () => addClipFromMedia(m.id));
+
+            const del = document.createElement('button');
+            del.className = 'media-del'; del.textContent = '×'; del.title = '라이브러리에서 제거';
+            del.addEventListener('click', () => removeMedia(m.id));
+
+            row.appendChild(thumb); row.appendChild(main); row.appendChild(add); row.appendChild(del);
+            els.mediaList.appendChild(row);
+        });
+    }
+
+    function removeMedia(id) {
+        const i = media.findIndex(m => m.id === id);
+        if (i === -1) return;
+        // also remove clips that referenced it
+        for (let j = clips.length - 1; j >= 0; j--) if (clips[j].mediaId === id) clips.splice(j, 1);
+        if (videoNodes[id]) { try { videoNodes[id].node && videoNodes[id].node.disconnect(); } catch (_) {} delete videoNodes[id]; }
+        try { URL.revokeObjectURL(media[i].url); } catch (_) {}
+        media.splice(i, 1);
+        renderMedia(); renderTrack(); refreshAfterChange();
+        showToast('미디어를 제거했습니다');
+    }
+
+    /* ---------- storyboard clips ---------- */
+    function addClipFromMedia(mediaId) {
+        const m = media.find(x => x.id === mediaId);
+        if (!m) return;
+        const c = {
+            id: uid++, mediaId: m.id, kind: m.kind, name: m.name,
+            start: 0, end: m.kind === 'video' ? (m.duration || 5) : 0,
+            dur: m.kind === 'image' ? 4 : 0, text: '', trans: 'cut'
+        };
+        clips.push(c);
+        renderTrack(); refreshAfterChange();
+        selectClip(c.id);
+        if (m.playable === false) showToast('추가됨 · 단, 이 형식은 재생/내보내기가 안 될 수 있습니다', true);
+        else showToast('스토리보드에 추가했습니다');
+    }
+
+    /* ---------- title clip modal ---------- */
+    let tmColor = '#f4f4f5', tmAlign = 'center', tmEditId = null;
+
+    function positionTitleModal() {
+        const modal = document.getElementById('titleModal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+    }
+
+    function updateTmPreview() {
+        const text = document.getElementById('tmText').value || '제목을 입력하세요';
+        const fs   = Math.max(10, parseInt(document.getElementById('tmFontSize').value) || 74);
+        const bgColor = document.getElementById('tmBgColor').value;
+        const bgAlpha = parseInt(document.getElementById('tmBgAlpha').value) / 100;
+        const box  = document.getElementById('tmPreviewBox');
+        const el   = document.getElementById('tmPreviewText');
+        // scale font to preview box (box ~280px wide, canvas 1280px wide → ratio)
+        const previewW = box.offsetWidth || 280;
+        const scale = previewW / 1280;
+        const scaledFs = Math.round(fs * scale);
+        el.textContent = text;
+        el.style.fontSize = scaledFs + 'px';
+        el.style.color = tmColor;
+        el.style.textAlign = tmAlign;
+        el.style.fontFamily = "'Bricolage Grotesque', sans-serif";
+        el.style.fontWeight = '800';
+        // convert hex+alpha to rgba
+        const r = parseInt(bgColor.slice(1,3),16), g = parseInt(bgColor.slice(3,5),16), b = parseInt(bgColor.slice(5,7),16);
+        box.style.background = 'rgba('+r+','+g+','+b+','+bgAlpha+')';
+    }
+
+    function openTitleModal(editClipId) {
+        tmEditId = editClipId || null;
+        const existing = tmEditId ? clips.find(c => c.id === tmEditId) : null;
+        // populate fields
+        document.getElementById('tmText').value    = existing ? (existing.text || '') : '제목을 입력하세요';
+        document.getElementById('tmFontSize').value = existing ? (existing.titleFontSize || 74) : 74;
+        document.getElementById('tmDur').value     = existing ? (existing.dur || 3) : 3;
+        tmColor = existing ? (existing.titleColor || '#f4f4f5') : '#f4f4f5';
+        tmAlign = existing ? (existing.titleAlign || 'center') : 'center';
+        document.getElementById('tmColorPicker').value = tmColor;
+        document.getElementById('tmBgColor').value = existing ? (existing.titleBg || '#000000') : '#000000';
+        document.getElementById('tmBgAlpha').value = existing ? Math.round((existing.titleBgAlpha ?? 1) * 100) : 100;
+        document.getElementById('tmBgAlphaVal').textContent = document.getElementById('tmBgAlpha').value + '%';
+        // sync swatches
+        document.querySelectorAll('.tm-swatch').forEach(s => s.classList.toggle('active', s.dataset.color === tmColor));
+        // sync align
+        document.querySelectorAll('.tm-align-btn').forEach(b => b.classList.toggle('active', b.dataset.align === tmAlign));
+        document.getElementById('titleModalBackdrop').classList.add('show');
+        positionTitleModal();
+        updateTmPreview();
+        document.getElementById('tmText').focus();
+    }
+
+    function closeTitleModal() {
+        document.getElementById('titleModalBackdrop').classList.remove('show');
+        document.getElementById('titleModal').style.display = 'none';
+        tmEditId = null;
+    }
+
+    function applyTitleModal() {
+        const text  = document.getElementById('tmText').value.trim() || '제목';
+        const fs    = Math.max(10, parseInt(document.getElementById('tmFontSize').value) || 74);
+        const dur   = Math.max(0.5, parseFloat(document.getElementById('tmDur').value) || 3);
+        const bg    = document.getElementById('tmBgColor').value;
+        const bgA   = parseInt(document.getElementById('tmBgAlpha').value) / 100;
+
+        if (tmEditId) {
+            const c = clips.find(x => x.id === tmEditId);
+            if (c) {
+                c.text = text; c.dur = dur;
+                c.titleFontSize = fs; c.titleColor = tmColor;
+                c.titleAlign = tmAlign; c.titleBg = bg; c.titleBgAlpha = bgA;
+            }
+        } else {
+            const c = {
+                id: uid++, mediaId: null, kind: 'title', name: '제목 클립',
+                start: 0, end: 0, dur, text, trans: 'fade',
+                titleFontSize: fs, titleColor: tmColor, titleAlign: tmAlign,
+                titleBg: bg, titleBgAlpha: bgA
+            };
+            clips.push(c);
+            renderTrack(); refreshAfterChange();
+            selectClip(c.id);
+        }
+        renderTrack(); refreshAfterChange();
+        if (!playing) drawAtTime(currentTime);
+        closeTitleModal();
+        showToast(tmEditId ? '제목 클립을 수정했습니다' : '제목 클립을 추가했습니다');
+    }
+
+    // modal event wiring
+    document.getElementById('tmClose').addEventListener('click', closeTitleModal);
+    document.getElementById('tmCancel').addEventListener('click', closeTitleModal);
+    document.getElementById('titleModalBackdrop').addEventListener('click', closeTitleModal);
+    document.getElementById('tmApply').addEventListener('click', applyTitleModal);
+
+    document.getElementById('tmText').addEventListener('input', updateTmPreview);
+    document.getElementById('tmFontSize').addEventListener('input', updateTmPreview);
+    document.getElementById('tmBgColor').addEventListener('input', updateTmPreview);
+    document.getElementById('tmBgAlpha').addEventListener('input', () => {
+        document.getElementById('tmBgAlphaVal').textContent = document.getElementById('tmBgAlpha').value + '%';
+        updateTmPreview();
+    });
+    document.getElementById('tmColorPicker').addEventListener('input', (e) => {
+        tmColor = e.target.value;
+        document.querySelectorAll('.tm-swatch').forEach(s => s.classList.remove('active'));
+        updateTmPreview();
+    });
+    document.querySelectorAll('.tm-swatch').forEach(sw => {
+        sw.addEventListener('click', () => {
+            tmColor = sw.dataset.color;
+            document.getElementById('tmColorPicker').value = tmColor;
+            document.querySelectorAll('.tm-swatch').forEach(s => s.classList.toggle('active', s === sw));
+            updateTmPreview();
+        });
+    });
+    document.querySelectorAll('.tm-align-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            tmAlign = btn.dataset.align;
+            document.querySelectorAll('.tm-align-btn').forEach(b => b.classList.toggle('active', b === btn));
+            updateTmPreview();
+        });
+    });
+
+
+    function addTitleClip() { openTitleModal(null); }
+
+    function removeClip(id) {
+        const i = clips.findIndex(c => c.id === id);
+        if (i === -1) return;
+        clips.splice(i, 1);
+        if (selectedClipId === id) selectedClipId = null;
+        renderTrack(); refreshAfterChange(); renderProps();
+    }
+    function moveClip(id, dir) {
+        const i = clips.findIndex(c => c.id === id);
+        if (i === -1) return;
+        const j = i + dir;
+        if (j < 0 || j >= clips.length) return;
+        const t = clips[i]; clips[i] = clips[j]; clips[j] = t;
+        renderTrack(); refreshAfterChange();
+    }
+
+    // pixels-per-second for the timeline (clip width is proportional to duration)
+    const PX_PER_SEC = 26;
+    const MIN_CLIP_PX = 70;
+    function clipPxWidth(c) { return Math.max(MIN_CLIP_PX, Math.round(clipDuration(c) * PX_PER_SEC)); }
+
+    function renderTrack() {
+        els.track.innerHTML = '';
+        if (!clips.length) {
+            const empty = document.createElement('div');
+            empty.className = 'track-empty';
+            empty.id = 'trackEmpty';
+            empty.textContent = '미디어 라이브러리에서 “담기”를 누르거나, 헤더의 “제목 클립”으로 텍스트 화면을 추가하세요.';
+            els.track.appendChild(empty);
+            els.trackEmpty = empty;
+            return;
+        }
+
+        // ruler (time ticks) sized to the full project width
+        const total = totalDuration();
+        const fullPx = clips.reduce((s, c) => s + clipPxWidth(c), 0);
+        const ruler = document.createElement('div');
+        ruler.className = 'tl-ruler';
+        ruler.style.width = fullPx + 'px';
+        // a tick every ~1s, but thin out if too dense
+        const stepSec = total > 40 ? 5 : (total > 16 ? 2 : 1);
+        for (let s = 0; s <= total + 0.001; s += stepSec) {
+            const tick = document.createElement('div');
+            tick.className = 'tl-tick';
+            tick.style.left = Math.round((s / total) * fullPx) + 'px';
+            tick.innerHTML = '<span class="tk-line"></span><span class="tk-lbl">' + fmt(s) + '</span>';
+            ruler.appendChild(tick);
+        }
+        els.track.appendChild(ruler);
+
+        // clip strip
+        const strip = document.createElement('div');
+        strip.className = 'tl-strip';
+        strip.style.width = fullPx + 'px';
+
+        clips.forEach((c, idx) => {
+            const div = document.createElement('div');
+            div.className = 'clip' + (c.id === selectedClipId ? ' selected' : '');
+            div.dataset.id = c.id;
+            div.style.width = clipPxWidth(c) + 'px';
+
+            // filmstrip body
+            const film = document.createElement('div');
+            film.className = 'clip-film';
+            const m = media.find(x => x.id === c.mediaId);
+            if (c.kind === 'image' && m) {
+                // image clip: repeat the still to fill the width
+                const slots = Math.max(1, Math.round(clipPxWidth(c) / 70));
+                for (let i = 0; i < slots; i++) {
+                    const im = document.createElement('img'); im.src = m.url; im.draggable = false; film.appendChild(im);
+                }
+            } else if (c.kind === 'video' && m) {
+                const thumbs = m.thumbs && m.thumbs.length ? m.thumbs : null;
+                if (thumbs) {
+                    // choose frames proportional to the clip's width
+                    const slots = Math.max(1, Math.round(clipPxWidth(c) / 70));
+                    for (let i = 0; i < slots; i++) {
+                        const frac = slots === 1 ? 0 : i / (slots - 1);
+                        const ti = Math.min(thumbs.length - 1, Math.round(frac * (thumbs.length - 1)));
+                        const im = document.createElement('img'); im.src = thumbs[ti]; im.draggable = false; film.appendChild(im);
+                    }
+                } else {
+                    film.classList.add('loading'); film.textContent = '프레임 추출 중…';
+                }
+            } else if (c.kind === 'title') {
+                film.classList.add('title-film');
+            }
+
+            // text / title overlay label
+            if (c.text) {
+                const t = document.createElement('div'); t.className = 'clip-ttl'; t.textContent = c.text; film.appendChild(t);
+            }
+
+            const idxBadge = document.createElement('span');
+            idxBadge.className = 'clip-idx';
+            const label = c.kind === 'title' ? 'T' : (c.kind === 'video' ? '▶' : '◭');
+            idxBadge.textContent = (idx + 1) + ' ' + label;
+            film.appendChild(idxBadge);
+
+            // move/delete controls — placed ABOVE the frame
+            const head = document.createElement('div');
+            head.className = 'clip-head';
+            head.innerHTML = '<button class="ctool" data-act="left" title="앞으로 이동">◀</button>' +
+                             '<button class="ctool" data-act="right" title="뒤로 이동">▶</button>' +
+                             '<button class="ctool del" data-act="del" title="삭제">×</button>';
+
+            // name + duration — placed BELOW the frame
+            const foot = document.createElement('div');
+            foot.className = 'clip-foot';
+            foot.innerHTML = '<span class="cf-name">' + escapeHtml(c.kind === 'title' ? (c.text || '제목') : c.name) + '</span>' +
+                '<span class="cf-dur">' + clipDuration(c).toFixed(1) + 's</span>';
+
+            div.appendChild(head); div.appendChild(film); div.appendChild(foot);
+
+            // transition marker on the right edge (except last)
+            if (idx < clips.length - 1 && c.trans !== 'cut') {
+                const tb = document.createElement('div');
+                tb.className = 'clip-trans';
+                tb.textContent = c.trans === 'fade' ? '⇢' : '⇒';
+                tb.title = '전환: ' + c.trans;
+                div.appendChild(tb);
+            }
+
+            strip.appendChild(div);
+        });
+
+        // playhead
+        const ph = document.createElement('div');
+        ph.className = 'tl-playhead'; ph.id = 'tlPlayhead';
+        strip.appendChild(ph);
+
+        els.track.appendChild(strip);
+        els.tlFullPx = fullPx;
+        updatePlayhead();
+    }
+
+    function updatePlayhead() {
+        const ph = document.getElementById('tlPlayhead');
+        if (!ph || !els.tlFullPx) return;
+        const total = totalDuration();
+        ph.style.left = (total > 0 ? (currentTime / total) * els.tlFullPx : 0) + 'px';
+    }
+
+    // map a click x (within the scrollable track) to a timeline time
+    function timeFromTrackX(clientX) {
+        const strip = els.track.querySelector('.tl-strip');
+        if (!strip || !els.tlFullPx) return 0;
+        const rect = strip.getBoundingClientRect();
+        const x = Math.max(0, Math.min(els.tlFullPx, clientX - rect.left));
+        return (x / els.tlFullPx) * totalDuration();
+    }
+
+    // delegated clicks on the track
+    els.track.addEventListener('click', (e) => {
+        const tool = e.target.closest('.ctool');
+        if (tool) {
+            e.stopPropagation();
+            const clipEl = e.target.closest('.clip');
+            const id = parseInt(clipEl.dataset.id, 10);
+            const act = tool.dataset.act;
+            if (act === 'del') removeClip(id);
+            else if (act === 'left') moveClip(id, -1);
+            else if (act === 'right') moveClip(id, +1);
+            return;
+        }
+        // any click on the timeline (ruler / strip / clip body) seeks to that time
+        const t = timeFromTrackX(e.clientX);
+        const at = clipAtTime(t);
+        if (at) selectClip(at.clip.id);
+        seekTo(t);
+    });
+
+    /* ---------- selection + properties ---------- */
+    let propsOpen = false;   // clip-properties panel visibility (toggled by the 속성 button)
+
+    function selectClip(id) {
+        selectedClipId = id;
+        els.track.querySelectorAll('.clip').forEach(el =>
+            el.classList.toggle('selected', parseInt(el.dataset.id, 10) === id));
+        renderProps();          // refresh fields; panel only shows if propsOpen
+        updateEditButtons();
+    }
+    function selectedClip() { return clips.find(c => c.id === selectedClipId) || null; }
+    function deselectClip() {
+        selectedClipId = null;
+        els.track.querySelectorAll('.clip').forEach(el => el.classList.remove('selected'));
+        renderProps();
+        updateEditButtons();
+    }
+    function toggleProps() {
+        if (!selectedClip()) { showToast('먼저 스토리보드에서 클립을 선택하세요', true); return; }
+        propsOpen = !propsOpen;
+        renderProps();
+        els.propsToggle.classList.toggle('active', propsOpen);
+    }
+    function closeProps() { propsOpen = false; renderProps(); els.propsToggle.classList.remove('active'); }
+    els.propsClose.addEventListener('click', closeProps);
+    els.propsToggle.addEventListener('click', toggleProps);
+
+    // enable/disable the timeline editing toolbar based on context
+    function updateEditButtons() {
+        const c = selectedClip();
+        if (!c && propsOpen) { propsOpen = false; els.props.hidden = true; }
+        els.propsToggle.classList.toggle('active', propsOpen && !!c);
+        const at = clipAtTime(currentTime);
+        const onSelected = c && at && at.clip.id === c.id;   // playhead inside the selected clip
+        els.propsToggle.disabled = !c;
+        els.setStartBtn.disabled = !(c && c.kind === 'video' && onSelected);
+        els.setEndBtn.disabled = !(c && c.kind === 'video' && onSelected);
+        // split: playhead strictly inside a clip (not at its very edges)
+        els.splitBtn.disabled = !(at && at.localTime > 0.05 && at.localTime < at.dur - 0.05);
+        els.insertBtn.disabled = !(selectedMediaId && clips.length >= 0);
+        els.delClipBtn.disabled = !c;
+    }
+
+    // ⇤ set the selected video clip's start to the playhead position
+    function setClipStart() {
+        const c = selectedClip(); if (!c || c.kind !== 'video') return;
+        const at = clipAtTime(currentTime); if (!at || at.clip.id !== c.id) return;
+        const newStart = c.start + at.localTime;
+        if (newStart >= c.end - 0.1) { showToast('종료 지점보다 앞이어야 합니다', true); return; }
+        const i = clips.indexOf(c);
+        const removedBefore = i;   // every clip before this one will be removed
+        withLoading('시작 지점 적용 · 이전 구간 삭제 중…', () => {
+            stop();
+            // delete all clips before the selected one
+            if (i > 0) clips.splice(0, i);
+            // trim the (now first) clip
+            c.start = Math.max(0, newStart);
+            // playhead to the very start of the project
+            currentTime = 0;
+            renderTrack(); renderProps(); refreshAfterChange();
+            selectClip(c.id);
+            seekTo(0);
+        }, removedBefore > 0 ? ('시작 지점 설정 · 앞쪽 ' + removedBefore + '개 클립 삭제') : '시작 지점을 설정했습니다');
+    }
+    // ⇥ set the selected video clip's end to the playhead position (delete clips after it)
+    function setClipEnd() {
+        const c = selectedClip(); if (!c || c.kind !== 'video') return;
+        const at = clipAtTime(currentTime); if (!at || at.clip.id !== c.id) return;
+        const newEnd = c.start + at.localTime;
+        if (newEnd <= c.start + 0.1) { showToast('시작 지점보다 뒤여야 합니다', true); return; }
+        const m = media.find(x => x.id === c.mediaId);
+        const i = clips.indexOf(c);
+        const removedAfter = clips.length - 1 - i;   // clips after this one
+        withLoading('종료 지점 적용 · 이후 구간 삭제 중…', () => {
+            stop();
+            // delete all clips after the selected one
+            if (i < clips.length - 1) clips.splice(i + 1);
+            // trim the (now last) clip
+            c.end = Math.min(newEnd, m && m.duration ? m.duration : newEnd);
+            c.trans = 'cut';   // it's the last clip now
+            renderTrack(); renderProps(); refreshAfterChange();
+            selectClip(c.id);
+            // clamp playhead inside the new total
+            seekTo(Math.min(currentTime, totalDuration()));
+        }, removedAfter > 0 ? ('종료 지점 설정 · 뒤쪽 ' + removedAfter + '개 클립 삭제') : '종료 지점을 설정했습니다');
+    }
+    // ✂ split the clip under the playhead into two
+    function splitAtPlayhead() {
+        const at = clipAtTime(currentTime);
+        if (!at || at.localTime <= 0.05 || at.localTime >= at.dur - 0.05) { showToast('자를 수 있는 위치가 아닙니다', true); return; }
+        const c = at.clip;
+        const i = clips.indexOf(c);
+        const left = Object.assign({}, c);
+        const right = Object.assign({}, c);
+        right.id = uid++; left.id = uid++;
+        if (c.kind === 'video') {
+            const cut = c.start + at.localTime;
+            left.start = c.start; left.end = cut;
+            right.start = cut; right.end = c.end;
+        } else {
+            left.dur = at.localTime;
+            right.dur = at.dur - at.localTime;
+            right.text = '';   // keep the title/caption only on the first half
+        }
+        left.trans = 'cut';    // no transition between the two halves
+        clips.splice(i, 1, left, right);
+        renderTrack(); refreshAfterChange();
+        selectClip(left.id);
+        showToast('클립을 둘로 나눴습니다');
+    }
+    // ⎀ insert the selected library media at the playhead (splitting if mid-clip)
+    function insertAtPlayhead() {
+        if (!selectedMediaId) { showToast('라이브러리에서 삽입할 미디어를 먼저 선택하세요', true); return; }
+        const m = media.find(x => x.id === selectedMediaId);
+        if (!m) return;
+        const newClip = {
+            id: uid++, mediaId: m.id, kind: m.kind, name: m.name,
+            start: 0, end: m.kind === 'video' ? (m.duration || 5) : 0,
+            dur: m.kind === 'image' ? 4 : 0, text: '', trans: 'cut'
+        };
+        let insertIndex;
+        const at = clipAtTime(currentTime);
+        if (!clips.length || !at) {
+            insertIndex = clips.length;
+        } else if (at.localTime <= 0.05) {
+            insertIndex = at.index;                 // at a boundary → before this clip
+        } else if (at.localTime >= at.dur - 0.05) {
+            insertIndex = at.index + 1;             // near the end → after this clip
+        } else {
+            // mid-clip → split, then insert between the halves
+            splitAtPlayhead();
+            const a2 = clipAtTime(currentTime);
+            insertIndex = a2 ? a2.index + 1 : clips.length;
+        }
+        clips.splice(insertIndex, 0, newClip);
+        renderTrack(); refreshAfterChange();
+        selectClip(newClip.id);
+        seekTo(clipStartTime(insertIndex));
+        showToast('재생헤드 위치에 삽입했습니다');
+    }
+
+    els.setStartBtn.addEventListener('click', setClipStart);
+    els.setEndBtn.addEventListener('click', setClipEnd);
+    els.splitBtn.addEventListener('click', splitAtPlayhead);
+    els.insertBtn.addEventListener('click', insertAtPlayhead);
+    els.delClipBtn.addEventListener('click', () => { if (selectedClipId != null) removeClip(selectedClipId); });
+
+
+    function renderProps() {
+        const c = selectedClip();
+        if (!c || !propsOpen) { els.props.hidden = true; return; }
+        els.props.hidden = false;
+        const m = media.find(x => x.id === c.mediaId);
+
+        if (c.kind === 'video') {
+            els.fieldStart.style.display = '';
+            els.endLabel.textContent = '끝 지점 (초)';
+            els.endHint.textContent = '동영상에서 재생을 멈출 지점 (최대 ' + (m && m.duration ? m.duration.toFixed(1) : '?') + 's)';
+            els.clipStart.value = c.start.toFixed(1);
+            els.clipEnd.value = c.end.toFixed(1);
+        } else {
+            els.fieldStart.style.display = 'none';
+            els.endLabel.textContent = '표시 시간 (초)';
+            els.endHint.textContent = c.kind === 'title' ? '제목 화면이 보이는 시간' : '사진이 보이는 시간';
+            els.clipEnd.value = c.dur.toFixed(1);
+        }
+        els.clipText.value = c.text || '';
+        els.transSeg.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.trans === c.trans));
+    }
+
+    els.clipStart.addEventListener('input', () => {
+        const c = selectedClip(); if (!c || c.kind !== 'video') return;
+        const m = media.find(x => x.id === c.mediaId);
+        let v = parseFloat(els.clipStart.value) || 0;
+        v = Math.max(0, Math.min(v, (c.end - 0.1)));
+        c.start = v; renderTrack(); refreshAfterChange();
+    });
+    els.clipEnd.addEventListener('input', () => {
+        const c = selectedClip(); if (!c) return;
+        let v = parseFloat(els.clipEnd.value) || 0.1;
+        if (c.kind === 'video') {
+            const m = media.find(x => x.id === c.mediaId);
+            const max = m && m.duration ? m.duration : v;
+            v = Math.max(c.start + 0.1, Math.min(v, max));
+            c.end = v;
+        } else {
+            v = Math.max(0.1, Math.min(v, 60));
+            c.dur = v;
+        }
+        renderTrack(); refreshAfterChange();
+    });
+    els.clipText.addEventListener('input', () => {
+        const c = selectedClip(); if (!c) return;
+        c.text = els.clipText.value;
+        renderTrack();
+        if (!playing) drawAtTime(currentTime);
+    });
+    els.transSeg.addEventListener('click', (e) => {
+        const b = e.target.closest('.seg-btn'); if (!b) return;
+        const c = selectedClip(); if (!c) return;
+        c.trans = b.dataset.trans;
+        els.transSeg.querySelectorAll('.seg-btn').forEach(x => x.classList.toggle('active', x === b));
+        renderTrack();
+    });
+
+    /* ---------- timeline meta + control state ---------- */
+    let currentTime = 0;
+    function refreshAfterChange() {
+        const total = totalDuration();
+        els.tlMeta.textContent = clips.length + '개 클립 · ' + fmt(total);
+        els.previewMeta.textContent = clips.length ? (clips.length + '개 클립 · ' + fmt(total)) : '스토리보드 비어 있음';
+        const has = clips.length > 0;
+        els.playBtn.disabled = !has;
+        els.prevBtn.disabled = !has;
+        els.nextBtn.disabled = !has;
+        els.seek.disabled = !has;
+        els.exportBtn.disabled = !has;
+        els.previewEmpty.classList.toggle('hide', has);
+        if (currentTime > total) currentTime = 0;
+        if (!playing) { drawAtTime(currentTime); updateSeekUI(); }
+        if (!has) { ctx.clearRect(0, 0, W, H); els.timeLabel.textContent = '0:00 / 0:00'; els.seek.value = 0; }
+        updateEditButtons();
+    }
+
+    /* ---------- rendering a frame at a given timeline time ---------- */
+    function drawBackground() { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
+    function drawImageFitted(srcEl, sw, sh, alpha, dx) {
+        if (!sw || !sh) return;
+        const scale = Math.min(W / sw, H / sh);
+        const dw = sw * scale, dh = sh * scale;
+        ctx.globalAlpha = alpha == null ? 1 : alpha;
+        ctx.drawImage(srcEl, (W - dw) / 2 + (dx || 0), (H - dh) / 2, dw, dh);
+        ctx.globalAlpha = 1;
+    }
+    function drawTitleText(text, alpha, clip) {
+        if (!text) return;
+        ctx.save();
+        ctx.globalAlpha = alpha == null ? 1 : alpha;
+        // background fill
+        const bgColor = (clip && clip.titleBg) || '#000000';
+        const bgAlpha = (clip && clip.titleBgAlpha != null) ? clip.titleBgAlpha : 1;
+        if (bgAlpha > 0) {
+            const r = parseInt(bgColor.slice(1,3),16), g = parseInt(bgColor.slice(3,5),16), b = parseInt(bgColor.slice(5,7),16);
+            ctx.fillStyle = 'rgba('+r+','+g+','+b+','+bgAlpha+')';
+            ctx.fillRect(0, 0, W, H);
+        }
+        const align = (clip && clip.titleAlign) || 'center';
+        const color = (clip && clip.titleColor) || '#f4f4f5';
+        const fs = clip && clip.titleFontSize ? clip.titleFontSize : Math.round(W * 0.058);
+        ctx.textAlign = align; ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 22;
+        ctx.fillStyle = color;
+        ctx.font = '800 ' + fs + "px 'Bricolage Grotesque', sans-serif";
+        const xBase = align === 'left' ? W * 0.07 : align === 'right' ? W * 0.93 : W / 2;
+        const maxW = W * 0.86; const words = text.split(/\s+/); const lines = []; let line = '';
+        words.forEach(w => {
+            const test = line ? line + ' ' + w : w;
+            if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test;
+        });
+        if (line) lines.push(line);
+        const lh = fs * 1.2;
+        const startY = H / 2 - (lines.length - 1) * lh / 2;
+        lines.forEach((ln, i) => ctx.fillText(ln, xBase, startY + i * lh));
+        ctx.restore();
+    }
+
+    function renderClipFrame(c, localTime, alpha, dx) {
+        const m = media.find(x => x.id === c.mediaId);
+        if (c.kind === 'image' && m && m.el) {
+            drawImageFitted(m.el, m.w, m.h, alpha, dx);
+            if (c.text) drawTitleText(c.text, alpha, c);
+        } else if (c.kind === 'video' && m && m.el) {
+            // seek the (hidden) video element to start+localTime for the frame
+            const target = c.start + localTime;
+            if (Math.abs(m.el.currentTime - target) > 0.08 && !m.el.seeking) {
+                try { m.el.currentTime = target; } catch (_) {}
+            }
+            if (m.w) drawImageFitted(m.el, m.w, m.h, alpha, dx);
+            if (c.text) drawTitleText(c.text, alpha, c);
+        } else if (c.kind === 'title') {
+            drawTitleText(c.text || '제목', alpha, c);
+        }
+    }
+
+    const TRANS_DUR = 0.6;
+    function drawAtTime(t) {
+        const total = totalDuration();
+        if (!clips.length) { ctx.clearRect(0, 0, W, H); return; }
+        t = Math.max(0, Math.min(t, total));
+        const at = clipAtTime(t);
+        if (!at) return;
+        drawBackground();
+
+        const c = at.clip;
+        const d = at.dur;
+        const remaining = d - at.localTime;
+
+        // outgoing transition into the NEXT clip
+        const next = clips[at.index + 1];
+        if (next && remaining < TRANS_DUR && c.trans !== 'cut') {
+            const p = 1 - remaining / TRANS_DUR;  // 0..1
+            if (c.trans === 'fade') {
+                renderClipFrame(c, at.localTime, 1 - p, 0);
+                renderClipFrame(next, 0, p, 0);
+            } else if (c.trans === 'slide') {
+                renderClipFrame(c, at.localTime, 1, -W * p);
+                renderClipFrame(next, 0, 1, W * (1 - p));
+            }
+        } else {
+            renderClipFrame(c, at.localTime, 1, 0);
+        }
+
+        // highlight playing clip in the track
+        els.track.querySelectorAll('.clip').forEach(el =>
+            el.classList.toggle('playing', parseInt(el.dataset.id, 10) === c.id));
+
+        currentTime = t;
+        els.timeLabel.textContent = fmt(t) + ' / ' + fmt(total);
+        updatePlayhead();
+        if (!playing) updateEditButtons();
+    }
+
+    function updateSeekUI() {
+        const total = totalDuration();
+        els.seek.value = total > 0 ? Math.round((currentTime / total) * 1000) : 0;
+    }
+
+    /* ---------- audio sync ---------- */
+    // ensure the right video's audio is routed + playing; pause others
+    function syncClipAudio(t) {
+        const at = clipAtTime(t);
+        const activeId = (at && at.clip.kind === 'video') ? at.clip.mediaId : null;
+        media.forEach(m => {
+            if (m.kind !== 'video' || !m.el) return;
+            if (m.id === activeId) {
+                if (!videoNodes[m.id]) { videoNodes[m.id] = {}; connectEl(m.el, clipGain, videoNodes[m.id]); }
+                if (playing && m.el.paused) m.el.play().catch(() => {});
+            } else if (!m.el.paused) {
+                m.el.pause();
+            }
+        });
+    }
+    // position + fade the background music for timeline time t
+    function syncBgMusic(t) {
+        if (!bgMusic.el) return;
+        const total = totalDuration();
+        // fade in/out over the first/last 1.5s of the project
+        let fade = 1;
+        if (fadeOn) {
+            const F = Math.min(1.5, total / 4 || 1.5);
+            if (t < F) fade = t / F;
+            else if (t > total - F) fade = Math.max(0, (total - t) / F);
+        }
+        if (bgGain) bgGain.gain.value = bgVolume * fade;
+        if (playing) {
+            // keep music aligned to the timeline (loop if shorter than project)
+            const md = bgMusic.duration || bgMusic.el.duration || 0;
+            const target = md ? (t % md) : t;
+            if (Math.abs(bgMusic.el.currentTime - target) > 0.25 && !bgMusic.el.seeking) {
+                try { bgMusic.el.currentTime = target; } catch (_) {}
+            }
+            if (bgMusic.el.paused) bgMusic.el.play().catch(() => {});
+        }
+    }
+
+    /* ---------- playback ---------- */
+    function tick() {
+        if (!playing) return;
+        const total = totalDuration();
+        const t = playAnchorTime + (performance.now() - playStartWall) / 1000;
+        if (t >= total) { stop(); seekTo(0); return; }
+        syncClipAudio(t);
+        syncBgMusic(t);
+        drawAtTime(t);
+        updateSeekUI();
+        rafId = requestAnimationFrame(tick);
+    }
+    function play() {
+        if (!clips.length) return;
+        if (currentTime >= totalDuration()) currentTime = 0;
+        ensureAudio();
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        playing = true;
+        playAnchorTime = currentTime;
+        playStartWall = performance.now();
+        els.playBtn.textContent = '⏸';
+        // start the current clip's video at the right frame
+        const at = clipAtTime(currentTime);
+        if (at && at.clip.kind === 'video') {
+            const m = media.find(x => x.id === at.clip.mediaId);
+            if (m && m.el) { try { m.el.currentTime = at.clip.start + at.localTime; } catch (_) {} }
+        }
+        syncClipAudio(currentTime);
+        syncBgMusic(currentTime);
+        rafId = requestAnimationFrame(tick);
+    }
+    function pauseAllVideos() { media.forEach(m => { if (m.kind === 'video' && m.el && !m.el.paused) m.el.pause(); }); }
+    function stop() {
+        playing = false;
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        pauseAllVideos();
+        if (bgMusic.el && !bgMusic.el.paused) bgMusic.el.pause();
+        els.playBtn.textContent = '▶';
+    }
+    function togglePlay() { if (playing) stop(); else play(); }
+    function seekTo(t) {
+        const total = totalDuration();
+        currentTime = Math.max(0, Math.min(t, total));
+        if (playing) { playAnchorTime = currentTime; playStartWall = performance.now(); }
+        pauseAllVideos();
+        if (bgMusic.el && !playing && !bgMusic.el.paused) bgMusic.el.pause();
+        drawAtTime(currentTime); updateSeekUI();
+    }
+
+    els.playBtn.addEventListener('click', togglePlay);
+    els.prevBtn.addEventListener('click', () => {
+        const at = clipAtTime(currentTime);
+        if (!at) return;
+        // if we're more than 0.4s into a clip, go to its start; else previous clip
+        const startThis = clipStartTime(at.index);
+        if (currentTime - startThis > 0.4 || at.index === 0) seekTo(startThis);
+        else seekTo(clipStartTime(at.index - 1));
+    });
+    els.nextBtn.addEventListener('click', () => {
+        const at = clipAtTime(currentTime);
+        if (!at) return;
+        if (at.index < clips.length - 1) seekTo(clipStartTime(at.index + 1));
+        else seekTo(totalDuration());
+    });
+    els.seek.addEventListener('input', () => {
+        const total = totalDuration();
+        seekTo((parseInt(els.seek.value, 10) / 1000) * total);
+    });
+
+    /* ---------- export (records canvas + mixed audio while it plays) ---------- */
+    let recorder = null;
+    function pickMime() {
+        // prefer MP4 (H.264/AAC) where supported, otherwise fall back to WebM
+        const candidates = [
+            'video/mp4;codecs=avc1,mp4a.40.2',
+            'video/mp4;codecs=h264,aac',
+            'video/mp4',
+            'video/webm;codecs=vp9,opus',
+            'video/webm;codecs=vp8,opus',
+            'video/webm'
+        ];
+        for (const m of candidates) {
+            if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) return m;
+        }
+        return '';
+    }
+    function exportVideo() {
+        if (!clips.length) return;
+        if (!els.canvas.captureStream || typeof MediaRecorder === 'undefined') {
+            showToast('이 브라우저는 녹화 내보내기를 지원하지 않습니다', true); return;
+        }
+        if (recorder) return;
+
+        ensureAudio();
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+        const mime = pickMime();
+        const isMp4 = mime.indexOf('mp4') !== -1;
+        const ext = isMp4 ? 'mp4' : 'webm';
+
+        // combine the canvas video track with the mixed-audio track
+        const stream = els.canvas.captureStream(30);
+        if (audioDest && audioDest.stream.getAudioTracks().length) {
+            audioDest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr));
+        }
+
+        const chunks = [];
+        try {
+            recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+        } catch (_) {
+            recorder = new MediaRecorder(stream);
+        }
+        recorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+        recorder.onstop = () => {
+            const type = (recorder && recorder.mimeType) ? recorder.mimeType : (isMp4 ? 'video/mp4' : 'video/webm');
+            const outExt = type.indexOf('mp4') !== -1 ? 'mp4' : 'webm';
+            const blob = new Blob(chunks, { type: type.split(';')[0] });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'movie_' + Date.now() + '.' + outExt;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 4000);
+            recorder = null;
+            els.exportBtn.textContent = '⬇ 영상 내보내기';
+            els.exportBtn.disabled = false;
+            showToast('내보내기 완료 · ' + outExt.toUpperCase() + ' 다운로드');
+        };
+
+        stop(); seekTo(0);
+        els.exportBtn.disabled = true;
+        els.exportBtn.textContent = '● 녹화 중…';
+        recorder.start();
+        play();
+        const total = totalDuration();
+        const watch = setInterval(() => {
+            if (!playing || currentTime >= total - 0.05) {
+                clearInterval(watch);
+                if (recorder && recorder.state !== 'inactive') recorder.stop();
+                stop();
+            }
+        }, 120);
+        showToast(isMp4 ? 'MP4로 녹화해 내보냅니다' : 'MP4 미지원 · WebM으로 내보냅니다');
+    }
+    els.exportBtn.addEventListener('click', exportVideo);
+
+    /* ---------- wiring: import + misc ---------- */
+    els.drop.addEventListener('click', () => els.fileInput.click());
+    els.fileInput.addEventListener('change', () => { if (els.fileInput.files.length) importFiles(els.fileInput.files); els.fileInput.value = ''; });
+    ['dragenter', 'dragover'].forEach(ev => els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(ev => els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.remove('over'); }));
+    els.drop.addEventListener('drop', e => { if (e.dataTransfer.files.length) importFiles(e.dataTransfer.files); });
+
+    els.addTitleBtn.addEventListener('click', addTitleClip);
+    els.clearBtn.addEventListener('click', () => {
+        if (!clips.length) return;
+        stop(); clips.length = 0; selectedClipId = null; currentTime = 0;
+        renderTrack(); renderProps(); refreshAfterChange();
+        showToast('스토리보드를 비웠습니다');
+    });
+
+    /* ---------- audio wiring ---------- */
+    function loadAudioFile(file) {
+        if (!file || !file.type.startsWith('audio/')) { showToast('오디오 파일을 선택하세요', true); return; }
+        ensureAudio();
+        if (bgMusic.url) { try { URL.revokeObjectURL(bgMusic.url); } catch (_) {} }
+        bgMusic.url = URL.createObjectURL(file);
+        const a = new Audio();
+        a.src = bgMusic.url; a.preload = 'auto'; a.loop = false;
+        a.addEventListener('loadedmetadata', () => {
+            bgMusic.duration = a.duration || 0;
+            els.audioMeta.textContent = (bgMusic.duration ? fmt(bgMusic.duration) + ' · ' : '') + '배경 음악';
+        });
+        bgMusic.el = a; bgMusic.name = file.name; bgMusic.node = null;
+        connectEl(a, bgGain, bgMusic);
+        els.audioName.textContent = file.name;
+        els.audioDrop.classList.add('loaded');
+        els.audioClear.style.display = '';
+        showToast('배경 음악을 추가했습니다');
+    }
+    function clearAudio() {
+        if (bgMusic.el) { try { bgMusic.el.pause(); } catch (_) {} }
+        if (bgMusic.url) { try { URL.revokeObjectURL(bgMusic.url); } catch (_) {} }
+        bgMusic = { el: null, url: null, name: '', node: null, duration: 0 };
+        els.audioName.textContent = '배경 음악 선택 / 끌어놓기';
+        els.audioMeta.textContent = '.mp3 · .wav · .m4a · .ogg';
+        els.audioDrop.classList.remove('loaded');
+        els.audioClear.style.display = 'none';
+        els.audioInput.value = '';
+    }
+    els.audioDrop.addEventListener('click', (e) => { if (e.target === els.audioClear) return; els.audioInput.click(); });
+    els.audioInput.addEventListener('change', () => { if (els.audioInput.files[0]) loadAudioFile(els.audioInput.files[0]); });
+    els.audioClear.addEventListener('click', (e) => { e.stopPropagation(); clearAudio(); });
+    ['dragenter', 'dragover'].forEach(ev => els.audioDrop.addEventListener(ev, e => { e.preventDefault(); els.audioDrop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(ev => els.audioDrop.addEventListener(ev, e => { e.preventDefault(); els.audioDrop.classList.remove('over'); }));
+    els.audioDrop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadAudioFile(f); });
+
+    els.bgVol.addEventListener('input', () => {
+        bgVolume = parseInt(els.bgVol.value, 10) / 100;
+        els.bgVolVal.textContent = els.bgVol.value + '%';
+        if (bgGain) bgGain.gain.value = bgVolume;   // fade re-applies on next tick
+    });
+    els.clipVol.addEventListener('input', () => {
+        clipVolume = parseInt(els.clipVol.value, 10) / 100;
+        els.clipVolVal.textContent = els.clipVol.value + '%';
+        if (clipGain) clipGain.gain.value = clipVolume;
+    });
+    els.fadeSwitch.addEventListener('click', () => {
+        fadeOn = !fadeOn;
+        els.fadeSwitch.classList.toggle('on', fadeOn);
+        els.fadeSwitch.setAttribute('aria-checked', fadeOn);
+    });
+
+    /* ---------- preview master volume ---------- */
+    els.volSlider.addEventListener('input', () => {
+        masterVolume = parseInt(els.volSlider.value, 10) / 100;
+        els.volVal.textContent = els.volSlider.value + '%';
+        if (masterVolume > 0 && muted) { muted = false; els.muteBtn.classList.remove('muted'); els.muteBtn.textContent = '🔊'; }
+        applyMasterVolume();
+    });
+    els.muteBtn.addEventListener('click', () => {
+        muted = !muted;
+        els.muteBtn.classList.toggle('muted', muted);
+        els.muteBtn.textContent = muted ? '🔇' : (masterVolume < 0.5 ? '🔉' : '🔊');
+        applyMasterVolume();
+    });
+
+    function escapeHtml(s) {
+        return (s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // init
+    renderMedia(); renderTrack(); renderProps(); refreshAfterChange();
+    drawBackground();
+})();
+</script>
+</body>
+</html>
