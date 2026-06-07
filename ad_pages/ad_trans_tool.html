@@ -21,15 +21,22 @@
         height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         -webkit-font-smoothing: antialiased; font-synthesis: none;
     }
-    .wrap { flex: 1; min-height: 0; padding: 26px 5% 18px 5%; display: flex; flex-direction: column; gap: 12px; }
+    .wrap { flex: 1; min-height: 0; padding: 16px 5% 18px 5%; display: flex; flex-direction: column; gap: 12px; }
 
-    .topbar { display: flex; justify-content: flex-end; align-items: center; flex-shrink: 0; }
-    .model-state { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--gray-light); display: flex; align-items: center; gap: 8px; }
-    .model-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-light); flex-shrink: 0; }
-    .model-dot.loading { background: var(--amber); animation: pulse 1.2s infinite; }
-    .model-dot.ready { background: var(--ok); }
-    .model-dot.err { background: var(--err); }
-    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+    /* ── Page Header ── */
+    .page-header {
+        display: flex; align-items: center;
+        padding: 0 5%; height: 52px; min-height: 52px;
+        border-bottom: 1px solid var(--line); flex-shrink: 0;
+        background: var(--bg);
+    }
+    .page-title {
+        font-family: 'DM Mono', monospace; font-size: 1.8rem; font-weight: 600;
+        letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft);
+    }
+    .page-title span { color: var(--rose); }
+
+
 
     /* 3 columns: image | vertical progress | result */
     .cols { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 26px 1fr; gap: 22px; }
@@ -80,14 +87,11 @@
 </head>
 <body>
 
-<div class="wrap">
-    <div class="topbar">
-        <div class="model-state">
-            <span class="model-dot" id="modelDot"></span>
-            <span id="modelText">번역 엔진 대기 중</span>
-        </div>
-    </div>
+<header class="page-header">
+    <div class="page-title">Eng_Img <span>to</span> Korean</div>
+</header>
 
+<div class="wrap">
     <div class="cols">
         <!-- LEFT: image -->
         <div class="col">
@@ -144,6 +148,7 @@
     </div>
 </div>
 
+<script>window.__skipPCNavbar = true;</script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="ad_common.js"></script>
 <script>
@@ -189,8 +194,8 @@ function setProg(show, text, pct) {
     if (pct != null) els.vprogFill.style.height = Math.max(0, Math.min(100, pct)) + '%';
 }
 function setModel(state, text) {
-    els.modelDot.className = 'model-dot' + (state ? ' ' + state : '');
-    els.modelText.textContent = text;
+    if (els.modelDot) els.modelDot.className = 'model-dot' + (state ? ' ' + state : '');
+    if (els.modelText) els.modelText.textContent = text;
 }
 function escapeHtml(s) {
     return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
