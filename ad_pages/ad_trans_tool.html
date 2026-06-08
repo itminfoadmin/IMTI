@@ -80,12 +80,41 @@
     .result-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
     .result-empty .big { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.3rem; color: var(--gray-light); }
     .result-empty .sm { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--gray-light); max-width: 320px; line-height: 1.8; }
+    /* ── Screen Capture Overlay ── */
+    #captureOverlay {
+        display: none; position: fixed; inset: 0; z-index: 99999;
+        cursor: crosshair;
+    }
+    #captureOverlay.active { display: block; }
+    #captureCanvas {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+    }
+    #captureSelection {
+        position: absolute; border: 2px solid var(--rose);
+        box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
+        pointer-events: none;
+    }
+    #captureHint {
+        position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+        background: var(--ink); color: #fff;
+        font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em;
+        padding: 8px 18px; border-radius: 3px; pointer-events: none;
+        white-space: nowrap;
+    }
+
     .res-ko { font-family: 'Gowun Batang', serif; font-size: 1.08rem; font-weight: 700; color: var(--ink); line-height: 2; white-space: pre-wrap; }
     .res-ko[contenteditable="true"] { outline: none; background: #fffef8; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--amber); padding: 8px 10px; }
     .res-run { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--amber); }
 </style>
 </head>
 <body>
+
+<!-- Screen Capture Overlay -->
+<div id="captureOverlay">
+    <canvas id="captureCanvas"></canvas>
+    <div id="captureSelection" style="display:none"></div>
+    <div id="captureHint">드래그하여 캡쳐할 영역을 선택하세요 &nbsp;·&nbsp; ESC 취소</div>
+</div>
 
 <header class="page-header">
     <div class="page-title">Eng_Img <span>to</span> Korean</div>
@@ -100,6 +129,7 @@
                 <span class="status-msg" id="statusMsgL"></span>
                 <span class="head-spacer"></span>
                 <div class="btns">
+                    <button class="btn" id="captureBtn">이미지 캡쳐</button>
                     <button class="btn" id="pasteBtn">붙여넣기</button>
                     <button class="btn" id="pauseBtn" disabled>멈춤</button>
                     <button class="btn ghost" id="imgZoomOutBtn" disabled>&minus; 이미지</button>
@@ -569,6 +599,125 @@ async function pasteFromButton() {
         setStatusL('클립보드 접근 거부됨 · Ctrl+V 로 붙여넣기', 'err');
     }
 }
+els.captureBtn = document.getElementById('captureBtn');
+
+// ── Screen Capture ──────────────────────────────────────────────
+(function() {
+    const overlay   = document.getElementById('captureOverlay');
+    const canvas    = document.getElementById('captureCanvas');
+    const selection = document.getElementById('captureSelection');
+    const hint      = document.getElementById('captureHint');
+    const ctx       = canvas.getContext('2d');
+
+    let stream = null, videoEl = null;
+    let dragging = false, sx = 0, sy = 0;
+
+    function stopStream() {
+        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        videoEl = null;
+    }
+
+    function closeOverlay() {
+        overlay.classList.remove('active');
+        selection.style.display = 'none';
+        stopStream();
+    }
+
+    async function startCapture() {
+        if (busy) return;
+        try {
+            stream = await navigator.mediaDevices.getDisplayMedia({
+                video: { cursor: 'always' }, audio: false
+            });
+        } catch (e) {
+            setStatusL('화면 공유가 취소되었습니다', 'err');
+            setTimeout(clearStatusL, 2000);
+            return;
+        }
+
+        // Draw the captured frame onto the overlay canvas
+        videoEl = document.createElement('video');
+        videoEl.srcObject = stream;
+        videoEl.muted = true;
+        await videoEl.play();
+
+        // Wait one frame so the video has content
+        await new Promise(r => requestAnimationFrame(r));
+        await new Promise(r => requestAnimationFrame(r));
+
+        canvas.width  = window.screen.width;
+        canvas.height = window.screen.height;
+        canvas.style.width  = '100vw';
+        canvas.style.height = '100vh';
+
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        stopStream(); // screen share can stop now
+
+        overlay.classList.add('active');
+        setStatusL('영역을 드래그하여 선택하세요');
+    }
+
+    // Drag to select region
+    overlay.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        dragging = true;
+        sx = e.clientX; sy = e.clientY;
+        selection.style.cssText = `display:block; left:${sx}px; top:${sy}px; width:0; height:0;`;
+        e.preventDefault();
+    });
+
+    overlay.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const x = Math.min(e.clientX, sx), y = Math.min(e.clientY, sy);
+        const w = Math.abs(e.clientX - sx), h = Math.abs(e.clientY - sy);
+        selection.style.left   = x + 'px';
+        selection.style.top    = y + 'px';
+        selection.style.width  = w + 'px';
+        selection.style.height = h + 'px';
+    });
+
+    overlay.addEventListener('mouseup', (e) => {
+        if (!dragging) return;
+        dragging = false;
+
+        const x = Math.min(e.clientX, sx), y = Math.min(e.clientY, sy);
+        const w = Math.abs(e.clientX - sx), h = Math.abs(e.clientY - sy);
+
+        if (w < 8 || h < 8) { closeOverlay(); clearStatusL(); return; }
+
+        // Scale from CSS pixels to actual canvas pixels
+        const scaleX = canvas.width  / window.innerWidth;
+        const scaleY = canvas.height / window.innerHeight;
+
+        const crop = document.createElement('canvas');
+        crop.width  = Math.round(w * scaleX);
+        crop.height = Math.round(h * scaleY);
+        crop.getContext('2d').drawImage(
+            canvas,
+            Math.round(x * scaleX), Math.round(y * scaleY),
+            crop.width, crop.height,
+            0, 0, crop.width, crop.height
+        );
+
+        closeOverlay();
+        clearStatusL();
+
+        crop.toBlob(blob => {
+            if (blob) process(URL.createObjectURL(blob));
+        }, 'image/png');
+    });
+
+    // ESC to cancel
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) {
+            closeOverlay(); clearStatusL();
+        }
+    });
+
+    els.captureBtn.addEventListener('click', startCapture);
+})();
+// ────────────────────────────────────────────────────────────────
+
 els.pasteBtn.addEventListener('click', pasteFromButton);
 
 window.addEventListener('paste', (e) => {
