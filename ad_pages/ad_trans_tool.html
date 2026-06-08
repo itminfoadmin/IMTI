@@ -7,7 +7,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=Gowun+Batang:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="ad_common.css">
+<style>
+    /* ad_common.css stubs — standalone fallback */
+    .model-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--gray-light); margin-right:6px; vertical-align:middle; }
+    .model-dot.ready { background:var(--ok); }
+    .model-dot.loading { background:var(--amber); }
+    .model-dot.err { background:var(--err); }
+    #modelStatus { font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--gray); display:flex; align-items:center; }
+</style>
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -118,6 +125,8 @@
 
 <header class="page-header">
     <div class="page-title">Eng_Img <span>to</span> Korean</div>
+    <span style="flex:1"></span>
+    <span id="modelStatus"><span class="model-dot" id="modelDot"></span><span id="modelText">초기화 중…</span></span>
 </header>
 
 <div class="wrap">
@@ -178,11 +187,9 @@
     </div>
 </div>
 
-<script>window.__skipPCNavbar = true;</script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="ad_common.js"></script>
 <script>
-window.__pageInit = function() {
+(function() {
 
 const els = {
     pasteBtn: document.getElementById('pasteBtn'),
@@ -810,7 +817,7 @@ els.resetBtn.addEventListener('click', () => {
 // Online translation engine needs no download — show ready immediately.
 loadModel();
 
-}; // end window.__pageInit
+})(); // standalone init
 </script>
 </body>
 </html>
