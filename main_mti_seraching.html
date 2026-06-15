@@ -639,13 +639,15 @@
     var selectedResult = null;
 
     function buildResultDropdown() {
-        var dd = document.getElementById('dd-result');
-        if (!dd) return;
+        var oldDd = document.getElementById('dd-result');
+        if (!oldDd) return;
+
+        var dd = oldDd.cloneNode(false); 
+        oldDd.parentNode.replaceChild(dd, oldDd); 
 
         var s   = filterState;
         var any = s.domain || s.orientation || s.competency || s.participants;
 
-        // __ALL__ means filter was visited but no value selected
         var domainFilter      = (s.domain       && s.domain       !== '__ALL__') ? s.domain       : null;
         var orientationFilter = (s.orientation  && s.orientation  !== '__ALL__') ? s.orientation  : null;
         var competencyFilter  = (s.competency   && s.competency   !== '__ALL__') ? s.competency   : null;
@@ -660,19 +662,13 @@
             if (pIds && !pIds.includes(r.mtiId))                          return false;
             return true;
         });
+    
         var models = matched.map(function(r) { return r.model; })
             .filter(function(m, i, a) { return m && a.indexOf(m) === i; })
             .sort(function(a, b) { return a.localeCompare(b, 'ko'); });
 
         var ri = document.getElementById('filter-result');
         if (ri) ri.classList.toggle('has-results', any && models.length > 0);
-
-        // Reset selected MTI when filters change
-        if (selectedResult) {
-            selectedResult = null;
-            var labelResult = document.getElementById('label-result');
-            if (labelResult) labelResult.classList.remove('active');
-        }
 
         var nameEl = document.getElementById('result-model-name');
         if (nameEl) {
@@ -681,10 +677,15 @@
             else                     { nameEl.textContent = '✔ [' + models.length + '] 건의 MTI가 검색되었습니다. 🖱️ Click!'; nameEl.classList.add('has-count'); }
         }
 
-        if (!any)           { dd.innerHTML = '<div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;">먼저 조건을 선택해주세요.</div>'; return; }
-        if (!models.length) { dd.innerHTML = '<div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;">조건에 해당하는 수업 모형(MTI)이 없습니다.</div>'; return; }
+        if (!any) { 
+            dd.innerHTML = '<div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;">먼저 조건을 선택해주세요.</div>'; 
+            return; 
+        }
+        if (!models.length) { 
+            dd.innerHTML = '<div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;">조건에 해당하는 수업 모형(MTI)이 없습니다.</div>'; 
+            return; 
+        }
 
-        dd.innerHTML = '';
         models.forEach(function(name) {
             var item        = document.createElement('div');
             item.className  = 'dropdown-item' + (selectedResult === name ? ' selected' : '');
@@ -698,8 +699,7 @@
             item.onmouseenter = function() { if (MODEL_URL[name]) prefetchIframe(MODEL_URL[name]); };
             dd.appendChild(item);
         });
-
-        // Auto-prefetch when only one result
+    
         if (models.length === 1 && MODEL_URL[models[0]]) prefetchIframe(MODEL_URL[models[0]]);
     }
 
@@ -737,7 +737,7 @@
         var lb     = document.getElementById(labelId);
         var isOpen = dd.classList.contains('open');
         closeAllDropdowns();
-        if (!isOpen) { dd.classList.add('open'); if (lb) lb.classList.add('open'); }
+        if (!isOpen) { dd.classList.add('open'); if (lb) lb.classList.add('open');}
     }
 
     function closeAllDropdowns() {
