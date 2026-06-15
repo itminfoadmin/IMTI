@@ -988,51 +988,99 @@
 </script>
 
 <script>
-    function openPopup(type) {
-        var modelName = selectedResult || document.getElementById('result-model-name').textContent.trim();
+        function openPopup(type) {
 
-        if (type === 'exp-write') {
-            if (!modelName) { imtiOpenModal('modal-exp-nomodel'); return; }
-            var em = document.getElementById('exp-model');
-            if (em) em.value = modelName;
-            var uid = document.getElementById('exp-userid-display');
-            if (uid) uid.textContent = sessionStorage.getItem('imti_user_id') || '—';
-            ['exp-participants','exp-subcontent','exp-merit','exp-demerit','exp-etc'].forEach(function(id) {
-                var el = document.getElementById(id); if (el) el.value = '';
-            });
-            imtiOpenModal('modal-exp-write');
-
-        } else if (type === 'spread') {
-            if (!modelName) { imtiOpenModal('modal-spread-noselect'); return; }
-
-            // Resolve mtiId from sheet data
-            var mr    = sheetRows.find(function(r) { return r.model === modelName; });
-            var mtiId = '';
-            if (mr) {
-                mtiId = mr.mtiId || mr.mti_id || mr.mtiID || mr.MTI_ID || mr.id || '';
-                if (!mtiId) {
-                    Object.keys(mr).forEach(function(k) {
-                        if (k.toLowerCase().replace(/_/g,'').indexOf('mtiid') !== -1 && !mtiId)
-                            mtiId = mr[k] || '';
-                    });
+                if (!selectedResult) {
+                        if (type === 'exp-write') {
+                                imtiOpenModal('modal-exp-nomodel');
+                        } else if (type === 'spread') {
+                                imtiOpenModal('modal-spread-noselect');
+                        }
+                        return;
                 }
-            }
 
-            var bm = document.getElementById('board-model-meta');
-            if (bm) bm.textContent = '이 수업 모형(MTI)을 직접 적용한 사례와 경험들입니다.';
+                var modelName = selectedResult;
 
-            imtiOpenModal('modal-spread-board');
-            showBoardLoading(true);
-            fetchExpSurveyData(mtiId, function(entries) {
+                if (type === 'exp-write') {
+
+                        var em = document.getElementById('exp-model');
+                        if (em) em.value = modelName;
+
+                        var uid = document.getElementById('exp-userid-display');
+                        if (uid) uid.textContent = sessionStorage.getItem('imti_user_id') || '—';
+
+                         [
+                                'exp-participants',
+                                'exp-subcontent',
+                                'exp-merit',
+                                'exp-demerit',
+                                'exp-etc'
+                         ].forEach(function(id) {
+                                var el = document.getElementById(id);
+                                if (el) el.value = '';
+                        });
+
+                        imtiOpenModal('modal-exp-write');
+
+                } else if (type === 'spread') {
+
+                        var mr = sheetRows.find(function(r) {
+                        return r.model === modelName;
+                });
+
+                var mtiId = '';
+
+                if (mr) {
+                        mtiId =
+                                mr.mtiId ||
+                                mr.mti_id ||
+                                mr.mtiID ||
+                                mr.MTI_ID ||
+                                mr.id ||
+                                '';
+
+                        if (!mtiId) {
+                                Object.keys(mr).forEach(function(k) {
+                                        if (
+                                                k.toLowerCase().replace(/_/g, '').indexOf('mtiid') !== -1 &&
+                                                !mtiId
+                                        ) {
+                                                mtiId = mr[k] || '';
+                                         }
+                                 });
+                         }
+                }
+
+                var bm = document.getElementById('board-model-meta');
+                if (bm) {
+                        bm.textContent =
+                                 '이 수업 모형(MTI)을 직접 적용한 사례와 경험들입니다.';
+                 }
+
+                 imtiOpenModal('modal-spread-board');
+                showBoardLoading(true);
+
+                fetchExpSurveyData(mtiId, function(entries) {
+
                 showBoardLoading(false);
-                if (!entries || !entries.length) { imtiCloseModal('modal-spread-board'); imtiOpenModal('modal-spread-noexist'); return; }
-                entries.sort(function(a, b) { return new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0); });
-                boardAllEntries  = entries;
+
+                if (!entries || !entries.length) {
+                        imtiCloseModal('modal-spread-board');
+                        imtiOpenModal('modal-spread-noexist');
+                        return;
+                }
+
+                entries.sort(function(a, b) {
+                        return new Date(b.timestamp || b.date || 0)
+                                - new Date(a.timestamp || a.date || 0);
+                });
+
+                boardAllEntries = entries;
                 boardCurrentPage = 1;
                 renderBoardPage(1);
-            });
-        }
-    }
+                });
+	}
+}
 
     function showBoardLoading(show) {
         var ld = document.getElementById('board-loading');
