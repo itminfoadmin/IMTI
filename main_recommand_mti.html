@@ -727,25 +727,26 @@ function goto(s){
 
 function scoreModel(m){
   let score=0,max=0; const hits={domain:false,orient:false,part:false,comps:[]};
-  max+=45; if(state.domain&&m.domain===state.domain){score+=45;hits.domain=true;}
-  max+=20;
-  if(!state.participants){ score+=10; }
+  // 우선순위: 영역(35) > 대상(30) > 지향(25) > 역량(15)
+  max+=35; if(state.domain&&m.domain===state.domain){score+=35;hits.domain=true;}
+  max+=30;
+  if(!state.participants){ score+=15; }
   else{
-    score += 20*groupAffinity('participants', state.participants, m.participants);
+    score += 30*groupAffinity('participants', state.participants, m.participants);
     if(m.participants.includes(state.participants)) hits.part=true; // 완전 일치만 태그 표시
   }
-  max+=15;
-  if(!state.orientation){ score+=7.5; }
+  max+=25;
+  if(!state.orientation){ score+=12.5; }
   else{
-    score += 15*groupAffinity('orientation', state.orientation, [m.orientation]);
+    score += 25*groupAffinity('orientation', state.orientation, [m.orientation]);
     if(m.orientation===state.orientation) hits.orient=true;
   }
-  max+=20;
-  if(state.competencies.length===0){ score+=10; }
+  max+=15;
+  if(state.competencies.length===0){ score+=7.5; }
   else{
     let sum=0;
     state.competencies.forEach(sel=>{ sum += groupAffinity('competencies', sel, m.competencies); });
-    score += 20*(sum/state.competencies.length);
+    score += 15*(sum/state.competencies.length);
     hits.comps = m.competencies.filter(c=>state.competencies.includes(c)); // 완전 일치만 태그 표시
   }
   return {pct:Math.round(score/max*100),hits};
@@ -755,12 +756,17 @@ function renderResults(){
   const cc=document.getElementById('choiceChips'); cc.innerHTML='';
   const chip=(t,e)=>{const s=document.createElement('span');s.className='chip'+(e?' empty':'');s.textContent=t;cc.appendChild(s);};
   chip('영역 · '+(state.domain||'전체'),!state.domain);
-  chip('지향 · '+(state.orientation||'무관'),!state.orientation);
   chip('대상 · '+(state.participants||'무관'),!state.participants);
+  chip('지향 · '+(state.orientation||'무관'),!state.orientation);
   if(state.competencies.length) state.competencies.forEach(c=>chip('역량 · '+c));
   else chip('역량 · 무관',true);
 
-  const ranked=MODELS.map(m=>({m,...scoreModel(m)})).sort((a,b)=>b.pct-a.pct);
+  const ranked=MODELS.map(m=>{
+      const r={m,...scoreModel(m)};
+      // 우선순위(영역>대상>지향>역량)에 따라 가중치를 둔 일치 점수
+      r.matchCount = (r.hits.domain?1000:0) + (r.hits.part?100:0) + (r.hits.orient?10:0) + (r.hits.comps?r.hits.comps.length:0);
+      return r;
+    }).sort((a,b)=> (b.matchCount-a.matchCount) || (b.pct-a.pct));
   const box=document.getElementById('results'); box.innerHTML='';
   const matched=ranked.filter(r=>r.pct>=60);
   const visible=matched.length>=20?matched.slice(0,20):matched;
@@ -771,8 +777,8 @@ function renderResults(){
     // 사용자가 선택한 조건과 실제로 매칭된 태그만 표시
     const tags=[
       r.hits.domain && m.domain ? '<span class="tag hit">'+esc(m.domain)+'</span>' : '',
-      r.hits.orient && m.orientation ? '<span class="tag hit">'+esc(m.orientation)+'</span>' : '',
       ...(r.hits.part && state.participants ? ['<span class="tag hit">'+esc(state.participants)+'</span>'] : []),
+      r.hits.orient && m.orientation ? '<span class="tag hit">'+esc(m.orientation)+'</span>' : '',
       ...r.hits.comps.map(c=>'<span class="tag hit">'+esc(c)+'</span>')
     ].filter(Boolean).join('');
     const doc=m.docsUrl
