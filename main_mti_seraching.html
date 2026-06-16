@@ -663,9 +663,22 @@
             return true;
         });
     
+        var MTI_PREFIX_ORDER = ['CS', 'DT', 'AR', 'PG', 'AI', 'DC'];
+        function mtiPrefixRank(name) {
+            var m = /^\s*\[([^\]]+)\]/.exec(name);
+            if (m) {
+                var idx = MTI_PREFIX_ORDER.indexOf(m[1].trim().toUpperCase());
+                if (idx !== -1) return idx;
+            }
+            return MTI_PREFIX_ORDER.length; // unknown/no prefix goes last
+        }
         var models = matched.map(function(r) { return r.model; })
             .filter(function(m, i, a) { return m && a.indexOf(m) === i; })
-            .sort(function(a, b) { return a.localeCompare(b, 'ko'); });
+            .sort(function(a, b) {
+                var ra = mtiPrefixRank(a), rb = mtiPrefixRank(b);
+                if (ra !== rb) return ra - rb;
+                return a.localeCompare(b, 'ko');
+            });
 
         var ri = document.getElementById('filter-result');
         if (ri) ri.classList.toggle('has-results', any && models.length > 0);
@@ -696,18 +709,19 @@
                 : '';
             item.innerHTML  = numTag + '<span>' + displayName + '</span>';
             item.onclick     = function() { selectResult(name); };
-            item.onmouseenter = function() { if (MODEL_URL[name]) prefetchIframe(MODEL_URL[name]); };
+            item.onmouseenter = function() { prefetchOnHover(MODEL_URL[name]); };
+            item.onmouseleave = function() { cancelHoverPrefetch(MODEL_URL[name]); };
             dd.appendChild(item);
         });
     
         if (models.length === 1 && MODEL_URL[models[0]]) prefetchIframe(MODEL_URL[models[0]]);
     }
 
-    function selectResult(name) {
-        selectedResult  = name;
-        var displayName = name.replace(/\s*\([^)]*영역\)\s*$/, '').trim();
-
+    // Render the selected model's name into the result label.
+    function renderSelectedResultLabel(name) {
         var nameEl = document.getElementById('result-model-name');
+        if (!nameEl) return;
+        var displayName = name.replace(/\s*\([^)]*영역\)\s*$/, '').trim();
         if (MODEL_NUM[name]) {
             nameEl.innerHTML = '✔ &nbsp <span style="display:none;font-family:\'Noto Sans KR\',sans-serif;font-size:0.88rem;font-weight:700;color:#6a6868;margin-right:4px;">[' + MODEL_NUM[name] + ']</span>' + displayName;
         } else {
@@ -715,6 +729,13 @@
         }
         nameEl.classList.remove('has-count');
         document.getElementById('label-result').classList.add('active');
+    }
+
+    function selectResult(name) {
+        selectedResult  = name;
+        var displayName = name.replace(/\s*\([^)]*영역\)\s*$/, '').trim();
+
+        renderSelectedResultLabel(name);
         document.querySelectorAll('#dd-result .dropdown-item').forEach(function(i) {
             i.classList.toggle('selected', (i.dataset.modelName || i.textContent) === name);
         });
@@ -746,7 +767,14 @@
     }
 
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('.filter-item') && !e.target.closest('.filter-arrow-sep')) closeAllDropdowns();
+        if (!e.target.closest('.filter-item') && !e.target.closest('.filter-arrow-sep')) {
+            // If the result dropdown is open with a model already selected,
+            // keep the current view but show the selected model's name and
+            // collapse the item list.
+            var resultOpen = document.getElementById('dd-result').classList.contains('open');
+            closeAllDropdowns();
+            if (resultOpen && selectedResult) renderSelectedResultLabel(selectedResult);
+        }
     });
 
     var NAME_MAP  = { domain: '영역',  participants: '대상', orientation: '지향',  competency: '역량' };
@@ -815,6 +843,9 @@
             scaleIframes();
         }
 
+        // Drop stale prefetched doc iframes now that we are back on the guide.
+        pruneIframes();
+
         var ri = document.getElementById('filter-result');
         if (ri) ri.classList.remove('has-results');
         closeAllDropdowns();
@@ -851,18 +882,101 @@
         return found;
     }
 
-    // Preload iframe silently in background
-    function prefetchIframe(src) {
-        var fs = toPreviewUrl(src);
-        if (findIframeByUrl(fs)) return;
+    // --- Iframe cache management ---
+    // Keep at most this many prefetched doc iframes alive at once.
+    var PREFETCH_MAX     = 2;
+    var _prefetchQueue   = [];     // pending srcs to prefetch (serial)
+    var _prefetchRunning = false;  // one prefetch in flight at a time
+    var _hoverTimers     = {};     // debounce timers keyed by src
+
+    // Mark an iframe as recently used (most-recent first ordering).
+    function touchIframe(frm) {
+        if (frm) frm.dataset.lastUsed = String(Date.now());
+    }
+
+    // Remove old prefetched doc iframes, keeping active/guide ones and the
+    // N most-recently-used. Prevents unbounded iframe accumulation.
+    function pruneIframes() {
+        var c = document.getElementById('iframe-container');
+        if (!c) return;
+        var prefetched = [];
+        c.querySelectorAll('iframe[data-src]').forEach(function(f) {
+            if (f.classList.contains('active')) return;       // never drop visible
+            if (f.dataset.isGuide === 'true') return;          // never drop guide
+            prefetched.push(f);
+        });
+        // Newest first
+        prefetched.sort(function(a, b) {
+            return (parseInt(b.dataset.lastUsed || '0', 10)) - (parseInt(a.dataset.lastUsed || '0', 10));
+        });
+        prefetched.slice(PREFETCH_MAX).forEach(function(f) {
+            if (f.parentNode) f.parentNode.removeChild(f);
+        });
+    }
+
+    // Process the prefetch queue one item at a time to avoid hammering
+    // Google Docs with many simultaneous requests (rate-limit / connection cap).
+    function runPrefetchQueue() {
+        if (_prefetchRunning) return;
+        var fs = _prefetchQueue.shift();
+        if (!fs) return;
+        if (findIframeByUrl(fs)) { runPrefetchQueue(); return; }
+
+        _prefetchRunning = true;
         var f = document.createElement('iframe');
         f.dataset.src     = fs;
         f.dataset.loaded  = 'false';
         f.allowFullscreen = true;
         f.style.background = '#fff';
-        f.onload = function() { f.dataset.loaded = 'true'; };
+        touchIframe(f);
+
+        var settle = function() {
+            _prefetchRunning = false;
+            pruneIframes();
+            runPrefetchQueue();
+        };
+        // Guard against a never-firing onload (doc blocked / unresponsive).
+        var guard = setTimeout(settle, 10000);
+        f.onload = function() {
+            clearTimeout(guard);
+            f.dataset.loaded = 'true';
+            settle();
+        };
+        f.onerror = function() {
+            clearTimeout(guard);
+            if (f.parentNode) f.parentNode.removeChild(f);
+            settle();
+        };
         f.src = fs;
         document.getElementById('iframe-container').appendChild(f);
+    }
+
+    // Queue an iframe for silent background preloading.
+    function prefetchIframe(src) {
+        var fs = toPreviewUrl(src);
+        var existing = findIframeByUrl(fs);
+        if (existing) { touchIframe(existing); return; }
+        if (_prefetchQueue.indexOf(fs) !== -1) return;
+        _prefetchQueue.push(fs);
+        runPrefetchQueue();
+    }
+
+    // Debounced hover-prefetch: only fires if the pointer rests on an item,
+    // so merely scrolling past entries does not trigger many doc requests.
+    function prefetchOnHover(src) {
+        if (!src) return;
+        if (_hoverTimers[src]) return;
+        _hoverTimers[src] = setTimeout(function() {
+            delete _hoverTimers[src];
+            prefetchIframe(src);
+        }, 180);
+    }
+
+    function cancelHoverPrefetch(src) {
+        if (src && _hoverTimers[src]) {
+            clearTimeout(_hoverTimers[src]);
+            delete _hoverTimers[src];
+        }
     }
 
     var _docProgressTimer = null;
@@ -952,13 +1066,33 @@
         function revealFrame(frm) {
             if (_loadToken !== token) return;
             clearTimeout(fallbackTimer);
+            touchIframe(frm);
             frm.classList.add('active');
             scaleIframes();
             waitForImagesAndHide(token);
         }
 
+        // Called when a doc iframe fails to load.
+        function failFrame(frm) {
+            if (_loadToken !== token) return;
+            clearTimeout(fallbackTimer);
+            if (frm && frm.parentNode) frm.parentNode.removeChild(frm);
+            hideDocOverlay();
+            var lbl = document.getElementById('doc-loading-label');
+            if (lbl) lbl.textContent = '';
+            if (typeof imtiOpenModal === 'function') {
+                // Reuse an existing notice modal if present; otherwise alert.
+                if (document.getElementById('modal-doc-loadfail')) {
+                    imtiOpenModal('modal-doc-loadfail');
+                } else {
+                    alert('문서를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+                }
+            }
+        }
+
         var ex = findIframeByUrl(fs);
         if (ex) {
+            touchIframe(ex);
             if (ex.dataset.loaded === 'true') {
                 // Already cached — show immediately
                 clearTimeout(fallbackTimer);
@@ -966,8 +1100,9 @@
                 ex.classList.add('active');
                 scaleIframes();
             } else {
-                // Prefetch in progress — wait for onload
-                ex.onload = function() { ex.dataset.loaded = 'true'; revealFrame(ex); };
+                // Prefetch in progress — wait for onload/onerror
+                ex.onload  = function() { ex.dataset.loaded = 'true'; revealFrame(ex); };
+                ex.onerror = function() { failFrame(ex); };
             }
             return;
         }
@@ -978,9 +1113,12 @@
         f.dataset.loaded   = 'false';
         f.allowFullscreen  = true;
         f.style.background = '#fff';
-        f.onload = function() { f.dataset.loaded = 'true'; revealFrame(f); };
+        touchIframe(f);
+        f.onload  = function() { f.dataset.loaded = 'true'; revealFrame(f); };
+        f.onerror = function() { failFrame(f); };
         f.src = fs;
         c.appendChild(f);
+        pruneIframes();
         scaleIframes();
     }
 
