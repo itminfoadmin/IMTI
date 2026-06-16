@@ -327,9 +327,10 @@ function loadModel() {
     return Promise.resolve();
 }
 
-async function googleTranslate(text) {
+async function googleTranslate(text, sl, tl) {
+    sl = sl || 'en'; tl = tl || 'ko';
     const url = 'https://translate.googleapis.com/translate_a/single'
-        + '?client=gtx&sl=en&tl=ko&dt=t&q=' + encodeURIComponent(text);
+        + '?client=gtx&sl=' + sl + '&tl=' + tl + '&dt=t&q=' + encodeURIComponent(text);
     const res = await fetch(url);
     if (!res.ok) throw new Error('google http ' + res.status);
     const data = await res.json();
@@ -338,8 +339,9 @@ async function googleTranslate(text) {
     return data[0].map(seg => (seg && seg[0]) ? seg[0] : '').join('');
 }
 
-async function myMemoryTranslate(text) {
-    const url = 'https://api.mymemory.translated.net/get?langpair=en|ko&q='
+async function myMemoryTranslate(text, pair) {
+    pair = pair || 'en|ko';
+    const url = 'https://api.mymemory.translated.net/get?langpair=' + encodeURIComponent(pair) + '&q='
         + encodeURIComponent(text);
     const res = await fetch(url);
     if (!res.ok) throw new Error('mymemory http ' + res.status);
@@ -376,7 +378,7 @@ function ensureLocalWorker() {
         '  if (d.type === "init") { try { await init(); } catch (err) { self.postMessage({ type: "error", error: String(err) }); } return; }',
         '  if (d.type === "translate") {',
         '    try {',
-        '      const out = await translator(d.text, { src_lang: "eng_Latn", tgt_lang: "kor_Hang", num_beams: 5, max_length: 512, no_repeat_ngram_size: 3 });',
+        '      const out = await translator(d.text, { src_lang: d.src || "eng_Latn", tgt_lang: d.tgt || "kor_Hang", num_beams: 5, max_length: 512, no_repeat_ngram_size: 3 });',
         '      const ko = Array.isArray(out) ? out[0].translation_text : out.translation_text;',
         '      self.postMessage({ type: "result", id: d.id, ko });',
         '    } catch (err) {',
@@ -408,19 +410,20 @@ function loadLocalModel() {
 }
 
 let localMsgId = 0; const localPending = new Map();
-function localTranslateOne(text) {
+function localTranslateOne(text, src, tgt) {
     return new Promise((resolve) => {
         const id = ++localMsgId;
         localPending.set(id, resolve);
-        localWorker.postMessage({ type: 'translate', id, text });
+        localWorker.postMessage({ type: 'translate', id, text, src, tgt });
     });
 }
 // The local NLLB model has a ~512-token input window, much smaller than the
 // online APIs. Split long chunks on sentence boundaries before sending.
-async function localTranslate(text) {
+async function localTranslate(text, src, tgt) {
+    src = src || 'eng_Latn'; tgt = tgt || 'kor_Hang';
     const LOCAL_MAX = 600;
-    if (text.length <= LOCAL_MAX) return localTranslateOne(text);
-    const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+    if (text.length <= LOCAL_MAX) return localTranslateOne(text, src, tgt);
+    const sentences = text.match(/[^.!?。！？]+[.!?。！？]*/g) || [text];
     const parts = [];
     let buf = '';
     for (const s of sentences) {
@@ -431,30 +434,51 @@ async function localTranslate(text) {
     }
     if (buf) parts.push(buf);
     const out = [];
-    for (const p of parts) out.push(await localTranslateOne(p));
+    for (const p of parts) out.push(await localTranslateOne(p, src, tgt));
     return out.join(' ');
 }
 
-async function translate(text) {
+// Translate one hop (sl->tl) using the 3-tier fallback chain.
+// langs: { g:[sl,tl] for google, m:'sl|tl' for mymemory, l:[src,tgt] for local NLLB }
+async function translateHop(text, langs) {
     if (!text || !text.trim()) return '';
     // Tier 1: Google (best quality)
     try {
-        return await googleTranslate(text);
+        return await googleTranslate(text, langs.g[0], langs.g[1]);
     } catch (e) {
         console.warn('[기본 번역 실패, 백업 시도]', e);
     }
     // Tier 2: MyMemory
     try {
-        return await myMemoryTranslate(text);
+        return await myMemoryTranslate(text, langs.m);
     } catch (e2) {
         console.warn('[백업 번역 실패, 로컬 모델로 전환]', e2);
     }
     // Tier 3: local model (download on first use, then cached)
     try {
         await loadLocalModel();
-        return await localTranslate(text);
+        return await localTranslate(text, langs.l[0], langs.l[1]);
     } catch (e3) {
         console.error('[번역 실패: 모든 경로]', e3);
+        throw e3;
+    }
+}
+
+// Two-step pivot: English → Japanese → Korean.
+async function translate(text) {
+    if (!text || !text.trim()) return '';
+    try {
+        // Step 1: English → Japanese
+        const ja = await translateHop(text, {
+            g: ['en', 'ja'], m: 'en|ja', l: ['eng_Latn', 'jpn_Jpan']
+        });
+        // Step 2: Japanese → Korean
+        const ko = await translateHop(ja, {
+            g: ['ja', 'ko'], m: 'ja|ko', l: ['jpn_Jpan', 'kor_Hang']
+        });
+        return ko;
+    } catch (e) {
+        console.error('[번역 실패: 모든 경로]', e);
         return '[번역 실패] ' + text;
     }
 }
