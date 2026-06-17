@@ -298,7 +298,7 @@ body.on-result .stage-wrap{margin-bottom:0}
       <span id="liveText">MTI_DB에서 데이터를 불러오는 중…</span>
       <button class="reload" id="reloadBtn" style="display:none" onclick="loadAll()">↻ 새로고침</button>
     </div>
-    <div class="sub">MTI에 대한 연구 결과를 바탕으로 수업 모형(MTI)을 추천해 드립니다.</div>
+    <div class="sub">MTI에 대한 연구 결과를 바탕으로 수업 모형(MTI)을 추천합니다.</div>
   </div>
   <div class="progress-wrap">
     <div class="progress" id="progress"></div>
@@ -314,14 +314,14 @@ body.on-result .stage-wrap{margin-bottom:0}
       <div class="center-state">
         <div class="spinner"></div>
         <h3>데이터를 불러오는 중입니다</h3>
-        <p>MTI_DB의 모형·대상·역량 데이터를 합치고 있어요. 잠시만 기다려 주세요.</p>
+        <p>MTI_DB의 모형·대상·역량 데이터를 합치고 있습니다. 잠시만 기다려 주세요.</p>
       </div>
     </div>
 
     <!-- ERROR -->
     <div class="panel" data-step="error">
       <div class="center-state">
-        <h3 style="color:var(--terra)">데이터를 불러오지 못했어요</h3>
+        <h3 style="color:var(--terra)">데이터를 불러오지 못했습니다.</h3>
         <p>MTI_DB 시트 주소에 직접 접근하지 못했습니다. 보통 시트가 <b>'웹에 게시'</b>되어 있지 않거나, 브라우저 보안 정책(CORS)에 막힌 경우입니다.</p>
         <div class="err-detail" id="errDetail"></div>
         <div class="urls">
@@ -456,9 +456,7 @@ const CSV = {
 const PART_ORDER = ["영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","특수학습자","영재학습자","성인학습자"];
 const DOMAIN_ORDER = ["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"];
 
-/* ════════ 추천 규칙(시트 연동) ════════
-   ad_mti_recommand_rules.html 에서 저장한 규칙을 불러와 추천에 반영한다.
-   로드 실패 시 아래 DEFAULT_RULES(fallback)로 동작한다. */
+/* Recommand Rules */
 const REC_RULES_GAS_URL = "https://script.google.com/macros/s/AKfycbyVyUYe-jNCPRMJoxYuBOZyB8z7Rbr979x1segiZEh-PLtz3t8X3kAqckARfHhLLtYEJw/exec";
 
 const DEFAULT_RULES = {
@@ -492,7 +490,7 @@ const DEFAULT_RULES = {
 function _deepRules(o){ return JSON.parse(JSON.stringify(o)); }
 let RULES = _deepRules(DEFAULT_RULES);
 
-/* 시트 규칙 불러오기 (JSONP). 실패하면 DEFAULT_RULES 유지. */
+/* Rules roading */
 function loadRecRules(){
   return new Promise(resolve=>{
     const cbName = 'recrules_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
@@ -508,7 +506,7 @@ function loadRecRules(){
           applyRules(data.rules); resolve(true); return;
         }
       }catch(e){}
-      resolve(false); // EMPTY/ERROR → 기본값 유지
+      resolve(false); 
     };
     const s = document.createElement('script');
     s.id = 's_'+cbName;
@@ -518,7 +516,7 @@ function loadRecRules(){
   });
 }
 
-/* 불러온 규칙을 누락 없이 병합한 뒤 전역에 반영 */
+/* rules merging */
 function applyRules(r){
   const merged = _deepRules(DEFAULT_RULES);
   if(r && typeof r==='object'){
@@ -627,7 +625,7 @@ async function loadAll(){
   setLive('loading','MTI-DB에서 데이터를 불러오는 중…');
   document.getElementById('reloadBtn').style.display='none';
   try{
-    await loadRecRules(); // 추천 규칙 먼저 불러오기 (실패 시 기본값 유지)
+    await loadRecRules(); 
     const [mRows,cRows,pRows] = await Promise.all([fetchCSV(CSV.models),fetchCSV(CSV.competencies),fetchCSV(CSV.participants)]);
     const compMap={},partMap={};
     cRows.forEach(r=>{const id=pick(r,'mti_id');const v=clean(pick(r,'competencies','competency','역량'));if(id&&v)(compMap[id]=compMap[id]||[]).push(v);});
@@ -662,7 +660,6 @@ async function loadAll(){
 function setLive(kind,text){
   const el=document.getElementById('live');
   el.className='live'+(kind==='ok'?' ok':kind==='err'?' err':'');
-  // 평소엔 숨기고, 오류일 때만 노출
   el.style.display = (kind==='err') ? 'flex' : 'none';
   document.getElementById('liveText').textContent=text;
 }
@@ -686,20 +683,17 @@ function buildOptions(){
     const place = listSpec => {
       const out = [];
       listSpec.forEach(spec=>{
-        // 지정한 이름과 같은(정규화 비교) 실제 옵션을 찾아 배치
         const match = avail[group].find(v=>normName(v)===normName(spec));
         if(match && !used.has(match)){ out.push(match); used.add(match); }
-        else if(!match && spec==="기타"){ out.push("기타"); } // 미리 비워둔 '기타' 자리(없어도 표시)
+        else if(!match && spec==="기타"){ out.push("기타"); } 
       });
       return out;
     };
     const col1 = place(lay.col1);
     let col2 = place(lay.col2);
-    // LAYOUT에 없던 새 항목은 col2 끝에 가나다순으로 덧붙임
     const leftover = avail[group].filter(v=>!used.has(v)).sort((a,b)=>a.localeCompare(b,'ko'));
     col2 = col2.concat(leftover);
     OPTIONS_COL[group] = {col1, col2};
-    // 평면 순서(점수/누적계산용): col1 먼저, 그 다음 col2
     OPTIONS[group] = col1.concat(col2).filter(v=>v!=="기타" || avail[group].includes("기타"));
   });
 }
@@ -807,7 +801,6 @@ function goto(s){
 function scoreModel(m){
   let score=0,max=0; const hits={domain:false,orient:false,part:false,comps:[]};
   const W=RULES.weights, D=RULES.defaults;
-  // 우선순위/가중치는 RULES 에서 가져온다 (영역>대상>지향>역량은 priority 로 정렬에 반영)
   max+=W.domain; if(state.domain&&m.domain===state.domain){score+=W.domain;hits.domain=true;}
   max+=W.participants;
   if(!state.participants){ score+=W.participants*D.participants; }
@@ -831,7 +824,7 @@ function scoreModel(m){
   }
   return {pct: max>0?Math.round(score/max*100):0, hits};
 }
-/* priority(1=최우선)를 정렬 자릿수 가중치로 변환: 1→1000,2→100,3→10,4→1 */
+
 function _prW(group){
   const p = (RULES.priority && RULES.priority[group]) || 4;
   return Math.pow(10, Math.max(0, 4 - p));
@@ -848,7 +841,6 @@ function renderResults(){
 
   const ranked=MODELS.map(m=>{
       const r={m,...scoreModel(m)};
-      // 우선순위(영역>대상>지향>역량)에 따라 가중치를 둔 일치 점수
       r.matchCount = (r.hits.domain?_prW('domain'):0) + (r.hits.part?_prW('participants'):0) + (r.hits.orient?_prW('orientation'):0) + (r.hits.comps?r.hits.comps.length*_prW('competencies'):0);
       return r;
     }).sort((a,b)=> (b.matchCount-a.matchCount) || (b.pct-a.pct));
@@ -860,7 +852,6 @@ function renderResults(){
   visible.forEach((r,idx)=>{
     const m=r.m, isTop=idx===0;
     const wrap=document.createElement('div'); wrap.className='match'+(isTop?' top':'');
-    // 사용자가 선택한 조건과 실제로 매칭된 태그만 표시
     const tags=[
       r.hits.domain && m.domain ? '<span class="tag hit">'+esc(m.domain)+'</span>' : '',
       ...(r.hits.part && state.participants ? ['<span class="tag hit">'+esc(state.participants)+'</span>'] : []),
@@ -889,7 +880,6 @@ function restartAll(){
   syncOpts(); goto(0);
 }
 
-/* Google Docs URL 변환 */
 function docBase(url){
   try{ const m=url.match(/(https:\/\/docs\.google\.com\/document\/d\/[^/]+)/); if(m) return m[1]; }catch(e){}
   return null;
