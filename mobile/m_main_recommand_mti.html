@@ -448,7 +448,85 @@ const CSV = {
 const PART_ORDER = ["영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","특수학습자","영재학습자","성인학습자"];
 const DOMAIN_ORDER = ["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"];
 
-const AFFINITY_CHAINS = {
+/* ════════ 추천 규칙(시트 연동) ════════
+   ad_mti_recommand_rules.html 에서 저장한 규칙을 불러와 추천에 반영한다.
+   로드 실패 시 아래 DEFAULT_RULES(fallback)로 동작한다. */
+const REC_RULES_GAS_URL = "https://script.google.com/macros/s/AKfycbyVyUYe-jNCPRMJoxYuBOZyB8z7Rbr979x1segiZEh-PLtz3t8X3kAqckARfHhLLtYEJw/exec";
+
+const DEFAULT_RULES = {
+  weights:  { domain:35, participants:30, orientation:25, competencies:15 },
+  priority: { domain:1, participants:2, orientation:3, competencies:4 },
+  defaults: { participants:0.5, orientation:0.5, competencies:0.5 },
+  thresholds: { minMatchPercent:60, maxResults:20 },
+  affinityChains: {
+    participants: [
+      ["특수학습자","영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","영재학습자","성인학습자"]
+    ],
+    orientation: [
+      ["재현 학습","과제 수행 학습","문제 해결 학습","탐구 학습"],
+      ["유사 경험 학습","정서 매개 학습"],
+      ["상기적 결합 학습","재현 학습","환류 학습"]
+    ],
+    competencies: [
+      ["학업 성취","컴퓨팅 사고력","창의적 문제 해결 능력","논리적 사고력","문제 해결 능력","창의적 사고 능력"],
+      ["인공지능 소양","디지털 문화 소양"],
+      ["학습 동기(흥미)","수업 만족"]
+    ]
+  },
+  layout: {
+    domain:       { col1:["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"], col2:[] },
+    participants: { col1:["영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생"], col2:["특수학습자","영재학습자","성인학습자"] },
+    orientation:  { col1:["과제 수행 학습","동료 상호작용 학습","문제 해결 학습","상기적 결합 학습","유사 경험 학습","재현 학습"], col2:["정서 매개 학습","탐구 학습","환류 학습"] },
+    competencies: { col1:["컴퓨팅 사고력","디지털 문화 소양","인공지능 소양","학업 성취","학습 동기(흥미)","수업 만족"], col2:["논리적 사고력","창의적 사고 능력","문제 해결 능력","창의적 문제 해결 능력","기타"] }
+  }
+};
+
+function _deepRules(o){ return JSON.parse(JSON.stringify(o)); }
+let RULES = _deepRules(DEFAULT_RULES);
+
+/* 시트 규칙 불러오기 (JSONP). 실패하면 DEFAULT_RULES 유지. */
+function loadRecRules(){
+  return new Promise(resolve=>{
+    const cbName = 'recrules_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+    const timer = setTimeout(()=>{ cleanup(); resolve(false); }, 12000);
+    function cleanup(){
+      delete window[cbName];
+      const el = document.getElementById('s_'+cbName); if(el) el.remove();
+    }
+    window[cbName] = function(data){
+      clearTimeout(timer); cleanup();
+      try{
+        if(data && data.status==='OK' && data.rules){
+          applyRules(data.rules); resolve(true); return;
+        }
+      }catch(e){}
+      resolve(false); // EMPTY/ERROR → 기본값 유지
+    };
+    const s = document.createElement('script');
+    s.id = 's_'+cbName;
+    s.src = REC_RULES_GAS_URL + '?action=getRecRules&callback=' + encodeURIComponent(cbName);
+    s.onerror = function(){ clearTimeout(timer); cleanup(); resolve(false); };
+    document.head.appendChild(s);
+  });
+}
+
+/* 불러온 규칙을 누락 없이 병합한 뒤 전역에 반영 */
+function applyRules(r){
+  const merged = _deepRules(DEFAULT_RULES);
+  if(r && typeof r==='object'){
+    if(r.weights)    Object.assign(merged.weights, r.weights);
+    if(r.priority)   Object.assign(merged.priority, r.priority);
+    if(r.defaults)   Object.assign(merged.defaults, r.defaults);
+    if(r.thresholds) Object.assign(merged.thresholds, r.thresholds);
+    if(r.affinityChains) merged.affinityChains = r.affinityChains;
+    if(r.layout)         merged.layout = r.layout;
+  }
+  RULES = merged;
+  AFFINITY_CHAINS = RULES.affinityChains;
+  LAYOUT = RULES.layout;
+}
+
+let AFFINITY_CHAINS = {
   participants: [
     ["특수학습자","영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","영재학습자","성인학습자"]
   ],
@@ -496,7 +574,7 @@ function partAffinity(selected, modelParts){
   return groupAffinity('participants', selected, modelParts);
 }
 
-const LAYOUT = {
+let LAYOUT = {
   domain: {
     col1: ["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"],
     col2: []
@@ -539,6 +617,7 @@ async function loadAll(){
   setLive('loading','MTI-DB에서 데이터를 불러오는 중…');
   document.getElementById('reloadBtn').style.display='none';
   try{
+    await loadRecRules(); // 추천 규칙 먼저 불러오기 (실패 시 기본값 유지)
     const [mRows,cRows,pRows] = await Promise.all([fetchCSV(CSV.models),fetchCSV(CSV.competencies),fetchCSV(CSV.participants)]);
     const compMap={},partMap={};
     cRows.forEach(r=>{const id=pick(r,'mti_id');const v=clean(pick(r,'competencies','competency','역량'));if(id&&v)(compMap[id]=compMap[id]||[]).push(v);});
@@ -712,28 +791,35 @@ function goto(s){
 
 function scoreModel(m){
   let score=0,max=0; const hits={domain:false,orient:false,part:false,comps:[]};
-  max+=35; if(state.domain&&m.domain===state.domain){score+=35;hits.domain=true;}
-  max+=30;
-  if(!state.participants){ score+=15; }
+  const W=RULES.weights, D=RULES.defaults;
+  // 우선순위/가중치는 RULES 에서 가져온다 (영역>대상>지향>역량은 priority 로 정렬에 반영)
+  max+=W.domain; if(state.domain&&m.domain===state.domain){score+=W.domain;hits.domain=true;}
+  max+=W.participants;
+  if(!state.participants){ score+=W.participants*D.participants; }
   else{
-    score += 30*groupAffinity('participants', state.participants, m.participants);
+    score += W.participants*groupAffinity('participants', state.participants, m.participants);
     if(m.participants.includes(state.participants)) hits.part=true;
   }
-  max+=25;
-  if(!state.orientation){ score+=12.5; }
+  max+=W.orientation;
+  if(!state.orientation){ score+=W.orientation*D.orientation; }
   else{
-    score += 25*groupAffinity('orientation', state.orientation, [m.orientation]);
+    score += W.orientation*groupAffinity('orientation', state.orientation, [m.orientation]);
     if(m.orientation===state.orientation) hits.orient=true;
   }
-  max+=15;
-  if(state.competencies.length===0){ score+=7.5; }
+  max+=W.competencies;
+  if(state.competencies.length===0){ score+=W.competencies*D.competencies; }
   else{
     let sum=0;
     state.competencies.forEach(sel=>{ sum += groupAffinity('competencies', sel, m.competencies); });
-    score += 15*(sum/state.competencies.length);
+    score += W.competencies*(sum/state.competencies.length);
     hits.comps = m.competencies.filter(c=>state.competencies.includes(c));
   }
-  return {pct:Math.round(score/max*100),hits};
+  return {pct: max>0?Math.round(score/max*100):0, hits};
+}
+/* priority(1=최우선)를 정렬 자릿수 가중치로 변환: 1→1000,2→100,3→10,4→1 */
+function _prW(group){
+  const p = (RULES.priority && RULES.priority[group]) || 4;
+  return Math.pow(10, Math.max(0, 4 - p));
 }
 function esc(s){return(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function renderResults(){
@@ -747,12 +833,13 @@ function renderResults(){
 
   const ranked=MODELS.map(m=>{
       const r={m,...scoreModel(m)};
-      r.matchCount = (r.hits.domain?1000:0) + (r.hits.part?100:0) + (r.hits.orient?10:0) + (r.hits.comps?r.hits.comps.length:0);
+      r.matchCount = (r.hits.domain?_prW('domain'):0) + (r.hits.part?_prW('participants'):0) + (r.hits.orient?_prW('orientation'):0) + (r.hits.comps?r.hits.comps.length*_prW('competencies'):0);
       return r;
     }).sort((a,b)=> (b.matchCount-a.matchCount) || (b.pct-a.pct));
   const box=document.getElementById('results'); box.innerHTML='';
-  const matched=ranked.filter(r=>r.pct>=60);
-  const visible=matched.length>=20?matched.slice(0,20):matched;
+  const _minPct=RULES.thresholds.minMatchPercent, _maxN=RULES.thresholds.maxResults;
+  const matched=ranked.filter(r=>r.pct>=_minPct);
+  const visible=matched.length>=_maxN?matched.slice(0,_maxN):matched;
   if(!visible.length){ box.innerHTML='<div class="empty-state"><div class="big">🔍</div>조건에 맞는 MTI를 찾지 못했습니다.<br>조건을 줄여서 다시 시도해 보세요.</div>'; return; }
   visible.forEach((r,idx)=>{
     const m=r.m, isTop=idx===0;
