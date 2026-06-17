@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - Recommendation Rules Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ad_common.css">
+    <style>
+        /* ── Layout ── */
+        .page-body { padding: 18px 36px 60px; gap: 0; }
+        .wrap { width: 84%; max-width: 1080px; margin: 0 auto; }
+
+        /* ── Page header ── */
+        .rules-head {
+            display: flex; align-items: flex-end; justify-content: space-between;
+            border-bottom: 1px dashed #ced4da; padding-bottom: 14px; margin-bottom: 8px;
+            gap: 16px; flex-wrap: wrap;
+        }
+        .rules-head .title-block { display: flex; flex-direction: column; gap: 6px; }
+        .rules-title {
+            font-family: 'Gowun Batang', serif; font-size: 1.05rem; font-weight: 700;
+            letter-spacing: 0.04em; color: #343a40;
+        }
+        .rules-sub {
+            font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--gray-mid);
+            letter-spacing: 0.02em;
+        }
+        .head-actions { display: flex; gap: 8px; align-items: center; }
+
+        /* ── Toolbar buttons ── */
+        .rule-btn {
+            background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px;
+            padding: 7px 20px;
+            font-family: 'Gowun Batang', serif; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.05em;
+            color: var(--gray-text); cursor: pointer; transition: all 0.18s; white-space: nowrap;
+        }
+        .rule-btn:hover { background: var(--gray-text); color: #fff; border-color: var(--gray-text); }
+        .rule-btn.primary { background: #343a40; color: #fff; border-color: #343a40; }
+        .rule-btn.primary:hover { background: #495057; border-color: #495057; }
+        .rule-btn.ghost { color: var(--gray-dark); border-color: #ced4da; }
+        .rule-btn.ghost:hover { background: #f1f3f5; color: var(--gray-text); border-color: #868e96; }
+        .rule-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        /* ── Save state line ── */
+        .save-state {
+            font-family: 'DM Mono', monospace; font-size: 0.68rem; min-height: 1em;
+            text-align: right; margin: 8px 0 18px; color: var(--gray-mid);
+        }
+        .save-state.dirty { color: var(--camel, #d49860); }
+        .save-state.ok    { color: #2f9e44; }
+        .save-state.err   { color: #e03131; }
+
+        /* ── Section card ── */
+        .section {
+            background: #fff; border: 1px solid #dee2e6; border-radius: 6px;
+            overflow: hidden; margin-bottom: 22px;
+        }
+        .section-head {
+            background: #343a40; padding: 11px 22px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-dot { width: 5px; height: 5px; border-radius: 50%; background: #adb5bd; flex-shrink: 0; }
+        .section-title {
+            font-family: 'Gowun Batang', serif; font-size: 0.78rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase; color: #adb5bd;
+        }
+        .section-no {
+            font-family: 'DM Mono', monospace; font-size: 0.66rem; color: #6c757d;
+            margin-left: auto; letter-spacing: 0.1em;
+        }
+        .section-body { padding: 22px 26px; }
+        .section-desc {
+            font-family: 'Gowun Batang', serif; font-size: 0.76rem; color: var(--gray-dark);
+            line-height: 1.7; margin-bottom: 18px; padding-left: 2px;
+        }
+        .section-desc code {
+            font-family: 'DM Mono', monospace; font-size: 0.72rem;
+            background: #f1f3f5; padding: 1px 5px; border-radius: 3px; color: #495057;
+        }
+
+        /* ── Weight rows ── */
+        .weight-grid { display: flex; flex-direction: column; gap: 0; }
+        .weight-row {
+            display: grid; grid-template-columns: 110px 150px 1fr 96px 70px;
+            align-items: center; gap: 14px;
+            padding: 12px 6px; border-bottom: 1px solid #f1f3f5;
+        }
+        .weight-row.head {
+            padding: 6px 6px 10px; border-bottom: 1px dashed #dee2e6;
+        }
+        .weight-row.head > div {
+            font-family: 'DM Mono', monospace; font-size: 0.62rem; font-weight: 500;
+            letter-spacing: 0.06em; color: var(--gray-mid); text-transform: uppercase;
+        }
+        .weight-row.head .h-share { text-align: right; }
+        .weight-row.head .h-val   { text-align: right; }
+
+        /* ── Priority rank control ── */
+        .rank-ctrl {
+            display: flex; align-items: center; gap: 6px;
+        }
+        .rank-badge {
+            width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+            display: grid; place-items: center;
+            font-family: 'DM Mono', monospace; font-size: 0.74rem; font-weight: 700;
+            background: #faf1e6; color: #d49860; border: 1.5px solid #f0e0cc;
+        }
+        .rank-arrows { display: flex; flex-direction: column; gap: 2px; }
+        .rank-arrow {
+            border: none; background: #f1f3f5; border-radius: 3px; cursor: pointer;
+            color: var(--gray-dark); font-size: 0.55rem; line-height: 1;
+            width: 20px; height: 12px; display: grid; place-items: center; transition: all 0.15s;
+        }
+        .rank-arrow:hover { background: var(--gray-text); color: #fff; }
+        .rank-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+        .weight-row:last-child { border-bottom: none; }
+        .weight-label {
+            font-family: 'Gowun Batang', serif; font-size: 0.82rem; font-weight: 700; color: #343a40;
+        }
+        .weight-label small {
+            display: block; font-family: 'DM Mono', monospace; font-size: 0.62rem;
+            color: var(--gray-mid); font-weight: 400; letter-spacing: 0.04em; margin-top: 2px;
+        }
+        .weight-track { position: relative; height: 6px; }
+        .weight-slider { width: 100%; accent-color: #d47878; cursor: pointer; }
+        .num-input {
+            font-family: 'DM Mono', monospace; font-size: 0.8rem; color: #343a40;
+            border: 1px dashed #ced4da; border-radius: 3px; padding: 7px 9px;
+            outline: none; background: #fff; width: 100%; text-align: right;
+            transition: border-color 0.18s;
+        }
+        .num-input:focus { border-color: #868e96; }
+        .weight-share {
+            font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray-dark);
+            text-align: right;
+        }
+        .weight-total {
+            display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+            margin-top: 14px; padding-top: 12px; border-top: 1px dashed #dee2e6;
+            font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--gray-dark);
+        }
+        .weight-total b { color: #343a40; }
+        .total-badge {
+            font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 700;
+            padding: 3px 10px; border-radius: 12px; border: 1px solid;
+        }
+        .total-badge.ok  { color: #2f9e44; border-color: #b2f2bb; background: #ebfbee; }
+        .total-badge.bad { color: #e03131; border-color: #ffc9c9; background: #fff5f5; }
+
+        /* ── Default / threshold inputs ── */
+        .kv-block { display: flex; flex-direction: column; gap: 18px; }
+        .kv-rowset { display: flex; flex-direction: column; gap: 8px; }
+        .kv-rowset-label {
+            font-family: 'DM Mono', monospace; font-size: 0.62rem; font-weight: 500;
+            letter-spacing: 0.06em; color: var(--gray-mid); text-transform: uppercase;
+        }
+        .kv-line { display: grid; gap: 14px 22px; }
+        .kv-line.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+        .kv-line.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        @media (max-width: 720px){
+            .kv-line.cols-3, .kv-line.cols-2 { grid-template-columns: 1fr; }
+        }
+        .kv-row {
+            display: flex; flex-direction: column; gap: 6px;
+            border: 1px solid #e9ecef; border-radius: 5px; padding: 12px 14px; background: #fbfbfc;
+        }
+        .kv-label {
+            font-family: 'Gowun Batang', serif; font-size: 0.78rem; font-weight: 700; color: #343a40;
+        }
+        .kv-label small {
+            font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--gray-mid);
+            font-weight: 400; letter-spacing: 0.03em;
+        }
+        .kv-field { display: flex; align-items: center; gap: 8px; }
+        .kv-field .num-input { width: 110px; text-align: left; }
+        .kv-unit { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gray-mid); }
+
+        /* ── Affinity chains ── */
+        .chain-group { margin-bottom: 26px; }
+        .chain-group:last-child { margin-bottom: 0; }
+        .chain-group-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 4px; gap: 12px;
+        }
+        .chain-group-name {
+            font-family: 'Gowun Batang', serif; font-size: 0.82rem; font-weight: 700; color: #343a40;
+            letter-spacing: 0.03em;
+        }
+        .chain-group-name span {
+            font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--gray-mid);
+            margin-left: 8px; letter-spacing: 0.04em;
+        }
+        .chain-help {
+            font-family: 'Gowun Batang', serif; font-size: 0.72rem; color: var(--gray-dark);
+            line-height: 1.6; margin-bottom: 12px;
+        }
+        .chain-list { display: flex; flex-direction: column; gap: 10px; }
+        .chain-item {
+            border: 1px solid #e9ecef; border-radius: 5px; background: #fbfbfc;
+            padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .chain-item-top {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        }
+        .chain-no {
+            font-family: 'DM Mono', monospace; font-size: 0.64rem; color: var(--gray-mid);
+            letter-spacing: 0.08em;
+        }
+        .tag-field { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #fff; border: 1.5px solid #dbe2ea; border-radius: 14px;
+            padding: 4px 6px 4px 12px;
+            font-family: 'Gowun Batang', serif; font-size: 0.74rem; color: #343a40; white-space: nowrap;
+        }
+        .chip .chip-x {
+            border: none; background: none; cursor: pointer; color: #adb5bd;
+            font-size: 0.9rem; line-height: 1; padding: 0 2px; transition: color 0.15s;
+        }
+        .chip .chip-x:hover { color: #e03131; }
+        .chip-add {
+            font-family: 'Gowun Batang', serif; font-size: 0.74rem; color: #343a40;
+            border: 1px dashed #ced4da; border-radius: 3px; padding: 6px 9px; min-width: 130px;
+            outline: none; background: #fff; transition: border-color 0.18s;
+        }
+        .chip-add:focus { border-color: #868e96; }
+        .chain-del {
+            border: 1.5px solid #e03131; color: #e03131; background: #fff;
+            border-radius: 14px; padding: 3px 12px; cursor: pointer;
+            font-family: 'Gowun Batang', serif; font-size: 0.68rem; font-weight: 700;
+            transition: all 0.18s; white-space: nowrap;
+        }
+        .chain-del:hover { background: #e03131; color: #fff; }
+        .chain-add-btn {
+            margin-top: 4px; align-self: flex-start;
+            border: 1.5px solid #adb5bd; color: var(--gray-text); background: #fff;
+            border-radius: 14px; padding: 5px 16px; cursor: pointer;
+            font-family: 'Gowun Batang', serif; font-size: 0.7rem; font-weight: 700;
+            transition: all 0.18s;
+        }
+        .chain-add-btn:hover { background: var(--gray-text); color: #fff; border-color: var(--gray-text); }
+
+        /* ── Layout / option ordering ── */
+        .layout-grid {
+            display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 22px 26px;
+        }
+        @media (max-width: 760px){ .layout-grid { grid-template-columns: 1fr; } }
+        .layout-card { border: 1px solid #e9ecef; border-radius: 5px; overflow: hidden; }
+        .layout-card-head {
+            background: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 9px 14px;
+            font-family: 'Gowun Batang', serif; font-size: 0.78rem; font-weight: 700; color: #495057;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .layout-card-head span {
+            font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--gray-mid);
+            font-weight: 400;
+        }
+        .layout-cols { display: grid; grid-template-columns: 1fr 1fr; }
+        .layout-col { padding: 12px; }
+        .layout-col + .layout-col { border-left: 1px dashed #e9ecef; }
+        .layout-col-name {
+            font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--gray-mid);
+            letter-spacing: 0.08em; margin-bottom: 8px; text-transform: uppercase;
+        }
+        .order-list { display: flex; flex-direction: column; gap: 6px; }
+        .order-item {
+            display: flex; align-items: center; gap: 6px;
+            border: 1px solid #e9ecef; border-radius: 4px; background: #fff;
+            padding: 5px 6px 5px 10px;
+        }
+        .order-item .order-name {
+            flex: 1; font-family: 'Gowun Batang', serif; font-size: 0.74rem; color: #343a40;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .order-ctrl {
+            border: none; background: #f1f3f5; border-radius: 3px; cursor: pointer;
+            color: var(--gray-dark); font-size: 0.7rem; line-height: 1;
+            width: 20px; height: 20px; display: grid; place-items: center; transition: all 0.15s;
+        }
+        .order-ctrl:hover { background: var(--gray-text); color: #fff; }
+        .order-ctrl:disabled { opacity: 0.3; cursor: not-allowed; }
+        .order-ctrl.del:hover { background: #e03131; }
+        .layout-add { display: flex; gap: 6px; margin-top: 10px; }
+        .layout-add input {
+            flex: 1; font-family: 'Gowun Batang', serif; font-size: 0.72rem; color: #343a40;
+            border: 1px dashed #ced4da; border-radius: 3px; padding: 6px 8px; outline: none; min-width: 0;
+        }
+        .layout-add input:focus { border-color: #868e96; }
+        .layout-add button {
+            border: 1.5px solid #adb5bd; background: #fff; border-radius: 14px; padding: 4px 12px;
+            font-family: 'Gowun Batang', serif; font-size: 0.68rem; font-weight: 700;
+            color: var(--gray-text); cursor: pointer; transition: all 0.18s; white-space: nowrap;
+        }
+        .layout-add button:hover { background: var(--gray-text); color: #fff; border-color: var(--gray-text); }
+
+        /* ── JSON preview modal ── */
+        .json-pre {
+            font-family: 'DM Mono', monospace; font-size: 0.72rem; line-height: 1.55;
+            background: #1e2228; color: #ced4da; border-radius: 4px;
+            padding: 18px; max-height: 56vh; overflow: auto; white-space: pre;
+            text-align: left;
+        }
+        .json-pre::-webkit-scrollbar { width: 8px; height: 8px; }
+        .json-pre::-webkit-scrollbar-thumb { background: #495057; border-radius: 4px; }
+        .modal-wide { max-width: 760px; }
+    </style>
+</head>
+<body>
+
+<div class="page-body">
+  <div class="wrap">
+
+    <div class="rules-head">
+      <div class="title-block">
+        <div class="rules-title">MTI 추천 규칙 관리</div>
+        <div class="rules-sub">main_recommand_mti.html 의 추천 알고리즘에 사용되는 규칙을 관리합니다.</div>
+      </div>
+      <div class="head-actions">
+        <button class="rule-btn ghost" id="btn-reset">기본값 복원</button>
+        <button class="rule-btn"       id="btn-json">JSON 보기</button>
+        <button class="rule-btn primary" id="btn-save">저장</button>
+      </div>
+    </div>
+    <div class="save-state" id="save-state">규칙을 불러왔습니다.</div>
+
+    <!-- 1. 우선순위 가중치 -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-dot"></span>
+        <span class="section-title">Priority Weights</span>
+        <span class="section-no">RULE 01</span>
+      </div>
+      <div class="section-body">
+        <div class="section-desc">
+          각 조건의 <b>우선순위</b>와 일치도(%) 계산에서 차지하는 <b>최대 배점(가중치)</b>을 설정합니다.
+          우선순위는 추천 결과를 정렬할 때 어떤 조건의 일치를 더 우선해서 볼지를 결정하며(1순위가 가장 높음),
+          가중치는 네 값의 합으로 정규화하여 0~100% 점수를 산출합니다.
+        </div>
+        <div class="weight-grid" id="weight-grid"></div>
+        <div class="weight-total">
+          <span>가중치 합계</span>
+          <b id="weight-sum">0</b>
+          <span class="total-badge" id="weight-badge">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 미선택 기본 점수 & 임계값 -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-dot"></span>
+        <span class="section-title">Defaults &amp; Thresholds</span>
+        <span class="section-no">RULE 02</span>
+      </div>
+      <div class="section-body">
+        <div class="section-desc">
+          사용자가 조건을 선택하지 않았을 때 부여하는 기본 친화도(0~1)와,
+          결과 노출을 위한 최소 일치도/최대 표시 개수를 설정합니다.
+          기본 친화도는 해당 조건 가중치에 곱해져 점수로 환산됩니다.
+        </div>
+        <div class="kv-block" id="defaults-grid"></div>
+      </div>
+    </div>
+
+    <!-- 3. 친화도 체인 -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-dot"></span>
+        <span class="section-title">Affinity Chains</span>
+        <span class="section-no">RULE 03</span>
+      </div>
+      <div class="section-body">
+        <div class="section-desc">
+          완전히 일치하지 않더라도, 같은 체인 안에서 가까이 위치한 항목끼리는 부분 점수를 부여합니다.
+          체인 내 거리가 가까울수록(서로 인접할수록) 친화도가 1에 가까워집니다.
+          순서가 곧 유사도이므로 항목 배치 순서가 중요합니다.
+        </div>
+        <div id="chains-area"></div>
+      </div>
+    </div>
+
+    <!-- 4. 옵션 배치(레이아웃) -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-dot"></span>
+        <span class="section-title">Option Layout &amp; Order</span>
+        <span class="section-no">RULE 04</span>
+      </div>
+      <div class="section-body">
+        <div class="section-desc">
+          추천 화면에서 각 조건의 선택지가 노출되는 1열/2열 배치와 순서입니다.
+          여기에 정의되지 않은 새 항목은 데이터에서 발견되는 대로 2열 끝에 가나다순으로 자동 추가됩니다.
+        </div>
+        <div class="layout-grid" id="layout-area"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Save Confirm Modal -->
+<div class="popup-overlay" id="save-modal">
+  <div class="adm-modal-box">
+    <div class="adm-modal-title">
+      <span class="adm-modal-dot"></span>
+      <span class="adm-modal-title-text">Save Recommendation Rules</span>
+      <div class="adm-title-right">
+        <button class="adm-x-btn" onclick="closeModal('save-modal')">✕</button>
+      </div>
+    </div>
+    <div class="adm-modal-body">
+      <p class="adm-modal-msg">변경한 추천 규칙을 저장하시겠습니까?<br>저장 시 main_recommand_mti.html 의 추천 결과에 반영됩니다.</p>
+      <div class="adm-modal-result" id="save-modal-result"></div>
+    </div>
+    <div class="adm-modal-footer">
+      <button class="adm-cancel-btn" onclick="closeModal('save-modal')">취소</button>
+      <button class="adm-confirm-btn" id="save-confirm-btn" onclick="confirmSave()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Confirm Modal -->
+<div class="popup-overlay" id="reset-modal">
+  <div class="adm-modal-box">
+    <div class="adm-modal-title">
+      <span class="adm-modal-dot"></span>
+      <span class="adm-modal-title-text">Restore Defaults</span>
+      <div class="adm-title-right">
+        <button class="adm-x-btn" onclick="closeModal('reset-modal')">✕</button>
+      </div>
+    </div>
+    <div class="adm-modal-body">
+      <p class="adm-modal-msg">모든 규칙을 기본값으로 되돌립니다.<br>저장하지 않은 변경 사항은 사라집니다. 계속하시겠습니까?</p>
+    </div>
+    <div class="adm-modal-footer">
+      <button class="adm-cancel-btn" onclick="closeModal('reset-modal')">취소</button>
+      <button class="adm-confirm-btn" onclick="confirmReset()">기본값 복원</button>
+    </div>
+  </div>
+</div>
+
+<!-- JSON Preview Modal -->
+<div class="popup-overlay" id="json-modal">
+  <div class="adm-modal-box modal-wide">
+    <div class="adm-modal-title">
+      <span class="adm-modal-dot"></span>
+      <span class="adm-modal-title-text">Rules JSON Preview</span>
+      <div class="adm-title-right">
+        <button class="adm-x-btn" onclick="closeModal('json-modal')">✕</button>
+      </div>
+    </div>
+    <div class="adm-modal-body">
+      <pre class="json-pre" id="json-pre"></pre>
+    </div>
+    <div class="adm-modal-footer">
+      <button class="adm-cancel-btn" onclick="copyJson()">복사</button>
+      <button class="adm-confirm-btn" onclick="closeModal('json-modal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script src="ad_common.js"></script>
+<script>
+/* ───────────────────────────────────────────────
+   MTI 추천 규칙 — 기본값
+   (main_recommand_mti.html 의 현재 로직에서 추출)
+   ※ 구글 시트 저장/로드는 추후 연동 예정.
+─────────────────────────────────────────────── */
+
+const WEIGHT_KEYS = [
+  { key:'domain',       label:'영역',  hint:'domain' },
+  { key:'participants', label:'대상',  hint:'participants' },
+  { key:'orientation',  label:'지향',  hint:'orientation' },
+  { key:'competencies', label:'역량',  hint:'competencies' }
+];
+
+const DEFAULT_RULES = {
+  // RULE 01 — 우선순위 가중치 (영역35 > 대상30 > 지향25 > 역량15)
+  weights: { domain:35, participants:30, orientation:25, competencies:15 },
+  // 정렬 우선순위 (1=최우선). 기존 정렬식: 영역>대상>지향>역량
+  priority: { domain:1, participants:2, orientation:3, competencies:4 },
+
+  // RULE 02 — 미선택 시 기본 친화도(0~1) + 결과 임계값
+  defaults: {
+    participants: 0.5,   // 대상 미선택 시 (기존 15/30)
+    orientation:  0.5,   // 지향 미선택 시 (기존 12.5/25)
+    competencies: 0.5    // 역량 미선택 시 (기존 7.5/15)
+  },
+  thresholds: {
+    minMatchPercent: 60, // 결과 노출 최소 일치도(%)
+    maxResults: 20       // 결과 최대 표시 개수
+  },
+
+  // RULE 03 — 친화도 체인
+  affinityChains: {
+    participants: [
+      ["특수학습자","영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","영재학습자","성인학습자"]
+    ],
+    orientation: [
+      ["재현 학습","과제 수행 학습","문제 해결 학습","탐구 학습"],
+      ["유사 경험 학습","정서 매개 학습"],
+      ["상기적 결합 학습","재현 학습","환류 학습"]
+    ],
+    competencies: [
+      ["학업 성취","컴퓨팅 사고력","창의적 문제 해결 능력","논리적 사고력","문제 해결 능력","창의적 사고 능력"],
+      ["인공지능 소양","디지털 문화 소양"],
+      ["학습 동기(흥미)","수업 만족"]
+    ]
+  },
+
+  // RULE 04 — 옵션 배치(레이아웃)
+  layout: {
+    domain: {
+      col1: ["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"],
+      col2: []
+    },
+    participants: {
+      col1: ["영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생"],
+      col2: ["특수학습자","영재학습자","성인학습자"]
+    },
+    orientation: {
+      col1: ["과제 수행 학습","동료 상호작용 학습","문제 해결 학습","상기적 결합 학습","유사 경험 학습","재현 학습"],
+      col2: ["정서 매개 학습","탐구 학습","환류 학습"]
+    },
+    competencies: {
+      col1: ["컴퓨팅 사고력","디지털 문화 소양","인공지능 소양","학업 성취","학습 동기(흥미)","수업 만족"],
+      col2: ["논리적 사고력","창의적 사고 능력","문제 해결 능력","창의적 문제 해결 능력","기타"]
+    }
+  }
+};
+
+const CHAIN_GROUPS = [
+  { key:'participants', name:'대상',  note:'participants',
+    help:'학습 대상의 연령/특성 인접도. 예: 초등 학년 간에는 높은 친화도, 영유아↔성인은 낮은 친화도.' },
+  { key:'orientation',  name:'지향',  note:'orientation',
+    help:'수업 지향(학습 방식)의 유사도. 한 항목이 여러 체인에 들어갈 수 있습니다.' },
+  { key:'competencies', name:'역량',  note:'competencies',
+    help:'역량 간 유사도. 같은 체인에 가까이 있을수록 부분 점수를 더 많이 부여합니다.' }
+];
+
+const LAYOUT_GROUPS = [
+  { key:'domain',       name:'영역',  note:'domain' },
+  { key:'participants', name:'대상',  note:'participants' },
+  { key:'orientation',  name:'지향',  note:'orientation' },
+  { key:'competencies', name:'역량',  note:'competencies' }
+];
+
+/* ── 상태 ── */
+let RULES = null;
+let dirty = false;
+
+const deep = o => JSON.parse(JSON.stringify(o));
+
+function setDirty(on){
+  dirty = on;
+  const el = document.getElementById('save-state');
+  if(on){ el.textContent = '저장되지 않은 변경 사항이 있습니다.'; el.className = 'save-state dirty'; }
+}
+function setState(msg, kind){
+  const el = document.getElementById('save-state');
+  el.textContent = msg; el.className = 'save-state' + (kind ? ' '+kind : '');
+}
+
+/* ─────────── RULE 01 — Weights & Priority ─────────── */
+function renderWeights(){
+  const grid = document.getElementById('weight-grid'); grid.innerHTML = '';
+
+  // header row
+  const head = document.createElement('div'); head.className='weight-row head';
+  head.innerHTML =
+    '<div>우선순위</div><div>조건</div><div></div>'+
+    '<div class="h-val">가중치</div><div class="h-share">비율</div>';
+  grid.appendChild(head);
+
+  // 우선순위 순서대로 정렬해서 렌더
+  const ordered = [...WEIGHT_KEYS].sort((a,b)=> RULES.priority[a.key]-RULES.priority[b.key]);
+  ordered.forEach(w=>{
+    const rank = RULES.priority[w.key];
+    const row = document.createElement('div'); row.className = 'weight-row';
+    row.innerHTML =
+      '<div class="rank-ctrl">'+
+        '<span class="rank-badge">'+rank+'</span>'+
+        '<span class="rank-arrows">'+
+          '<button class="rank-arrow up" data-rk="'+w.key+'" '+(rank===1?'disabled':'')+' title="우선순위 올리기">▲</button>'+
+          '<button class="rank-arrow down" data-rk="'+w.key+'" '+(rank===WEIGHT_KEYS.length?'disabled':'')+' title="우선순위 내리기">▼</button>'+
+        '</span>'+
+      '</div>'+
+      '<div class="weight-label">'+w.label+'<small>'+w.hint+'</small></div>'+
+      '<div class="weight-track"><input type="range" class="weight-slider" min="0" max="100" step="1" data-w="'+w.key+'"></div>'+
+      '<input type="number" class="num-input" min="0" max="100" step="1" data-wn="'+w.key+'">'+
+      '<div class="weight-share" data-ws="'+w.key+'">0%</div>';
+    grid.appendChild(row);
+  });
+
+  WEIGHT_KEYS.forEach(w=>{
+    const v = RULES.weights[w.key];
+    grid.querySelector('[data-w="'+w.key+'"]').value  = v;
+    grid.querySelector('[data-wn="'+w.key+'"]').value = v;
+  });
+  grid.querySelectorAll('[data-w]').forEach(sl=>{
+    sl.addEventListener('input', e=>{
+      const k=e.target.dataset.w, v=clampInt(e.target.value,0,100);
+      RULES.weights[k]=v; grid.querySelector('[data-wn="'+k+'"]').value=v;
+      updateWeightTotals(); setDirty(true);
+    });
+  });
+  grid.querySelectorAll('[data-wn]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const k=e.target.dataset.wn, v=clampInt(e.target.value,0,100);
+      RULES.weights[k]=v; grid.querySelector('[data-w="'+k+'"]').value=v;
+      updateWeightTotals(); setDirty(true);
+    });
+  });
+  grid.querySelectorAll('.rank-arrow').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const k=e.currentTarget.dataset.rk;
+      const dir = e.currentTarget.classList.contains('up') ? -1 : 1;
+      swapPriority(k, dir);
+    });
+  });
+  updateWeightTotals();
+}
+function swapPriority(key, dir){
+  const cur = RULES.priority[key];
+  const target = cur + dir;
+  if(target < 1 || target > WEIGHT_KEYS.length) return;
+  // target 순위를 가진 다른 조건과 자리 교환
+  const other = WEIGHT_KEYS.find(w=> RULES.priority[w.key]===target);
+  if(other){ RULES.priority[other.key] = cur; }
+  RULES.priority[key] = target;
+  setDirty(true);
+  renderWeights();
+}
+function updateWeightTotals(){
+  const sum = WEIGHT_KEYS.reduce((a,w)=>a + (RULES.weights[w.key]||0), 0);
+  document.getElementById('weight-sum').textContent = sum;
+  WEIGHT_KEYS.forEach(w=>{
+    const share = sum>0 ? Math.round((RULES.weights[w.key]||0)/sum*100) : 0;
+    const el = document.querySelector('[data-ws="'+w.key+'"]');
+    if(el) el.textContent = share+'%';
+  });
+  const badge = document.getElementById('weight-badge');
+  badge.textContent = sum===100 ? '합계 100 ✓' : '합계 '+sum+' (정규화 적용)';
+  badge.className = 'total-badge ' + (sum===100 ? 'ok' : 'bad');
+}
+
+/* ─────────── RULE 02 — Defaults & Thresholds ─────────── */
+function renderDefaults(){
+  const block = document.getElementById('defaults-grid'); block.innerHTML = '';
+
+  // 1행 — 미선택 기본 친화도 (대상 / 지향 / 역량)
+  const affFields = [
+    { group:'defaults', key:'participants', label:'대상 미선택 기본 친화도', sub:'0 ~ 1', min:0, max:1, step:0.05, unit:'×가중치' },
+    { group:'defaults', key:'orientation',  label:'지향 미선택 기본 친화도', sub:'0 ~ 1', min:0, max:1, step:0.05, unit:'×가중치' },
+    { group:'defaults', key:'competencies', label:'역량 미선택 기본 친화도', sub:'0 ~ 1', min:0, max:1, step:0.05, unit:'×가중치' }
+  ];
+  // 2행 — 임계값 (결과 최대 표시 개수 / 결과 노출 최소 일치도)
+  const thFields = [
+    { group:'thresholds', key:'maxResults',      label:'결과 최대 표시 개수',   sub:'1 이상',  min:1, max:999, step:1, unit:'개' },
+    { group:'thresholds', key:'minMatchPercent', label:'결과 노출 최소 일치도', sub:'0 ~ 100', min:0, max:100, step:1, unit:'%' }
+  ];
+
+  block.appendChild(buildKvRowset('미선택 기본 친화도', affFields, 'cols-3'));
+  block.appendChild(buildKvRowset('결과 노출 임계값',   thFields,  'cols-2'));
+}
+function buildKvRowset(label, fields, colClass){
+  const set = document.createElement('div'); set.className='kv-rowset';
+  const head = document.createElement('div'); head.className='kv-rowset-label'; head.textContent=label;
+  const line = document.createElement('div'); line.className='kv-line '+colClass;
+  fields.forEach(f=>{
+    const row = document.createElement('div'); row.className='kv-row';
+    row.innerHTML =
+      '<div class="kv-label">'+f.label+' <small>('+f.sub+')</small></div>'+
+      '<div class="kv-field">'+
+        '<input type="number" class="num-input" data-dg="'+f.group+'" data-dk="'+f.key+'" '+
+          'min="'+f.min+'" max="'+f.max+'" step="'+f.step+'">'+
+        '<span class="kv-unit">'+f.unit+'</span>'+
+      '</div>';
+    const inp = row.querySelector('input');
+    inp.value = RULES[f.group][f.key];
+    inp.addEventListener('input', e=>{
+      let v = parseFloat(e.target.value);
+      if(isNaN(v)) return;
+      v = Math.min(f.max, Math.max(f.min, v));
+      RULES[f.group][f.key] = v;
+      setDirty(true);
+    });
+    line.appendChild(row);
+  });
+  set.appendChild(head); set.appendChild(line);
+  return set;
+}
+
+/* ─────────── RULE 03 — Affinity Chains ─────────── */
+function renderChains(){
+  const area = document.getElementById('chains-area'); area.innerHTML = '';
+  CHAIN_GROUPS.forEach(g=>{
+    const chains = RULES.affinityChains[g.key] || [];
+    const grp = document.createElement('div'); grp.className='chain-group';
+    grp.innerHTML =
+      '<div class="chain-group-head">'+
+        '<div class="chain-group-name">'+g.name+'<span>'+g.note+'</span></div>'+
+      '</div>'+
+      '<div class="chain-help">'+g.help+'</div>'+
+      '<div class="chain-list" data-chainlist="'+g.key+'"></div>';
+    area.appendChild(grp);
+    const list = grp.querySelector('[data-chainlist]');
+    chains.forEach((chain, ci)=> list.appendChild(buildChainItem(g.key, chain, ci)));
+    const addBtn = document.createElement('button');
+    addBtn.className='chain-add-btn'; addBtn.textContent='+ 체인 추가';
+    addBtn.addEventListener('click', ()=>{
+      RULES.affinityChains[g.key].push([]); setDirty(true); renderChains();
+    });
+    grp.appendChild(addBtn);
+  });
+}
+function buildChainItem(groupKey, chain, ci){
+  const item = document.createElement('div'); item.className='chain-item';
+  const top = document.createElement('div'); top.className='chain-item-top';
+  top.innerHTML = '<span class="chain-no">CHAIN '+String(ci+1).padStart(2,'0')+'</span>';
+  const del = document.createElement('button');
+  del.className='chain-del'; del.textContent='체인 삭제';
+  del.addEventListener('click', ()=>{
+    RULES.affinityChains[groupKey].splice(ci,1); setDirty(true); renderChains();
+  });
+  top.appendChild(del);
+  item.appendChild(top);
+
+  const field = document.createElement('div'); field.className='tag-field';
+  chain.forEach((tag, ti)=>{
+    const chip = document.createElement('span'); chip.className='chip';
+    chip.innerHTML = '<span>'+escapeHtml(tag)+'</span>';
+    const x = document.createElement('button'); x.className='chip-x'; x.textContent='×';
+    x.addEventListener('click', ()=>{ chain.splice(ti,1); setDirty(true); renderChains(); });
+    chip.appendChild(x);
+    field.appendChild(chip);
+  });
+  const add = document.createElement('input');
+  add.className='chip-add'; add.placeholder='+ 항목 입력 후 Enter';
+  add.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){
+      const v=e.target.value.trim();
+      if(v){ chain.push(v); setDirty(true); renderChains();
+        setTimeout(()=>{ const li=document.querySelectorAll('[data-chainlist="'+groupKey+'"] .chain-item')[ci];
+          if(li){ const inp=li.querySelector('.chip-add'); if(inp) inp.focus(); } },0);
+      }
+    }
+  });
+  field.appendChild(add);
+  item.appendChild(field);
+  return item;
+}
+
+/* ─────────── RULE 04 — Layout & Order ─────────── */
+function renderLayout(){
+  const area = document.getElementById('layout-area'); area.innerHTML = '';
+  LAYOUT_GROUPS.forEach(g=>{
+    const lay = RULES.layout[g.key] || {col1:[], col2:[]};
+    const card = document.createElement('div'); card.className='layout-card';
+    card.innerHTML =
+      '<div class="layout-card-head">'+g.name+'<span>'+g.note+'</span></div>'+
+      '<div class="layout-cols">'+
+        '<div class="layout-col"><div class="layout-col-name">Column 1</div>'+
+          '<div class="order-list" data-ll="'+g.key+'" data-col="col1"></div>'+
+          buildAddHtml(g.key,'col1')+'</div>'+
+        '<div class="layout-col"><div class="layout-col-name">Column 2</div>'+
+          '<div class="order-list" data-ll="'+g.key+'" data-col="col2"></div>'+
+          buildAddHtml(g.key,'col2')+'</div>'+
+      '</div>';
+    area.appendChild(card);
+    fillOrderList(card.querySelector('[data-col="col1"]'), g.key, 'col1');
+    fillOrderList(card.querySelector('[data-col="col2"]'), g.key, 'col2');
+    card.querySelectorAll('.layout-add').forEach(wrap=>{
+      const col = wrap.dataset.col;
+      const inp = wrap.querySelector('input');
+      const go = ()=>{
+        const v=inp.value.trim();
+        if(v){ RULES.layout[g.key][col].push(v); setDirty(true); renderLayout(); }
+      };
+      wrap.querySelector('button').addEventListener('click', go);
+      inp.addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
+    });
+  });
+}
+function buildAddHtml(group, col){
+  return '<div class="layout-add" data-col="'+col+'">'+
+           '<input type="text" placeholder="항목 추가">'+
+           '<button type="button">추가</button>'+
+         '</div>';
+}
+function fillOrderList(box, group, col){
+  box.innerHTML='';
+  const arr = RULES.layout[group][col] || [];
+  arr.forEach((name, i)=>{
+    const it = document.createElement('div'); it.className='order-item';
+    it.innerHTML =
+      '<span class="order-name" title="'+escapeAttr(name)+'">'+escapeHtml(name)+'</span>'+
+      '<button class="order-ctrl up" '+(i===0?'disabled':'')+' title="위로">▲</button>'+
+      '<button class="order-ctrl down" '+(i===arr.length-1?'disabled':'')+' title="아래로">▼</button>'+
+      '<button class="order-ctrl swap" title="다른 열로 이동">⇄</button>'+
+      '<button class="order-ctrl del" title="삭제">×</button>';
+    it.querySelector('.up').addEventListener('click', ()=>{ move(arr,i,i-1); setDirty(true); renderLayout(); });
+    it.querySelector('.down').addEventListener('click', ()=>{ move(arr,i,i+1); setDirty(true); renderLayout(); });
+    it.querySelector('.del').addEventListener('click', ()=>{ arr.splice(i,1); setDirty(true); renderLayout(); });
+    it.querySelector('.swap').addEventListener('click', ()=>{
+      const other = col==='col1'?'col2':'col1';
+      RULES.layout[group][other].push(arr.splice(i,1)[0]); setDirty(true); renderLayout();
+    });
+    box.appendChild(it);
+  });
+  if(!arr.length){
+    const empty=document.createElement('div');
+    empty.style.cssText='font-family:DM Mono,monospace;font-size:0.62rem;color:#adb5bd;padding:4px 2px;';
+    empty.textContent='— 비어 있음 —';
+    box.appendChild(empty);
+  }
+}
+
+/* ── helpers ── */
+function clampInt(v, lo, hi){ v=parseInt(v,10); if(isNaN(v)) v=lo; return Math.min(hi, Math.max(lo, v)); }
+function move(arr,from,to){ if(to<0||to>=arr.length) return; const [x]=arr.splice(from,1); arr.splice(to,0,x); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s).replace(/'/g,'&#39;'); }
+
+/* ── modals ── */
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+
+/* ── render all ── */
+function renderAll(){
+  renderWeights();
+  renderDefaults();
+  renderChains();
+  renderLayout();
+}
+
+/* ── actions ── */
+function showJson(){
+  document.getElementById('json-pre').textContent = JSON.stringify(RULES, null, 2);
+  openModal('json-modal');
+}
+function copyJson(){
+  const txt = JSON.stringify(RULES, null, 2);
+  navigator.clipboard && navigator.clipboard.writeText(txt);
+}
+function doReset(){ openModal('reset-modal'); }
+function confirmReset(){
+  RULES = deep(DEFAULT_RULES);
+  renderAll();
+  closeModal('reset-modal');
+  setState('기본값으로 복원되었습니다. (저장하지 않음)', 'dirty');
+  dirty = true;
+}
+function doSave(){
+  document.getElementById('save-modal-result').textContent='';
+  openModal('save-modal');
+}
+async function confirmSave(){
+  const res = document.getElementById('save-modal-result');
+  res.textContent = '';
+  const sum = WEIGHT_KEYS.reduce((a,w)=>a+(RULES.weights[w.key]||0),0);
+  if(sum<=0){ res.textContent='가중치 합계가 0보다 커야 합니다.'; return; }
+  if(RULES.thresholds.maxResults < 1){ res.textContent='결과 최대 표시 개수는 1 이상이어야 합니다.'; return; }
+
+  const btn = document.getElementById('save-confirm-btn');
+  btn.disabled = true; btn.textContent = '저장 중...';
+  try{
+    await saveRulesToSheet(RULES);
+    closeModal('save-modal');
+    dirty = false;
+    setState('구글 시트에 저장되었습니다. ('+nowStamp()+')', 'ok');
+  }catch(err){
+    res.textContent = '저장 실패: ' + (err && err.message ? err.message : err);
+  }finally{
+    btn.disabled = false; btn.textContent = '저장';
+  }
+}
+
+/* ───── 구글 시트 연동 ─────
+   - 정본(JSON)은 GAS 가 'MTI_Recommand_Rules' 탭에 저장.
+   - 저장 시 GAS 가 Rules_Scalar / Rules_Chains / Rules_Layout 미러 탭을 자동 재생성.
+   - 저장: doPost(JSON body) / 불러오기: JSONP(gasJsonp)
+   ad_common.js 의 gasJsonp 를 재사용하되, 엔드포인트는 전용 REC_RULES_GAS_URL 을 쓴다.
+─────────────────────────── */
+const RULES_VERSION = 1; // 규칙 스키마 버전
+
+/* 추천 규칙 전용 GAS 엔드포인트 (회원 로그용 GAS_URL 과 별개) */
+const REC_RULES_GAS_URL = 'https://script.google.com/macros/s/AKfycbyVyUYe-jNCPRMJoxYuBOZyB8z7Rbr979x1segiZEh-PLtz3t8X3kAqckARfHhLLtYEJw/exec';
+
+function nowStamp(){
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+
+/* 저장: text/plain 으로 보내 CORS preflight 를 회피 (GAS 표준 패턴) */
+async function saveRulesToSheet(rules){
+  const payload = {
+    action: 'saveRecRules',
+    version: RULES_VERSION,
+    editor: sessionStorage.getItem('admin_email') || '',
+    rules: rules
+  };
+  const r = await fetch(REC_RULES_GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  let data;
+  try { data = await r.json(); }
+  catch(e){ throw new Error('응답 파싱 실패'); }
+  if(data.status !== 'OK') throw new Error(data.message || data.status || '알 수 없는 오류');
+  return data;
+}
+
+/* 불러오기: JSONP — 'Rules' 탭의 정본 JSON 을 가져온다 */
+async function loadRulesFromSheet(){
+  const data = await gasJsonp(REC_RULES_GAS_URL, { action: 'getRecRules' }, 'recrules');
+  if(data && data.status === 'OK' && data.rules){
+    return normalizeRules(data.rules);
+  }
+  if(data && data.status === 'EMPTY'){
+    return null; // 시트에 아직 규칙이 저장되지 않음 → 기본값 사용
+  }
+  throw new Error((data && data.message) || '규칙 로드 실패');
+}
+
+/* 시트에서 온 규칙이 누락 필드 없이 형태를 갖추도록 기본값과 병합 */
+function normalizeRules(r){
+  const base = deep(DEFAULT_RULES);
+  if(!r || typeof r !== 'object') return base;
+  const out = deep(base);
+  if(r.weights)   Object.assign(out.weights, r.weights);
+  if(r.priority)  Object.assign(out.priority, r.priority);
+  if(r.defaults)  Object.assign(out.defaults, r.defaults);
+  if(r.thresholds)Object.assign(out.thresholds, r.thresholds);
+  if(r.affinityChains) out.affinityChains = r.affinityChains;
+  if(r.layout)         out.layout = r.layout;
+  return out;
+}
+
+/* ── page init (ad_common.js 가 네비/세션 처리 후 호출) ── */
+window.__pageInit = async function(){
+  RULES = deep(DEFAULT_RULES);
+  renderAll();
+  document.getElementById('btn-save').addEventListener('click', doSave);
+  document.getElementById('btn-reset').addEventListener('click', doReset);
+  document.getElementById('btn-json').addEventListener('click', showJson);
+  window.addEventListener('beforeunload', e=>{
+    if(dirty){ e.preventDefault(); e.returnValue=''; }
+  });
+
+  // 시트에서 저장된 규칙 불러오기 (실패 시 기본값 유지)
+  setState('구글 시트에서 규칙을 불러오는 중…');
+  try{
+    const loaded = await loadRulesFromSheet();
+    if(loaded){
+      RULES = loaded; renderAll();
+      setState('구글 시트에서 규칙을 불러왔습니다.', 'ok');
+    }else{
+      setState('저장된 규칙이 없어 기본값을 표시합니다. (미저장)', 'dirty');
+      dirty = true;
+    }
+  }catch(err){
+    setState('규칙 로드 실패 — 기본값 표시 중: ' + (err && err.message ? err.message : err), 'err');
+  }
+};
+</script>
+</body>
+</html>
