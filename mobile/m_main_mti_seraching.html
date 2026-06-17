@@ -256,7 +256,7 @@
             justify-content: center;
             gap: 4px;
             width: 70px;
-            height: 70px;
+            height: 59.5px;
             padding: 8px 5px;
             background: #fff;
             border: 1px solid #dee2e6;
@@ -518,7 +518,7 @@
                 min-width: 0;
                 flex-direction: column;
                 width: 52px;
-                height: 52px;
+                height: 44.2px;
                 min-height: 0;
                 gap: 0;
                 padding: 0;
@@ -591,6 +591,7 @@
         <a class="nav-menu-item" href="m_main_what_about.html" data-page="m_main_what_about.html">What's_IMTI?</a>
         <a class="nav-menu-item" href="m_main_research_trends.html" data-page="m_main_research_trends.html">Reserach_Trends</a>
         <a class="nav-menu-item active" href="m_main_mti_seraching.html" data-page="m_main_mti_seraching.html">MTI_Searching</a>
+        <a class="nav-menu-item" href="m_main_recommand_mti.html" data-page="m_main_recommand_mti.html">MTI_Recommaning</a>
     </nav>
 
     <div class="nav-drawer-account-actions">
@@ -1399,7 +1400,11 @@
 
 <script>
     function openPopup(type) {
-        var modelName = selectedResult || document.getElementById('result-model-name').textContent.trim();
+        // 실제로 수업 모형이 '선택'되었는지는 selectedResult로만 판단한다.
+        // #result-model-name 에는 "✔ [N]건 검색됨", "검색되지 않았습니다" 같은
+        // 안내 문구가 들어갈 수 있어, 이를 폴백으로 쓰면 미선택 상태에서도
+        // modelName 이 truthy 가 되어 안내 모달이 뜨지 않는 문제가 있다.
+        var modelName = selectedResult || '';
 
         if (type === 'exp-write') {
             if (!modelName) { imtiOpenModal('modal-exp-nomodel'); return; }
