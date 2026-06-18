@@ -335,6 +335,12 @@
         .exp-btn-ok:hover { background: #1a56db; }
         .exp-btn-cl { padding: 10px 44px; background: #e9ecef; color: #495057; border: none; border-radius: 7px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.07em; transition: background 0.18s; }
         .exp-btn-cl:hover { background: #dee2e6; }
+
+        /* ---------- draggable modals ---------- */
+        .draggable-modal { transform: translate(0,0); }
+        .drag-handle { cursor: grab; user-select: none; }
+        .drag-handle:active { cursor: grabbing; }
+        .draggable-modal.dragging { transition: none !important; }
     </style>
 </head>
 <body id="main-body">
@@ -409,8 +415,8 @@
 
 <!-- Experience write modal -->
 <div id="modal-exp-write" class="modal-bg" onclick="outsideClose(event,'modal-exp-write')">
-    <div class="exp-popup-box" onclick="event.stopPropagation()">
-        <div style="display:flex;align-items:flex-start;padding:22px 40px 0;">
+    <div class="exp-popup-box draggable-modal" onclick="event.stopPropagation()">
+        <div class="drag-handle" style="display:flex;align-items:flex-start;padding:22px 40px 0;">
             <div style="flex:1;">
                 <div class="exp-popup-title">✏️&nbsp; 나의 경험 공유하기</div>
                 <p class="exp-popup-subtitle">해당 수업 모형(MTI)을 적용한 경험이나 후기를 공유해주세요.<br>단, 비난, 욕설, 수업과 무관한 내용이 포함시 운영진에 의해 삭제될 수 있습니다.</p>
@@ -488,7 +494,7 @@
 
 <!-- No entries modal -->
 <div id="modal-spread-noexist" class="modal-bg" onclick="outsideClose(event,'modal-spread-noexist')">
-    <div class="noexist-box" onclick="event.stopPropagation()">
+    <div class="noexist-box draggable-modal drag-handle" onclick="event.stopPropagation()">
         <div class="noexist-icon">📭</div>
         <div class="noexist-title">등록된 적용 사례가 없습니다</div>
         <p class="noexist-desc">아직 이 수업 모형에 대한 적용 사례가 없습니다.<br>첫 번째 경험을 공유해주세요.</p>
@@ -501,8 +507,8 @@
 
 <!-- Experience board modal -->
 <div id="modal-spread-board" class="modal-bg" onclick="outsideClose(event,'modal-spread-board')">
-    <div class="board-popup-box" onclick="event.stopPropagation()" style="width:90%;max-width:1000px;height:90vh;">
-        <div class="board-header">
+    <div class="board-popup-box draggable-modal" onclick="event.stopPropagation()" style="width:90%;max-width:1000px;height:90vh;">
+        <div class="board-header drag-handle">
             <div>
                 <div class="board-title"><span class="board-title-icon">📋</span> 수업 모형 적용 사례</div>
                 <div class="board-meta" id="board-model-meta">수업 모형(MTI)을 직접 적용한 사례와 경험들입니다.</div>
@@ -1404,6 +1410,79 @@
             : src;
         window.open(base + '/export?format=pdf&attachment=false', '_blank');
     }
+
+    /* ====================================================================
+       Draggable modals — drag the experience-share / board modals by their
+       handle to reposition them on screen. Interactive elements (buttons,
+       inputs, links, pagination) are excluded so dragging never eats a click.
+       ==================================================================== */
+    (function() {
+        var dragBox = null, startX = 0, startY = 0, baseX = 0, baseY = 0;
+
+        function isInteractive(el) {
+            return !!(el.closest && el.closest('button, a, input, textarea, select, .pg-btn, .nav-menu-item'));
+        }
+        function onDown(e) {
+            var handle = e.target.closest && e.target.closest('.drag-handle');
+            if (!handle) return;
+            var box = handle.closest('.draggable-modal');
+            if (!box) return;
+            if (isInteractive(e.target)) return;
+            var pt = e.touches ? e.touches[0] : e;
+            dragBox = box;
+            baseX = parseFloat(box.dataset.dx || '0');
+            baseY = parseFloat(box.dataset.dy || '0');
+            startX = pt.clientX; startY = pt.clientY;
+            box.classList.add('dragging');
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        }
+        function onMove(e) {
+            if (!dragBox) return;
+            var pt = e.touches ? e.touches[0] : e;
+            var dx = baseX + (pt.clientX - startX);
+            var dy = baseY + (pt.clientY - startY);
+            dragBox.dataset.dx = dx; dragBox.dataset.dy = dy;
+            dragBox.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+        }
+        function onUp() {
+            if (!dragBox) return;
+            dragBox.classList.remove('dragging');
+            dragBox = null;
+            document.body.style.userSelect = '';
+        }
+        document.addEventListener('mousedown', onDown);
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+        document.addEventListener('touchstart', onDown, { passive: false });
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onUp);
+    })();
+
+    /* Reset a modal's drag offset back to center. Wraps imtiOpenModal so any
+       modal re-opens centered instead of where it was last dragged. */
+    function resetModalPosition(rootId) {
+        var root = document.getElementById(rootId);
+        if (!root) return;
+        var box = root.classList.contains('draggable-modal') ? root : root.querySelector('.draggable-modal');
+        if (box) { box.dataset.dx = '0'; box.dataset.dy = '0'; box.style.transform = 'translate(0,0)'; }
+    }
+    (function() {
+        function installWrapper() {
+            if (typeof window.imtiOpenModal !== 'function' || window._imtiOpenWrapped) return;
+            var _open = window.imtiOpenModal;
+            window.imtiOpenModal = function(id) {
+                resetModalPosition(id);
+                return _open.apply(this, arguments);
+            };
+            window._imtiOpenWrapped = true;
+        }
+        // common.js loads after this inline script, so defer wrapping.
+        window.addEventListener('load', installWrapper);
+        // Fallback in case 'load' already fired.
+        setTimeout(installWrapper, 0);
+        setTimeout(installWrapper, 500);
+    })();
 
     document.addEventListener('DOMContentLoaded', function() {
 
