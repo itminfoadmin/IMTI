@@ -286,6 +286,23 @@ body.on-result .stage-wrap{margin-bottom:0}
 .doc-modal-body iframe{width:100%;height:100%;border:none;opacity:0;transition:opacity .3s;background:#fff}
 .doc-modal-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-family:'DM Mono';font-size:.78rem}
 
+/* ---------- rules fallback modal ---------- */
+.rules-modal{position:fixed;inset:0;z-index:3500;display:none;align-items:center;justify-content:center;padding:5vh 5vw}
+.rules-modal.show{display:flex;animation:fade .25s ease both}
+.rules-modal-backdrop{position:absolute;inset:0;background:rgba(20,22,28,.55);backdrop-filter:blur(2px)}
+.rules-modal-box{position:relative;z-index:1;width:min(440px,92vw);background:#fff;border-radius:14px;padding:28px 26px 22px;box-shadow:0 30px 80px -20px rgba(20,22,28,.5);text-align:center}
+.rules-modal-icon{width:44px;height:44px;margin:0 auto 14px;border-radius:50%;background:var(--terra-soft);color:var(--terra);display:grid;place-items:center;font-size:1.4rem;font-weight:700}
+.rules-modal-msg{font-family:'Noto Sans KR';font-size:.92rem;line-height:1.6;color:var(--text);word-break:keep-all}
+.rules-modal-sub{font-family:'DM Mono';font-size:.72rem;color:var(--muted);margin-top:8px}
+.rules-modal-btns{display:flex;gap:10px;justify-content:center;margin-top:22px}
+.rules-modal-btn{font-family:'Noto Sans KR';font-size:.84rem;font-weight:700;border-radius:8px;padding:9px 22px;cursor:pointer;transition:.2s;border:1.5px solid}
+.rules-modal-btn.yes{color:#fff;background:var(--terra);border-color:var(--terra)}
+.rules-modal-btn.yes:hover{background:#c46868;border-color:#c46868}
+.rules-modal-btn.no{color:var(--text-soft);background:#fff;border-color:var(--line)}
+.rules-modal-btn.no:hover{border-color:var(--text-soft);color:var(--ink)}
+.rules-modal-spinner{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--terra);border-radius:50%;margin:4px auto 0;animation:rules-spin .8s linear infinite}
+@keyframes rules-spin{to{transform:rotate(360deg)}}
+
 .page-foot{text-align:center;padding:0 5% 4vh;color:var(--muted);font-family:'DM Mono';font-size:.7rem;letter-spacing:.04em}
 .page-foot b{color:var(--terra);font-weight:500}
 
@@ -472,6 +489,17 @@ body.on-result .stage-wrap{margin-bottom:0}
   </div>
 </div>
 
+<!-- Rules fallback confirmation modal -->
+<div class="rules-modal" id="rulesModal" aria-hidden="true">
+  <div class="rules-modal-backdrop"></div>
+  <div class="rules-modal-box" role="dialog" aria-modal="true">
+    <div class="rules-modal-icon" id="rulesModalIcon">!</div>
+    <div class="rules-modal-msg" id="rulesModalMsg"></div>
+    <div class="rules-modal-sub" id="rulesModalSub"></div>
+    <div class="rules-modal-btns" id="rulesModalBtns"></div>
+  </div>
+</div>
+
 <script>
 
 const SHEET_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub";
@@ -481,44 +509,33 @@ const CSV = {
   participants: SHEET_BASE + "?gid=1818365513&single=true&output=csv"
 };
 
-const PART_ORDER = ["영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","특수학습자","영재학습자","성인학습자"];
-const DOMAIN_ORDER = ["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"];
-
-/* Recommand Rules */
+/* Recommendation rules */
 const REC_RULES_GAS_URL = "https://script.google.com/macros/s/AKfycbyVyUYe-jNCPRMJoxYuBOZyB8z7Rbr979x1segiZEh-PLtz3t8X3kAqckARfHhLLtYEJw/exec";
 
+/* Fallback rules.
+   The real recommendation rules (weights, affinity chains, option layout) are
+   loaded from Google Sheets via GAS, and applyRules() overrides these values.
+   These defaults are used only when the GAS request fails. Scalar values keep
+   safe defaults; affinity chains and layout are emptied so the source does not
+   expose the real rules (GAS replaces them wholesale at runtime). */
 const DEFAULT_RULES = {
   weights:  { domain:35, participants:30, orientation:25, competencies:15 },
   priority: { domain:1, participants:2, orientation:3, competencies:4 },
   defaults: { participants:0.5, orientation:0.5, competencies:0.5 },
   thresholds: { minMatchPercent:60, maxResults:20 },
-  affinityChains: {
-    participants: [
-      ["특수학습자","영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","영재학습자","성인학습자"]
-    ],
-    orientation: [
-      ["재현 학습","과제 수행 학습","문제 해결 학습","탐구 학습"],
-      ["유사 경험 학습","정서 매개 학습"],
-      ["상기적 결합 학습","재현 학습","환류 학습"]
-    ],
-    competencies: [
-      ["학업 성취","컴퓨팅 사고력","창의적 문제 해결 능력","논리적 사고력","문제 해결 능력","창의적 사고 능력"],
-      ["인공지능 소양","디지털 문화 소양"],
-      ["학습 동기(흥미)","수업 만족"]
-    ]
-  },
+  affinityChains: { participants:[], orientation:[], competencies:[] },
   layout: {
-    domain:       { col1:["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"], col2:[] },
-    participants: { col1:["영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생"], col2:["특수학습자","영재학습자","성인학습자"] },
-    orientation:  { col1:["과제 수행 학습","동료 상호작용 학습","문제 해결 학습","상기적 결합 학습","유사 경험 학습","재현 학습"], col2:["정서 매개 학습","탐구 학습","환류 학습"] },
-    competencies: { col1:["컴퓨팅 사고력","디지털 문화 소양","인공지능 소양","학업 성취","학습 동기(흥미)","수업 만족"], col2:["논리적 사고력","창의적 사고 능력","문제 해결 능력","창의적 문제 해결 능력","기타"] }
+    domain:       { col1:[], col2:[] },
+    participants: { col1:[], col2:[] },
+    orientation:  { col1:[], col2:[] },
+    competencies: { col1:[], col2:[] }
   }
 };
 
 function _deepRules(o){ return JSON.parse(JSON.stringify(o)); }
 let RULES = _deepRules(DEFAULT_RULES);
 
-/* Rules roading */
+/* Load rules from GAS (JSONP) */
 function loadRecRules(){
   return new Promise(resolve=>{
     const cbName = 'recrules_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
@@ -546,7 +563,72 @@ function loadRecRules(){
   });
 }
 
-/* Rules update timestamp ---------- */
+/* ---------- rules fallback modal ---------- */
+let _rulesUsingFallback = false;   // true once the user accepts default rules
+
+/* Try to load sheet rules; if it fails, drive the confirmation modal.
+   Resolves only when either the sheet rules are applied OR the user chose
+   to proceed with the default fallback rules. */
+async function ensureRulesLoaded(){
+  let ok = await loadRecRules();
+  while(!ok){
+    const useDefault = await askUseDefaultRules();   // Yes -> true, No -> false (retry)
+    if(useDefault){
+      _rulesUsingFallback = true;
+      console.log('Rules load failed (using default fallback rules)');
+      renderFallbackNotice();
+      return;
+    }
+    await showRulesRetryMessage();   // "rules will be reloaded" notice
+    ok = await loadRecRules();       // retry the sheet rules once
+  }
+  _rulesUsingFallback = false;
+  console.log('Rules loaded (sheet rules applied)');
+}
+
+/* Yes/No confirmation modal. Resolves true (use defaults) or false (retry). */
+function askUseDefaultRules(){
+  return new Promise(resolve=>{
+    const modal = document.getElementById('rulesModal');
+    document.getElementById('rulesModalIcon').textContent = '!';
+    document.getElementById('rulesModalMsg').innerHTML =
+      'MTI 추천을 위한 규칙이 정상적으로 로딩되지 않았습니다.<br>정확도가 낮은 기본 규칙으로 MTI를 추천받으시겠습니까?';
+    document.getElementById('rulesModalSub').textContent = '';
+    const btns = document.getElementById('rulesModalBtns');
+    btns.innerHTML = '';
+    const yes = document.createElement('button');
+    yes.className = 'rules-modal-btn yes'; yes.textContent = '네 (Yes)';
+    const no = document.createElement('button');
+    no.className = 'rules-modal-btn no'; no.textContent = '아니오 (No)';
+    yes.onclick = ()=>{ hideRulesModal(); resolve(true); };
+    no.onclick  = ()=>{ resolve(false); };
+    btns.appendChild(yes); btns.appendChild(no);
+    showRulesModal();
+  });
+}
+
+/* Brief "reloading" notice shown before a retry. Auto-dismisses. */
+function showRulesRetryMessage(){
+  return new Promise(resolve=>{
+    document.getElementById('rulesModalIcon').textContent = '↻';
+    document.getElementById('rulesModalMsg').textContent = 'MTI 추천 규칙을 다시 로딩합니다.';
+    document.getElementById('rulesModalSub').innerHTML = '<div class="rules-modal-spinner"></div>';
+    document.getElementById('rulesModalBtns').innerHTML = '';
+    showRulesModal();
+    setTimeout(()=>{ hideRulesModal(); resolve(); }, 900);
+  });
+}
+
+function showRulesModal(){
+  const m = document.getElementById('rulesModal');
+  m.classList.add('show'); m.setAttribute('aria-hidden','false');
+}
+function hideRulesModal(){
+  const m = document.getElementById('rulesModal');
+  m.classList.remove('show'); m.setAttribute('aria-hidden','true');
+}
+
+/* Rules update timestamp */
 function extractRulesUpdate(data){
   // Look for an update timestamp in the response (top-level or inside rules/meta)
   const cands = [
@@ -602,7 +684,15 @@ function renderRulesUpdate(v){
   el.innerHTML = f ? ('Matching Rule Latest Update: <b>' + esc(f) + '</b>') : '';
 }
 
-/* rules merging */
+/* Show the fallback notice in place of the rule-update timestamp when the
+   default rules are used because the sheet rules could not be loaded. */
+function renderFallbackNotice(){
+  const el = document.getElementById('rulesUpdate');
+  if(!el) return;
+  el.innerHTML = '<b>정확도가 낮은 MTI 추천 기본 규칙이 사용되었습니다.</b>';
+}
+
+/* Merge GAS rules over the fallback defaults */
 function applyRules(r){
   const merged = _deepRules(DEFAULT_RULES);
   if(r && typeof r==='object'){
@@ -618,21 +708,8 @@ function applyRules(r){
   LAYOUT = RULES.layout;
 }
 
-let AFFINITY_CHAINS = {
-  participants: [
-    ["특수학습자","영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","영재학습자","성인학습자"]
-  ],
-  orientation: [
-    ["재현 학습","과제 수행 학습","문제 해결 학습","탐구 학습"],
-    ["유사 경험 학습","정서 매개 학습"],
-    ["상기적 결합 학습","재현 학습","환류 학습"]
-  ],
-  competencies: [
-    ["학업 성취","컴퓨팅 사고력","창의적 문제 해결 능력","논리적 사고력","문제 해결 능력","창의적 사고 능력"],
-    ["인공지능 소양","디지털 문화 소양"],
-    ["학습 동기(흥미)","수업 만족"]
-  ]
-};
+/* Affinity chains. Empty by default; populated from GAS via applyRules(). */
+let AFFINITY_CHAINS = { participants: [], orientation: [], competencies: [] };
 const _norm = s => (s||'').replace(/\s+/g,'').toLowerCase();
 
 function _idxInChain(chain, val){
@@ -663,28 +740,12 @@ function groupAffinity(group, selected, modelVals){
 }
 
 
-function partAffinity(selected, modelParts){
-  return groupAffinity('participants', selected, modelParts);
-}
-
-
+/* Option layout. Empty by default; populated from GAS via applyRules(). */
 let LAYOUT = {
-  domain: {
-    col1: ["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"],
-    col2: []
-  },
-  participants: {
-    col1: ["영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생"],
-    col2: ["특수학습자","영재학습자","성인학습자"]
-  },
-  orientation: {
-    col1: ["과제 수행 학습","동료 상호작용 학습","문제 해결 학습","상기적 결합 학습","유사 경험 학습","재현 학습"],
-    col2: ["정서 매개 학습","탐구 학습","환류 학습"]
-  },
-  competencies: {
-    col1: ["컴퓨팅 사고력","디지털 문화 소양","인공지능 소양","학업 성취","학습 동기(흥미)","수업 만족"],
-    col2: ["논리적 사고력","창의적 사고 능력","문제 해결 능력","창의적 문제 해결 능력","기타"]
-  }
+  domain:       { col1: [], col2: [] },
+  participants: { col1: [], col2: [] },
+  orientation:  { col1: [], col2: [] },
+  competencies: { col1: [], col2: [] }
 };
 
 let MODELS = [];
@@ -736,7 +797,14 @@ async function loadAll(){
   setLive('loading','MTI-DB에서 데이터를 불러오는 중…');
   document.getElementById('reloadBtn').style.display='none';
   try{
-    await loadRecRules(); 
+    /* Step 1: load recommendation rules (weights, affinity chains, layout)
+       from GAS first. On success the sheet rules are applied. On failure, ask
+       the user (modal) whether to proceed with the low-accuracy default rules
+       or retry loading the sheet rules once. The loading screen does not
+       dismiss until this resolves. */
+    await ensureRulesLoaded();
+
+    /* Step 2: load model / competency / participant CSVs */
     const [mRows,cRows,pRows] = await Promise.all([fetchCSV(CSV.models),fetchCSV(CSV.competencies),fetchCSV(CSV.participants)]);
     const compMap={},partMap={};
     cRows.forEach(r=>{const id=pick(r,'mti_id');const v=clean(pick(r,'competencies','competency','역량'));if(id&&v)(compMap[id]=compMap[id]||[]).push(v);});
