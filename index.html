@@ -813,6 +813,29 @@
     </div>
 </div>
 
+<!-- Duplicate-login confirmation modal -->
+<div id="modal-dup-login" class="modal-overlay" style="z-index:1000;" onclick="if(event.target===this) dupLoginCancel()">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:36px; text-align:left; background:#fff; border-radius:6px; box-shadow:0 4px 24px rgba(0,0,0,0.16);">
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.82rem; color:#222; margin:0 0 14px; font-weight:700; line-height:1.85; word-break:keep-all;">
+            이전 로그인이 정상적으로 로그아웃되지 않았거나 중복 로그인을 시도하고 있습니다.<br>
+            이전 혹은 다른 로그인을 강제 로그아웃하고 로그인 하시겠습니까?
+        </p>
+        <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.7rem; color:#666; margin:0 0 28px; line-height:1.8; word-break:keep-all;">
+            A previous session for this account is still active (logged in but not logged out). Do you want to force-log out the previous/other session and continue logging in?
+        </p>
+        <div style="text-align:center; display:flex; gap:10px; justify-content:center;">
+            <button id="dup-login-confirm-btn" onclick="dupLoginConfirm()"
+                    style="background:#343a40; color:#fff; border:1.5px solid #343a40; border-radius:6px; padding:10px 30px; font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                    onmouseover="this.style.background='#1a56db'; this.style.borderColor='#1a56db'"
+                    onmouseout="this.style.background='#343a40'; this.style.borderColor='#343a40'">확인 (Confirm)</button>
+            <button onclick="dupLoginCancel()"
+                    style="background:#f8f8f8; color:#222; border:1.5px solid #bbb; border-radius:6px; padding:10px 30px; font-family:'Noto Sans KR',sans-serif; font-size:0.8rem; font-weight:500; cursor:pointer; transition:all 0.2s;"
+                    onmouseover="this.style.background='#e9ecef'; this.style.borderColor='#888'"
+                    onmouseout="this.style.background='#f8f8f8'; this.style.borderColor='#bbb'">취소 (Cancel)</button>
+        </div>
+    </div>
+</div>
+
 <div id="modal-admin" class="modal-overlay" onclick="outsideClose(event,'modal-admin')" style="z-index:300;">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:520px; padding:44px; background:#f0f0f0; border-radius:4px; box-shadow:0 4px 24px rgba(0,0,0,0.13); position:relative;">
         <button onclick="closeModal('modal-admin')"
@@ -1068,19 +1091,108 @@ function sendLog(type, id, email) {
     catch(e) {}
 }
 
+
+function _logSheetJsonp(params, cb) {
+    var n = 'imti_dup_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+    var done = false;
+    var s = document.createElement('script');
+    var t = setTimeout(function () {
+        if (done) return; done = true;
+        delete window[n];
+        if (s.parentNode) s.parentNode.removeChild(s);
+        cb(null);              
+    }, 8000);
+    window[n] = function (r) {
+        if (done) return; done = true;
+        clearTimeout(t); delete window[n];
+        if (s.parentNode) s.parentNode.removeChild(s);
+        cb(r);
+    };
+    var qs = Object.assign({}, params, { callback: n });
+    s.src = LOG_SHEET_URL + '?' + new URLSearchParams(qs);
+    s.onerror = function () {
+        if (done) return; done = true;
+        clearTimeout(t); delete window[n];
+        if (s.parentNode) s.parentNode.removeChild(s);
+        cb(null);
+    };
+    document.body.appendChild(s);
+}
+
+/* 열린 세션 존재 여부 확인. Promise<{active, lastLogin} | null> */
+function checkDuplicateLogin(id) {
+    return new Promise(function (resolve) {
+        if (!id) { resolve(null); return; }
+        _logSheetJsonp({ action: 'checkActive', id: id }, function (r) {
+            if (r && r.status === 'OK') resolve({ active: !!r.active, lastLogin: r.lastLogin || '' });
+            else resolve(null);     
+        });
+    });
+}
+
+function forcePrevLogout(id, email) {
+    return new Promise(function (resolve) {
+        if (!id) { resolve(false); return; }
+        _logSheetJsonp({ action: 'forceLogout', id: id, email: email || '' }, function (r) {
+            resolve(!!(r && r.status === 'OK'));
+        });
+    });
+}
+
+var _dupResolve = null;
+function showDuplicateLoginModal(pending) {
+    _dupResolve = pending;
+    hideProgress();                 
+    openModal('modal-dup-login');
+}
+async function dupLoginConfirm() {
+    var btn = document.getElementById('dup-login-confirm-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '처리 중...'; }
+    var ctx = window._dupLoginCtx || {};
+    await forcePrevLogout(ctx.userId, ctx.email);
+    if (btn) { btn.disabled = false; btn.textContent = '확인 (Confirm)'; }
+    closeModal('modal-dup-login');
+    if (_dupResolve) { var f = _dupResolve; _dupResolve = null; f(true); }
+}
+function dupLoginCancel() {
+    closeModal('modal-dup-login');
+    hideProgress();
+    if (_dupResolve) { var f = _dupResolve; _dupResolve = null; f(false); }
+}
+
+
+async function finalizeLogin(userId, email, redirectTo) {
+    setProgressMsg('Checking session...');
+    const dup = await checkDuplicateLogin(userId);
+    if (dup && dup.active) {
+        window._dupLoginCtx = { userId: userId, email: email };
+        const proceed = await new Promise(function (resolve) { showDuplicateLoginModal(resolve); });
+        if (!proceed) return;            
+        showProgress('Loading...');
+    }
+    sessionStorage.setItem('imti_user_id',    userId);
+    sessionStorage.setItem('imti_user_email', email);
+    sessionStorage.setItem('imti_log_key',    userId);
+    sendLog('login', userId, email);
+    setProgressMsg('Loading...');
+    window.location.href = redirectTo;
+}
+
 function openModal(id)               { document.getElementById(id)?.classList.add('open'); if (id === 'modal-why') loadWhyCounterList(); }
 function closeModal(id)              { document.getElementById(id)?.classList.remove('open'); }
 function outsideClose(e, id)         { if (e.target === document.getElementById(id)) closeModal(id); }
 
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+        if (document.getElementById('modal-dup-login')?.classList.contains('open')) { dupLoginCancel(); return; }
         ['modal-join','modal-admin','modal-why','modal-contact','modal-login-fail',
          'modal-join-success','modal-admin-fail','modal-join-errID','modal-join-errmail',
          'modal-join-errPasscheck','modal-join-confirm','modal-join-cancel','modal-contact-success'
         ].forEach(closeModal);
     }
     if (e.key === 'Enter') {
-        if      (document.getElementById('modal-join-confirm')?.classList.contains('open'))      handleJoinFinal();
+        if      (document.getElementById('modal-dup-login')?.classList.contains('open'))         dupLoginConfirm();
+        else if (document.getElementById('modal-join-confirm')?.classList.contains('open'))      handleJoinFinal();
         else if (document.getElementById('modal-join-success')?.classList.contains('open'))      handleJoinSuccess();
         else if (document.getElementById('modal-login-fail')?.classList.contains('open'))        closeModal('modal-login-fail');
         else if (document.getElementById('modal-join-errID')?.classList.contains('open'))        closeModal('modal-join-errID');
@@ -1214,12 +1326,7 @@ async function handleLogin() {
         }
         if (res && res.status === 'OK') {
             const userId = res.id || email;
-            sessionStorage.setItem('imti_user_id',    userId);
-            sessionStorage.setItem('imti_user_email', email);
-            sessionStorage.setItem('imti_log_key',    userId);
-            sendLog('login', userId, email);
-            setProgressMsg('Loading...');
-            window.location.href = 'main_what_about.html';
+            await finalizeLogin(userId, email, 'main_what_about.html');
         } else {
             hideProgress();
             openModal('modal-login-fail');
@@ -1239,12 +1346,7 @@ async function handleLogin() {
                 ).then(r => { clearTimeout(_t); return r.json(); });
                 if (res2 && res2.status === 'OK') {
                     const userId = res2.id || email;
-                    sessionStorage.setItem('imti_user_id',    userId);
-                    sessionStorage.setItem('imti_user_email', email);
-                    sessionStorage.setItem('imti_log_key',    userId);
-                    sendLog('login', userId, email);
-                    setProgressMsg('Loading...');
-                    window.location.href = 'main_what_about.html';
+                    await finalizeLogin(userId, email, 'main_what_about.html');
                 } else {
                     hideProgress();
                     openModal('modal-login-fail');
@@ -1489,11 +1591,7 @@ function handleJoinSuccess() {
     closeModal('modal-join-success');
     const { id, email } = window._joinData || {};
     const userId        = id || email || 'unknown';
-    sessionStorage.setItem('imti_user_id',    userId);
-    sessionStorage.setItem('imti_user_email', email || '');
-    sessionStorage.setItem('imti_log_key',    userId);
-    sendLog('login', userId, email || '');
-    window.location.href = 'main_what_about.html';
+    finalizeLogin(userId, email || '', 'main_what_about.html');
 }
 
 async function handleAdminLogin() {
