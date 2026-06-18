@@ -16,7 +16,7 @@ const SHEET_ID = '1ZEczHs1ARAmu8XKSfREE8JuNHOSW3QxKSzXpgJrJ9EU';
 function requireAdminSession() {
     if (!sessionStorage.getItem('admin_email')) {
         sessionStorage.clear();
-        window.location.replace('../index.html');
+        window.location.replace('/index.html');
     }
 }
 
@@ -72,7 +72,7 @@ async function handleAdminLogout() {
     } catch (e) { console.warn('Logout log failed:', e); }
     sessionStorage.removeItem('admin_email');
     sessionStorage.removeItem('admin_login_time');
-    window.location.replace('../index.html');
+    window.location.replace('/index.html');
 }
 
 /* ── Session timer (30-min idle auto-logout) ── */
@@ -115,7 +115,7 @@ async function _autoLogout() {
             { method: 'GET', mode: 'no-cors', credentials: 'omit' });
     } catch (e) { console.warn('Auto-logout log failed:', e); }
     sessionStorage.clear();
-    window.location.replace('../index.html');
+    window.location.replace('/index.html');
 }
 
 /* ── Utilities ── */
