@@ -235,15 +235,77 @@ body{
 .doc-modal.show{display:flex;animation:fade .25s ease both}
 .doc-modal-backdrop{position:absolute;inset:0;background:rgba(20,22,28,.55)}
 .doc-modal-box{position:relative;z-index:1;width:100%;height:100%;background:#fff;display:flex;flex-direction:column}
-.doc-modal-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--bg-soft)}
-.doc-modal-title{font-family:'Noto Sans KR';font-weight:700;font-size:.88rem;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
-.doc-modal-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.doc-modal-print{font-family:'Noto Sans KR';font-size:.74rem;font-weight:700;color:var(--blue);background:none;border:1.5px solid var(--blue);border-radius:7px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+.doc-modal-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--bg-soft)}
+.doc-modal-title{font-family:'Noto Sans KR';font-weight:700;font-size:.82rem;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 auto;min-width:0}
+.doc-modal-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.doc-modal-print{font-family:'Noto Sans KR';font-size:.72rem;font-weight:700;color:var(--blue);background:none;border:1.5px solid var(--blue);border-radius:7px;padding:5px 8px;cursor:pointer;white-space:nowrap}
 .doc-modal-print:active{background:var(--blue);color:#fff}
-.doc-modal-close{border:none;background:none;font-size:1.3rem;color:var(--muted);cursor:pointer;line-height:1;padding:4px 8px;border-radius:6px}
+.doc-modal-exp{font-family:'Noto Sans KR';font-size:.72rem;font-weight:700;color:var(--blue);background:none;border:1.5px solid var(--blue);border-radius:7px;padding:5px 8px;cursor:pointer;white-space:nowrap}
+.doc-modal-exp:active{background:var(--blue);color:#fff}
+.doc-modal-close{border:none;background:none;font-size:1.3rem;color:var(--muted);cursor:pointer;line-height:1;padding:4px 6px;border-radius:6px}
 .doc-modal-body{flex:1;min-height:0;position:relative;background:#f1f3f5;overflow:hidden}
 .doc-modal-body iframe{width:100%;height:100%;border:none;opacity:0;transition:opacity .3s;background:#fff}
 .doc-modal-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-family:'DM Mono';font-size:.76rem}
+
+/* ---------- experience (경험) modals — mobile ---------- */
+/* overlay sits ABOVE the doc modal (z-index 3000) */
+.exp-layer{position:fixed;inset:0;z-index:4000;display:none;align-items:center;justify-content:center;padding:4vh 4vw;background:rgba(20,22,28,.55)}
+.exp-layer.show{display:flex;animation:fade .25s ease both}
+
+.exp-popup-box{background:#fff;border-radius:12px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.exp-popup-head{padding:18px 18px 0}
+.exp-popup-title{font-family:'Noto Sans KR',sans-serif;font-size:1.05rem;font-weight:700;color:#212529;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.exp-popup-subtitle{font-size:.74rem;color:#868e96;line-height:1.6}
+.exp-author-row{display:flex;align-items:center;gap:8px;margin:12px 0 0;font-size:.76rem}
+.exp-author-row .lbl{background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:6px 12px;font-weight:600;color:#495057}
+.exp-author-row .val{font-family:'DM Mono',monospace;font-weight:700;color:#343a40}
+.exp-table-wrap{padding:14px 18px 0}
+.exp-table{width:100%;border-collapse:collapse}
+.exp-table td{border:1px solid #dee2e6;vertical-align:middle}
+.exp-lbl{background:#f8f9fa;font-family:'Noto Sans KR',sans-serif;font-size:.74rem;font-weight:600;color:#495057;text-align:center;white-space:nowrap;padding:9px 8px;width:74px}
+.exp-inp{padding:0;overflow:hidden}
+.exp-inp input{width:100%;border:none;outline:none;padding:9px 10px;font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:#343a40;background:#fff;box-sizing:border-box}
+.exp-inp input:focus{background:#fffdf9}
+.exp-inp textarea{width:100%;border:none;outline:none;padding:9px 10px;font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:#343a40;background:#fff;resize:none;min-height:78px;box-sizing:border-box;line-height:1.65;display:block}
+.exp-inp textarea:focus{background:#fffdf9}
+.exp-inp textarea::placeholder,.exp-inp input::placeholder{color:#ced4da;font-style:italic;font-size:.72rem}
+.exp-footer{padding:16px 18px 18px;display:flex;justify-content:center;gap:10px}
+.exp-btn-ok{flex:1;padding:11px;background:#343a40;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.78rem;font-weight:700;letter-spacing:.05em}
+.exp-btn-ok:active{background:#1a56db}
+.exp-btn-cl{flex:1;padding:11px;background:#e9ecef;color:#495057;border:none;border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.78rem;font-weight:700;letter-spacing:.05em}
+.exp-btn-cl:active{background:#dee2e6}
+
+.exp-alert-box{background:#fff;border-radius:12px;width:100%;max-width:380px;padding:26px 22px 20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.exp-alert-box p{font-family:'Noto Sans KR',sans-serif;font-size:.86rem;color:#343a40;line-height:1.65}
+.exp-alert-box .en{display:block;font-family:'DM Mono',monospace;font-size:.68rem;color:#adb5bd;margin-top:7px}
+.exp-btn-row{display:flex;margin-top:18px;justify-content:center}
+.exp-btn-confirm{flex:1;max-width:200px;padding:11px;background:#343a40;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.76rem;font-weight:700;letter-spacing:.06em}
+.exp-btn-confirm:active{background:#1a56db}
+
+.noexist-box{background:#fff;border-radius:12px;width:100%;max-width:380px;padding:30px 24px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.noexist-icon{font-size:2.3rem;margin-bottom:12px}
+.noexist-title{font-family:'DM Mono',monospace;font-size:.9rem;font-weight:700;color:#212529;margin-bottom:8px}
+.noexist-desc{font-size:.78rem;color:#868e96;line-height:1.7;margin-bottom:20px}
+.popup-btn-row{display:flex;gap:8px;justify-content:center}
+.popup-btn-primary{flex:1;padding:11px;background:#343a40;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.74rem;font-weight:700;letter-spacing:.05em}
+.popup-btn-primary:active{background:#1a56db}
+.popup-btn-secondary{flex:1;padding:11px;background:#e9ecef;color:#495057;border:none;border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.74rem;font-weight:700;letter-spacing:.05em}
+.popup-btn-secondary:active{background:#dee2e6}
+
+.board-popup-box{background:#fff;border-radius:12px;width:100%;max-width:600px;height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.board-header{padding:16px 18px 12px;border-bottom:1px solid #f1f3f5;flex-shrink:0;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.board-title{font-family:'Noto Sans KR',sans-serif;font-size:1.15rem;font-weight:900;color:#212529;margin-bottom:4px;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
+.board-title-icon{font-size:1.15rem;line-height:1;display:inline-flex;align-items:center}
+.board-meta{font-size:.76rem;color:#868e96;line-height:1.5}
+.board-footer{padding:10px 18px;flex-shrink:0}
+#board-entry-table{width:100%;border-collapse:collapse}
+#board-entry-table td{border:1px solid #dee2e6;vertical-align:middle;font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:#343a40}
+.board-lbl{background:#f8f9fa;font-size:.74rem;font-weight:600;color:#495057;text-align:center;white-space:nowrap;padding:9px 8px;width:74px}
+.board-val{padding:9px 10px;line-height:1.65}
+.board-val-tall{padding:10px 10px;line-height:1.65;min-height:64px;vertical-align:top !important}
+.pg-btn{min-width:28px;height:28px;padding:0 6px;background:#fff;border:1px solid #dee2e6;border-radius:5px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.72rem;color:#495057;display:inline-flex;align-items:center;justify-content:center}
+.pg-btn.active{background:#343a40;color:#fff;border-color:#343a40;font-weight:700}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed}
 
 /* ---------- rules fallback modal ---------- */
 .rules-modal{position:fixed;inset:0;z-index:3500;display:none;align-items:center;justify-content:center;padding:6vh 6vw}
@@ -446,6 +508,8 @@ body{
     <div class="doc-modal-head">
       <span class="doc-modal-title" id="docModalTitle">수업 모형</span>
       <div class="doc-modal-actions">
+        <button class="doc-modal-exp" id="docModalExpWrite" onclick="openExpPopup('exp-write')">✏️ 등록</button>
+        <button class="doc-modal-exp" id="docModalExpView" onclick="openExpPopup('spread')">📋 확인</button>
         <button class="doc-modal-print" id="docModalPrint" onclick="printDoc()">🖨 인쇄</button>
         <button class="doc-modal-close" onclick="closeDocModal()" aria-label="닫기">✕</button>
       </div>
@@ -454,6 +518,110 @@ body{
       <div class="doc-modal-loading" id="docModalLoading"><div class="spinner"></div><span>MTI를 불러오는 중…</span></div>
       <iframe id="docModalFrame" title="수업 모형 문서" referrerpolicy="no-referrer"></iframe>
     </div>
+  </div>
+</div>
+
+<!-- ===== Experience (경험) modals — stack above the doc modal ===== -->
+<!-- Experience write modal -->
+<div id="modal-exp-write" class="exp-layer" onclick="expOutsideClose(event,'modal-exp-write')">
+  <div class="exp-popup-box" onclick="event.stopPropagation()">
+    <div class="exp-popup-head">
+      <div class="exp-popup-title">✏️&nbsp; 나의 경험 공유하기</div>
+      <p class="exp-popup-subtitle">해당 수업 모형(MTI)을 적용한 경험이나 후기를 공유해주세요. 비난·욕설 등 무관한 내용은 삭제될 수 있습니다.</p>
+      <div class="exp-author-row"><span class="lbl">작성자</span><span class="val" id="exp-userid-display">—</span></div>
+    </div>
+    <div class="exp-table-wrap">
+      <table class="exp-table">
+        <tr>
+          <td class="exp-lbl">수업 모형</td>
+          <td class="exp-inp"><input type="text" id="exp-model" readonly></td>
+        </tr>
+        <tr>
+          <td class="exp-lbl">수업 대상</td>
+          <td class="exp-inp"><input type="text" id="exp-participants" placeholder="누구(대상)와 함께 수업을 하였는지 입력"></td>
+        </tr>
+        <tr>
+          <td class="exp-lbl">수업 내용</td>
+          <td class="exp-inp"><input type="text" id="exp-subcontent" placeholder="수업 내용을 구체적으로 입력"></td>
+        </tr>
+        <tr>
+          <td class="exp-lbl">좋았던 점</td>
+          <td class="exp-inp"><textarea id="exp-merit" placeholder="실제 수업에 적용했을 때 좋았던 점을 기술해주세요."></textarea></td>
+        </tr>
+        <tr>
+          <td class="exp-lbl">문 제 점</td>
+          <td class="exp-inp"><textarea id="exp-demerit" placeholder="실제 적용 시 문제점 혹은 아쉬웠던 점을 기술해주세요."></textarea></td>
+        </tr>
+        <tr>
+          <td class="exp-lbl">기타/조언</td>
+          <td class="exp-inp"><textarea id="exp-etc" placeholder="적용하려는 분들을 위한 고려사항·조언을 기록해주세요."></textarea></td>
+        </tr>
+      </table>
+    </div>
+    <div class="exp-footer">
+      <button class="exp-btn-ok" onclick="submitExpWrite()">등록 (Submit)</button>
+      <button class="exp-btn-cl" onclick="expCloseModal('modal-exp-write')">취소 (Cancel)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Alert modals -->
+<div id="modal-exp-nomodel" class="exp-layer">
+  <div class="exp-alert-box">
+    <p>경험을 등록할 수업 모형(MTI)을 선택해 주세요.<span class="en">Please select a teaching model first.</span></p>
+    <div class="exp-btn-row"><button class="exp-btn-confirm" onclick="expCloseModal('modal-exp-nomodel')">확인 (OK)</button></div>
+  </div>
+</div>
+<div id="modal-exp-success" class="exp-layer">
+  <div class="exp-alert-box">
+    <p>소중한 경험이 공유되었습니다. 감사합니다!<span class="en">Your experience has been shared. Thank you!</span></p>
+    <div class="exp-btn-row"><button class="exp-btn-confirm" onclick="expCloseModal('modal-exp-success')">확인 (OK)</button></div>
+  </div>
+</div>
+<div id="modal-spread-noselect" class="exp-layer">
+  <div class="exp-alert-box">
+    <p>적용 사례와 경험을 확인할 수업 모형(MTI)을 선택해 주세요.<span class="en">Please select a teaching model first.</span></p>
+    <div class="exp-btn-row"><button class="exp-btn-confirm" onclick="expCloseModal('modal-spread-noselect')">확인 (OK)</button></div>
+  </div>
+</div>
+
+<!-- No entries modal -->
+<div id="modal-spread-noexist" class="exp-layer" onclick="expOutsideClose(event,'modal-spread-noexist')">
+  <div class="noexist-box" onclick="event.stopPropagation()">
+    <div class="noexist-icon">📭</div>
+    <div class="noexist-title">등록된 적용 사례가 없습니다</div>
+    <p class="noexist-desc">아직 이 수업 모형에 대한 적용 사례가 없습니다.<br>첫 번째 경험을 공유해주세요.</p>
+    <div class="popup-btn-row">
+      <button class="popup-btn-primary" onclick="expCloseModal('modal-spread-noexist');openExpPopup('exp-write')">경험 공유하기</button>
+      <button class="popup-btn-secondary" onclick="expCloseModal('modal-spread-noexist')">닫기 (Close)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Experience board modal -->
+<div id="modal-spread-board" class="exp-layer" onclick="expOutsideClose(event,'modal-spread-board')">
+  <div class="board-popup-box" onclick="event.stopPropagation()">
+    <div class="board-header">
+      <div>
+        <div class="board-title"><span class="board-title-icon">📋</span> 수업 모형 적용 사례</div>
+        <div class="board-meta" id="board-model-meta">수업 모형(MTI)을 직접 적용한 사례와 경험들입니다.</div>
+      </div>
+      <button onclick="expCloseModal('modal-spread-board')"
+        style="background:none;border:none;cursor:pointer;font-size:1.7rem;color:#adb5bd;font-weight:700;padding:0 4px;line-height:1;flex-shrink:0;">✕</button>
+    </div>
+    <div id="board-loading" style="display:none;padding:40px;text-align:center;">
+      <div class="spinner" style="margin:0 auto 12px;"></div>
+      <p style="font-size:0.78rem;color:#868e96;">적용 사례를 불러오는 중...</p>
+    </div>
+    <div id="board-content-wrap" style="padding:0 18px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
+      <div id="board-entry-header" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 8px;border-bottom:1px solid #f1f3f5;">
+        <span id="board-entry-author" style="font-family:'Noto Sans KR',sans-serif;font-size:0.78rem;color:#d47878;font-weight:700;"></span>
+        <span id="board-entry-date" style="font-family:'Noto Sans KR',sans-serif;font-size:0.76rem;color:#868e96;font-weight:600;"></span>
+      </div>
+      <table id="board-entry-table"><tbody id="board-entry-tbody"></tbody></table>
+    </div>
+    <div id="board-pagination" style="padding:12px 0;display:flex;justify-content:center;align-items:center;gap:5px;flex-shrink:0;"></div>
+    <div class="board-footer"></div>
   </div>
 </div>
 
@@ -919,7 +1087,7 @@ function renderResults(){
       ...r.hits.comps.map(c=>'<span class="tag hit">'+esc(c)+'</span>')
     ].filter(Boolean).join('');
     const doc=m.docsUrl
-      ? '<button class="doclink" onclick="openDocModal(this.dataset.url, this.dataset.name)" data-url="'+esc(m.docsUrl)+'" data-name="'+esc(m.name)+'">수업 모형 확인하기</button>'
+      ? '<button class="doclink" onclick="openDocModal(this.dataset.url, this.dataset.name, this.dataset.mtiid)" data-url="'+esc(m.docsUrl)+'" data-name="'+esc(m.name)+'" data-mtiid="'+esc(m.id||'')+'">수업 모형 확인하기</button>'
       : '<button class="doclink disabled" disabled>상세 자료 링크 없음</button>';
     wrap.innerHTML=
       (isTop?'<span class="badge-best">Best Match</span>':'')+
@@ -949,6 +1117,8 @@ function toDocPreview(url){ const b=docBase(url); return b ? b+'/preview' : url;
 function toDocPdf(url){ const b=docBase(url); return b ? b+'/export?format=pdf&attachment=false' : url; }
 
 let _currentDocUrl = '';
+let _currentMtiId = '';
+let _currentMtiName = '';
 
 function loadFrame(src){
   const frame=document.getElementById('docModalFrame');
@@ -958,9 +1128,11 @@ function loadFrame(src){
   frame.onload=()=>{ loading.style.display='none'; frame.style.opacity='1'; };
   frame.src = src;
 }
-function openDocModal(url, name){
+function openDocModal(url, name, mtiId){
   if(!url) return;
   _currentDocUrl = url;
+  _currentMtiId = mtiId || '';
+  _currentMtiName = name || '';
   document.getElementById('docModalTitle').textContent = name || '수업 모형';
   loadFrame(toDocPreview(url));
   const modal=document.getElementById('docModal');
@@ -979,7 +1151,190 @@ function printDoc(){
   if(!_currentDocUrl) return;
   window.open(toDocPdf(_currentDocUrl), '_blank');
 }
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDocModal(); });
+
+/* ====================================================================
+   Experience (경험) registration / viewing — same behavior as the
+   desktop page. Uses the selected model's mtiId (_currentMtiId) that
+   openDocModal() captured, and posts to the shared Apps Script endpoint.
+   ==================================================================== */
+const EXP_SURVEY_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbye_Tya-8ItxfkD3DLYysmXImC4FM-N7nb_clv3AWuM59Mb389oZ1E6bp9YCy_MxYRt/exec';
+let boardAllEntries = [], boardCurrentPage = 1;
+
+function expOpenModal(id){ const m=document.getElementById(id); if(m) m.classList.add('show'); }
+function expCloseModal(id){ const m=document.getElementById(id); if(m) m.classList.remove('show'); }
+function expOutsideClose(ev, id){ if(ev.target===document.getElementById(id)) expCloseModal(id); }
+function _anyExpModalOpen(){ return document.querySelector('.exp-layer.show'); }
+
+function openExpPopup(type){
+  if(!_currentMtiId){
+    if(type==='exp-write') expOpenModal('modal-exp-nomodel');
+    else if(type==='spread') expOpenModal('modal-spread-noselect');
+    return;
+  }
+
+  if(type==='exp-write'){
+    const em=document.getElementById('exp-model'); if(em) em.value=_currentMtiName;
+    const uid=document.getElementById('exp-userid-display');
+    if(uid) uid.textContent = sessionStorage.getItem('imti_user_id') || '—';
+    ['exp-participants','exp-subcontent','exp-merit','exp-demerit','exp-etc'].forEach(function(id){
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    expOpenModal('modal-exp-write');
+
+  } else if(type==='spread'){
+    const bm=document.getElementById('board-model-meta');
+    if(bm) bm.textContent='이 수업 모형(MTI)을 직접 적용한 사례와 경험들입니다.';
+    expOpenModal('modal-spread-board');
+    showBoardLoading(true);
+    fetchExpSurveyData(_currentMtiId, function(entries){
+      showBoardLoading(false);
+      if(!entries || !entries.length){
+        expCloseModal('modal-spread-board');
+        expOpenModal('modal-spread-noexist');
+        return;
+      }
+      entries.sort(function(a,b){ return new Date(b.timestamp||b.date||0) - new Date(a.timestamp||a.date||0); });
+      boardAllEntries=entries; boardCurrentPage=1;
+      renderBoardPage(1);
+    });
+  }
+}
+
+function showBoardLoading(show){
+  const ld=document.getElementById('board-loading');
+  const cw=document.getElementById('board-content-wrap');
+  const pg=document.getElementById('board-pagination');
+  if(ld) ld.style.display = show ? 'block' : 'none';
+  if(cw) cw.style.display = show ? 'none'  : 'block';
+  if(pg) pg.style.display = show ? 'none'  : 'flex';
+}
+
+function fetchExpSurveyData(mtiId, callback){
+  const url = EXP_SURVEY_SCRIPT_URL + '?action=getExpSurvey&mtiId=' + encodeURIComponent(mtiId);
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      const rows = Array.isArray(data) ? data : (data && Array.isArray(data.rows) ? data.rows : []);
+      callback(rows);
+    })
+    .catch(function(e){ console.error('[IMTI] fetchExpSurveyData error:', e); callback([]); });
+}
+
+function expEscHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+function _bRow(label, cls, text){
+  return '<tr><td class="board-lbl">'+expEscHtml(label)+'</td><td class="'+cls+'">'+expEscHtml(String(text))+'</td></tr>';
+}
+
+function renderBoardPage(page){
+  boardCurrentPage=page;
+  const entry=boardAllEntries[page-1];
+  if(!entry) return;
+  const userId       = entry.user_ID || entry.userId || entry.userID || entry.user_id || '—';
+  const subContent   = entry.sub_contents || entry.sub_content || entry.subContents || entry.subContent || '—';
+  const participants = entry.participants || entry.subParticipants || '—';
+  const advantage    = entry.advantage || '—';
+  const disadvantage = entry.disadvantage || entry.disadvantege || '—';
+  const etc          = entry.etc || '—';
+  const rawDate      = String(entry.timestamp || entry.date || '').substring(0,10);
+
+  document.getElementById('board-entry-author').textContent = '작성자: ' + userId;
+  document.getElementById('board-entry-date').textContent   = '작성일: ' + rawDate;
+
+  document.getElementById('board-entry-tbody').innerHTML = [
+    _bRow('수업 모형','board-val',      entry.model || _currentMtiName || '—'),
+    _bRow('수업 대상','board-val',      participants),
+    _bRow('수업 내용','board-val',      subContent),
+    _bRow('좋았던 점','board-val-tall', advantage),
+    _bRow('문 제 점', 'board-val-tall', disadvantage),
+    _bRow('기타/조언','board-val-tall', etc)
+  ].join('');
+
+  renderBoardPagination(page, boardAllEntries.length);
+}
+
+function renderBoardPagination(current, total){
+  const pg=document.getElementById('board-pagination');
+  if(!pg) return;
+  pg.innerHTML='';
+  const PAGE_GROUP=10;
+  const groupStart=Math.floor((current-1)/PAGE_GROUP)*PAGE_GROUP+1;
+  const groupEnd=Math.min(groupStart+PAGE_GROUP-1, total);
+  const prevGroup=groupStart-1, nextGroup=groupEnd+1;
+  function mkBtn(label, page, disabled, active){
+    const b=document.createElement('button');
+    b.className='pg-btn'+(active?' active':'');
+    b.textContent=label; b.disabled=!!disabled;
+    if(!disabled) b.onclick=function(){ renderBoardPage(page); };
+    pg.appendChild(b);
+  }
+  mkBtn('<<', 1,         current<=1,       false);
+  mkBtn('<',  prevGroup, groupStart<=1,    false);
+  for(let i=groupStart;i<=groupEnd;i++){ mkBtn(String(i), i, false, i===current); }
+  mkBtn('>',  nextGroup, groupEnd>=total,  false);
+  mkBtn('>>', total,     current>=total,   false);
+}
+
+function submitExpWrite(){
+  const mtiId  = _currentMtiId;
+  const userId = sessionStorage.getItem('imti_user_id') || '';
+  const sub = (document.getElementById('exp-subcontent').value || '').trim();
+  const par = (document.getElementById('exp-participants').value || '').trim();
+  const mer = (document.getElementById('exp-merit').value || '').trim();
+  const dem = (document.getElementById('exp-demerit').value || '').trim();
+  const etc = (document.getElementById('exp-etc').value || '').trim();
+
+  if(!mtiId)               { alert('수업 모형(MTI) 정보를 찾을 수 없습니다. 모형을 다시 선택해주세요.'); return; }
+  if(!userId)              { alert('로그인 정보가 없습니다. 다시 로그인해주세요.'); return; }
+  if(!mer && !dem && !etc) { alert('장점, 단점, 기타 중 하나 이상을 입력해주세요.'); return; }
+
+  const btn=document.querySelector('#modal-exp-write .exp-btn-ok');
+  if(btn){ btn.disabled=true; btn.textContent='저장 중...'; }
+
+  function onSuccess(){
+    if(btn){ btn.disabled=false; btn.textContent='등록 (Submit)'; }
+    expCloseModal('modal-exp-write');
+    expOpenModal('modal-exp-success');
+  }
+  function onError(reason){
+    console.error('[IMTI] submitExpSurvey error:', reason);
+    if(btn){ btn.disabled=false; btn.textContent='등록 (Submit)'; }
+    alert('저장에 실패했습니다. 다시 시도해주세요. (' + reason + ')');
+  }
+
+  const payload=JSON.stringify({
+    action:'submitExpSurvey', mtiId:mtiId, userId:userId,
+    subContents:sub, participants:par, advantage:mer, disadvantage:dem, etc:etc
+  });
+
+  fetch(EXP_SURVEY_SCRIPT_URL, {
+    method:'POST', cache:'no-cache',
+    headers:{ 'Content-Type':'application/json' }, body:payload
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res && res.status==='OK') onSuccess();
+      else onError((res && res.error) || 'GAS_REJECTED');
+    })
+    .catch(function(err){
+      console.warn('[IMTI] POST blocked, retrying with no-cors:', err);
+      fetch(EXP_SURVEY_SCRIPT_URL, {
+        method:'POST', mode:'no-cors', cache:'no-cache',
+        headers:{ 'Content-Type':'text/plain' }, body:payload
+      })
+        .then(function(){ onSuccess(); })
+        .catch(function(err2){ console.error('[IMTI] no-cors fallback error:', err2); onError('NETWORK_ERROR'); });
+    });
+}
+
+/* Escape: close the topmost experience modal first, otherwise the doc modal */
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  const open=_anyExpModalOpen();
+  if(open){ open.classList.remove('show'); return; }
+  closeDocModal();
+});
 
 document.querySelectorAll('[data-next]').forEach(b=>b.addEventListener('click',()=>goto(step+1)));
 document.querySelectorAll('[data-prev]').forEach(b=>b.addEventListener('click',()=>goto(step-1)));
