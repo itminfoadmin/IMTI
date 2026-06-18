@@ -97,8 +97,11 @@ body.on-result .stage-wrap{margin-bottom:0}
 .progress-wrap{position:relative;margin:2vh auto 1.8vh;max-width:1650px;padding:0 5%}
 .progress{display:flex;align-items:center;justify-content:center;flex-wrap:wrap}
 .progress-wrap .page-foot{position:absolute;right:5%;top:50%;transform:translateY(-50%);margin:0;padding:0;white-space:nowrap}
+.rules-update{margin-left:auto;white-space:nowrap;font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.04em;color:var(--muted)}
+.rules-update b{color:var(--terra);font-weight:500}
 @media(max-width:900px){
   .progress-wrap .page-foot{position:static;transform:none;text-align:center;margin-top:8px}
+  .rules-update{display:block;margin-left:0;margin-top:4px;text-align:right}
 }
 .home-btn{
   margin-left:18px;font-family:'Noto Sans KR';font-size:.78rem;font-weight:700;
@@ -285,9 +288,33 @@ body.on-result .stage-wrap{margin-bottom:0}
 
 .page-foot{text-align:center;padding:0 5% 4vh;color:var(--muted);font-family:'DM Mono';font-size:.7rem;letter-spacing:.04em}
 .page-foot b{color:var(--terra);font-weight:500}
+
+/* ---------- preload splash ---------- */
+#preload-overlay{
+  position:fixed; inset:0; background:#fff; z-index:3000;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px;
+  transition:opacity .5s ease;
+}
+#preload-overlay.fade-out{opacity:0; pointer-events:none}
+.preload-logo{height:10rem; width:auto; opacity:.85}
+.preload-title{font-family:'DM Mono',monospace; font-size:.82rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:#adb5bd}
+.preload-bar-row{display:flex; align-items:center; gap:10px; width:260px}
+.preload-pulse-dot{width:8px; height:8px; border-radius:50%; background:var(--terra); flex-shrink:0; animation:preload-pulse 1.2s ease-in-out infinite}
+@keyframes preload-pulse{0%,100%{opacity:1; transform:scale(1)}50%{opacity:.35; transform:scale(.65)}}
+.preload-bar-wrap{flex:1; height:2px; background:var(--line-soft); border-radius:99px; overflow:hidden}
+.preload-bar{height:100%; width:0%; background:var(--terra); border-radius:99px; transition:width .3s ease}
 </style>
 </head>
 <body>
+
+<div id="preload-overlay">
+  <img src="img/logo.png" alt="IMTI" class="preload-logo" onerror="this.style.display='none'">
+  <div class="preload-bar-row">
+    <div class="preload-pulse-dot" id="preload-dot"></div>
+    <div class="preload-bar-wrap"><div class="preload-bar" id="preload-bar"></div></div>
+  </div>
+  <div class="preload-title">Loading Contents...</div>
+</div>
 
 <div id="navbar-placeholder"></div>
 
@@ -406,6 +433,7 @@ body.on-result .stage-wrap{margin-bottom:0}
         <div class="result-eyebrow">
           <span class="q-num">Result</span>
           <span class="result-desc">선택하신 조건과의 일치도가 높은 순서으로 정렬했습니다.</span>
+          <span class="rules-update" id="rulesUpdate"></span>
         </div>
         <div class="result-title-row">
           <div class="q-title">추천 수업 모형</div>
@@ -503,7 +531,9 @@ function loadRecRules(){
       clearTimeout(timer); cleanup();
       try{
         if(data && data.status==='OK' && data.rules){
-          applyRules(data.rules); resolve(true); return;
+          applyRules(data.rules);
+          renderRulesUpdate(extractRulesUpdate(data));
+          resolve(true); return;
         }
       }catch(e){}
       resolve(false); 
@@ -514,6 +544,62 @@ function loadRecRules(){
     s.onerror = function(){ clearTimeout(timer); cleanup(); resolve(false); };
     document.head.appendChild(s);
   });
+}
+
+/* Rules update timestamp ---------- */
+function extractRulesUpdate(data){
+  // Look for an update timestamp in the response (top-level or inside rules/meta)
+  const cands = [
+    '규칙변경일자','규칙_변경일자','rulesUpdate','rulesUpdatedAt','ruleUpdatedAt',
+    'updatedAt','updated','lastUpdate','lastUpdated','lastModified','modifiedAt',
+    'updateDate','updatedDate','timestamp','time','date','datetime'
+  ];
+  const buckets = [data, data && data.rules, data && data.meta, data && data.info].filter(Boolean);
+  for(const b of buckets){
+    for(const k of cands){
+      if(b[k]!=null && b[k]!==''){ return b[k]; }
+    }
+    // case-insensitive fallback scan
+    for(const key of Object.keys(b)){
+      const lk = key.toLowerCase();
+      if((lk.includes('update')||lk.includes('modif')||lk.includes('변경')) &&
+         (lk.includes('date')||lk.includes('time')||lk.includes('at')||lk.includes('일자')||lk.includes('日')||lk.includes('변경'))){
+        if(b[key]!=null && b[key]!=='') return b[key];
+      }
+    }
+  }
+  return null;
+}
+function _pad(n){ return String(n).padStart(2,'0'); }
+function fmtRulesUpdate(v){
+  if(v==null || v==='') return '';
+  let d = null;
+  if(typeof v==='number'){ d = new Date(v); }
+  else{
+    const s = String(v).trim();
+    d = new Date(s);
+    if(isNaN(d.getTime())){
+      // try common non-ISO formats: "yyyy-mm-dd hh:mm:ss" / "yyyy.mm.dd hh:mm"
+      const m = s.match(/(\d{4})[.\-/]\s*(\d{1,2})[.\-/]\s*(\d{1,2})(?:[ T]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+      if(m){
+        d = new Date(+m[1], +m[2]-1, +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0));
+      }
+    }
+  }
+  if(!d || isNaN(d.getTime())) return String(v); // show raw if unparseable
+  // Requested format: "yyyy,mm,ss hh:mm"
+  const yyyy = d.getFullYear();
+  const mm = _pad(d.getMonth()+1);
+  const ss = _pad(d.getDate());
+  const hh = _pad(d.getHours());
+  const mi = _pad(d.getMinutes());
+  return yyyy + ',' + mm + ',' + ss + ' ' + hh + ':' + mi;
+}
+function renderRulesUpdate(v){
+  const el = document.getElementById('rulesUpdate');
+  if(!el) return;
+  const f = fmtRulesUpdate(v);
+  el.innerHTML = f ? ('Matching Rule Latest Update: <b>' + esc(f) + '</b>') : '';
 }
 
 /* rules merging */
@@ -620,6 +706,31 @@ function pick(row, ...cands){
 }
 const clean = s => (s||'').toString().replace(/\s*대상$/,'').replace(/\s*지향$/,'').replace(/\s*영역$/,'').trim();
 
+let _preloadTimer = null;
+function startPreload(){
+  const bar = document.getElementById('preload-bar');
+  let pct = 0;
+  const target = 90;
+  if(_preloadTimer) clearInterval(_preloadTimer);
+  _preloadTimer = setInterval(()=>{
+    pct = Math.min(pct + 1.2, target);
+    if(bar) bar.style.width = pct + '%';
+  }, 80);
+}
+function dismissPreload(){
+  if(_preloadTimer){ clearInterval(_preloadTimer); _preloadTimer = null; }
+  const ov = document.getElementById('preload-overlay');
+  if(!ov || ov.classList.contains('fade-out')) return;
+  const bar = document.getElementById('preload-bar');
+  const dot = document.getElementById('preload-dot');
+  if(bar) bar.style.width = '100%';
+  if(dot){ dot.style.animation = 'none'; dot.style.opacity = '1'; }
+  setTimeout(()=>{
+    ov.classList.add('fade-out');
+    setTimeout(()=>{ if(ov.parentNode) ov.remove(); }, 520);
+  }, 300);
+}
+
 async function loadAll(){
   showStep('load');
   setLive('loading','MTI-DB에서 데이터를 불러오는 중…');
@@ -648,6 +759,7 @@ async function loadAll(){
     setLive('ok', MODELS.length + "개 모형 연동 완료");
     document.getElementById('reloadBtn').style.display='inline-block';
     goto(0);
+    dismissPreload();
   }catch(err){
     console.error(err);
     document.getElementById('errDetail').textContent = (err && (err.message||err.toString())) || '알 수 없는 오류';
@@ -655,6 +767,7 @@ async function loadAll(){
     setLive('err','데이터 로드 실패');
     document.getElementById('reloadBtn').style.display='inline-block';
     showStep('error');
+    dismissPreload();
   }
 }
 function setLive(kind,text){
@@ -945,6 +1058,8 @@ document.querySelectorAll('[data-restart]').forEach(b=>b.addEventListener('click
 
 renderProgress();
 document.getElementById('progress').style.visibility='hidden';
+startPreload();
+setTimeout(dismissPreload, 15000); // safety: never leave splash stuck
 loadAll();
 </script>
 
