@@ -865,11 +865,10 @@
 <div id="modal-dup-login" class="modal-overlay" style="z-index:1000;" onclick="if(event.target===this) dupLoginCancel()">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px; padding:32px; text-align:left; background:#fff; border-radius:6px; box-shadow:0 4px 24px rgba(0,0,0,0.16);">
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.86rem; color:#222; margin:0 0 14px; font-weight:700; line-height:1.85; word-break:keep-all;">
-            이전 로그인이 정상적으로 로그아웃되지 않았거나 중복 로그인을 시도하고 있습니다.<br>
-            이전 혹은 다른 로그인을 강제 로그아웃하고 로그인 하시겠습니까?
+            이전 로그인이 정상적으로 로그아웃 되지 않았거나, 중복 로그인이 발생하였습니다. 로그인 하시겠습니까?
         </p>
         <p style="font-family:'Noto Sans KR',sans-serif; font-size:0.74rem; color:#666; margin:0 0 26px; line-height:1.8; word-break:keep-all;">
-            A previous session for this account is still active (logged in but not logged out). Do you want to force-log out the previous/other session and continue logging in?
+            A previous session for this account may still be active (logged in but not logged out), or a duplicate login has occurred. Do you want to continue logging in?
         </p>
         <div style="display:flex; gap:10px; justify-content:center;">
             <button id="dup-login-confirm-btn" onclick="dupLoginConfirm()"
@@ -1136,9 +1135,11 @@ function sendLog(type, id, email) {
 }
 
 /* ───────────────────────────────────────────────────────────────
-   중복 로그인 처리 (모바일)
-   로그 시트를 JSONP 로 조회 → 열린 세션이 있으면 강제 로그아웃 후 로그인 진행
+   Duplicate-login handling (mobile)
+   Checks the log sheet via JSONP; if an open session exists,
+   notify the user instead of forcing the previous session out.
    ─────────────────────────────────────────────────────────────── */
+/* JSONP call to the log sheet (returns null on timeout/error). */
 function _logSheetJsonp(params, cb) {
     var n = 'imti_dup_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
     var done = false;
@@ -1166,6 +1167,7 @@ function _logSheetJsonp(params, cb) {
     document.body.appendChild(s);
 }
 
+/* Check for an open (not logged out) session for this id. */
 function checkDuplicateLogin(id) {
     return new Promise(function (resolve) {
         if (!id) { resolve(null); return; }
@@ -1176,27 +1178,15 @@ function checkDuplicateLogin(id) {
     });
 }
 
-function forcePrevLogout(id, email) {
-    return new Promise(function (resolve) {
-        if (!id) { resolve(false); return; }
-        _logSheetJsonp({ action: 'forceLogout', id: id, email: email || '' }, function (r) {
-            resolve(!!(r && r.status === 'OK'));
-        });
-    });
-}
-
+/* Resolves the pending login decision: true = proceed, false = cancel. */
 var _dupResolve = null;
 function showDuplicateLoginModal(pending) {
     _dupResolve = pending;
-    hideProgress();                 // 모달이 진행 오버레이에 가려지지 않도록 숨김
+    hideProgress();
     openModal('modal-dup-login');
 }
-async function dupLoginConfirm() {
-    var btn = document.getElementById('dup-login-confirm-btn');
-    if (btn) { btn.disabled = true; btn.textContent = '처리 중...'; }
-    var ctx = window._dupLoginCtx || {};
-    await forcePrevLogout(ctx.userId, ctx.email);
-    if (btn) { btn.disabled = false; btn.textContent = '확인 (Confirm)'; }
+/* Proceed with login without touching the previous session. */
+function dupLoginConfirm() {
     closeModal('modal-dup-login');
     if (_dupResolve) { var f = _dupResolve; _dupResolve = null; f(true); }
 }
@@ -1206,12 +1196,12 @@ function dupLoginCancel() {
     if (_dupResolve) { var f = _dupResolve; _dupResolve = null; f(false); }
 }
 
-/* 인증 성공 후 공통 마무리: 중복 로그인 확인 → 강제 로그아웃 → 세션 저장 → 로그 → 이동 */
+/* After auth: check for a duplicate session, notify, then save + log + redirect. */
 async function finalizeLogin(userId, email, redirectTo) {
     setProgressMsg('Checking session...');
     const dup = await checkDuplicateLogin(userId);
     if (dup && dup.active) {
-        window._dupLoginCtx = { userId: userId, email: email };
+        /* Notify the user; do not force-log out the previous session. */
         const proceed = await new Promise(function (resolve) { showDuplicateLoginModal(resolve); });
         if (!proceed) return;
         showProgress('Loading...');
