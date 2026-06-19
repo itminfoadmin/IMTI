@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMTI — 자료실 대화방</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+    --gray-text:#343a40; --gray-dark:#495057; --gray-mid:#868e96;
+    --accent:#e8590c;
+    --term-bg:#101418; --term-fg:#c9d1cb; --term-dim:#5c6b62;
+    --term-amber:#d8b14a; --term-cyan:#6fb7b0; --term-magenta:#c98ab5;
+    --term-green:#7fb069; --term-line:#1d262b; --term-red:#c0573b;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{
+    background:var(--term-bg);
+    font-family:'DM Mono',monospace;
+    color:var(--term-fg);
+    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+}
+.shell{
+    flex:1; min-height:0; display:grid;
+    grid-template-columns:1fr 200px;
+    background:var(--term-bg); position:relative;
+}
+.shell::after{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:5;
+    background:repeating-linear-gradient(to bottom, rgba(255,255,255,.022) 0 1px, transparent 1px 3px);
+    mix-blend-mode:overlay;
+}
+.shell::before{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:4;
+    box-shadow:inset 0 0 160px 24px rgba(0,0,0,.5);
+}
+.term{display:flex; flex-direction:column; min-width:0; min-height:0;}
+.term-bar{
+    display:flex; align-items:center; gap:10px;
+    padding:8px 16px; background:#0a0d10; border-bottom:1px solid #000;
+    font-size:.62rem; letter-spacing:.1em; color:var(--term-dim); flex:none;
+}
+.term-bar .leds{display:flex; gap:5px;}
+.term-bar .leds i{width:9px;height:9px;border-radius:50%;display:block;opacity:.85;}
+.term-bar .leds i:nth-child(1){background:#c0573b;}
+.term-bar .leds i:nth-child(2){background:#c8a23e;}
+.term-bar .leds i:nth-child(3){background:#5f8d57;}
+.term-bar .conn{margin-left:auto; display:flex; align-items:center; gap:6px; color:var(--term-amber); opacity:.85;}
+.term-bar .conn .ind{width:7px;height:7px;border-radius:50%;background:var(--term-dim);}
+.term-bar .conn.on .ind{background:var(--term-green);}
+.term-bar .conn.err .ind{background:var(--term-red);}
+.term-bar .keys{color:var(--term-dim); opacity:.7;}
+.log{
+    flex:1; min-height:0; overflow-y:auto; padding:16px 18px 10px;
+    font-size:.84rem; line-height:1.75; color:var(--term-fg);
+    scrollbar-width:thin; scrollbar-color:#2b3640 transparent;
+}
+.log::-webkit-scrollbar{width:10px;}
+.log::-webkit-scrollbar-thumb{background:#2b3640;}
+.log .line{margin:2px 0; word-break:break-word; white-space:pre-wrap;}
+.log .ts{color:var(--term-dim); margin-right:6px;}
+.log .nick{font-weight:500;}
+.log .arrow{color:var(--term-dim); margin:0 4px;}
+.log .sys{color:var(--term-amber); letter-spacing:.02em;}
+.log .sys::before{content:"\203B ";}
+.log .me .nick{color:var(--term-cyan);}
+.log .body{color:var(--term-fg);}
+.log .whisper{color:var(--term-magenta);}
+.log .whisper::after{content:" (귓속말)"; color:var(--term-dim); font-size:.7em;}
+.side{background:#0c1014; border-left:1px solid #000; display:flex; flex-direction:column; min-height:0;}
+.side h4{
+    margin:0; padding:11px 16px; font-size:.6rem; letter-spacing:.16em;
+    color:var(--term-dim); border-bottom:1px solid var(--term-line);
+    text-transform:uppercase; flex:none;
+}
+.users{flex:1; overflow-y:auto; padding:10px 0; margin:0; scrollbar-width:thin;}
+.users li{
+    list-style:none; padding:6px 16px; font-size:.76rem;
+    color:var(--term-fg); display:flex; align-items:center; gap:9px;
+}
+.users li .st{width:7px;height:7px;border-radius:50%;background:var(--term-green);flex:none;}
+.users li .tag{margin-left:auto; font-size:.56rem; color:var(--term-dim); letter-spacing:.06em;}
+.side .count{
+    padding:10px 16px; border-top:1px solid var(--term-line);
+    font-size:.6rem; color:var(--term-dim); letter-spacing:.08em; flex:none;
+}
+.composer{
+    flex:none; display:flex; align-items:center; gap:10px;
+    padding:0 18px; height:54px; background:#0a0d10; border-top:1px solid #000;
+}
+.composer .ps1{color:var(--term-green); font-size:.86rem; user-select:none; flex:none;}
+#msg{
+    flex:1; background:none; border:none; outline:none;
+    font-family:'DM Mono',monospace; font-size:.9rem;
+    color:var(--term-fg); padding:0; caret-color:var(--term-green);
+}
+#msg::placeholder{color:var(--term-dim);}
+#msg:disabled{opacity:.5;}
+.cursor{display:inline-block;width:8px;animation:blink 1.05s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+@media (max-width:720px){ .shell{grid-template-columns:1fr;} .side{display:none;} }
+.gate{
+    position:fixed; inset:0; z-index:50;
+    background:rgba(16,20,24,.72); backdrop-filter:blur(7px);
+    display:flex; align-items:center; justify-content:center;
+}
+.gate-box{
+    background:#fff; border-radius:14px; width:420px; max-width:92vw;
+    box-shadow:0 30px 80px rgba(0,0,0,.4); overflow:hidden;
+}
+.gate-top{background:var(--term-bg); padding:22px 26px 20px; font-family:'DM Mono',monospace; color:var(--term-fg);}
+.gate-top .ln{font-size:.72rem; line-height:1.85; color:var(--term-dim);}
+.gate-top .ln b{color:var(--term-green); font-weight:500;}
+.gate-top .ln .amber{color:var(--term-amber);}
+.gate-body{padding:22px 26px 26px;}
+.gate-body label{display:block; font-family:'Gowun Batang',serif; font-weight:700; font-size:.82rem; color:var(--gray-dark); margin-bottom:10px; letter-spacing:.04em;}
+.gate-body input{
+    width:100%; border:none; outline:none; border-bottom:1px solid #ced4da;
+    font-family:'DM Mono',monospace; font-size:1rem; color:var(--gray-text);
+    padding:7px 2px; transition:border-color .2s; background:none;
+}
+.gate-body input:focus{border-bottom-color:var(--accent);}
+.gate-body .row{display:flex; justify-content:flex-end; gap:10px; margin-top:24px;}
+.gate-err{font-family:'DM Mono',monospace; font-size:.66rem; color:#e03131; min-height:1em; margin-top:8px;}
+.pill{
+    background:#fff; border:1.5px solid var(--gray-text); border-radius:20px;
+    padding:7px 24px; font-family:'Gowun Batang',serif; font-weight:700;
+    font-size:.78rem; letter-spacing:.06em; color:var(--gray-text);
+    cursor:pointer; transition:all .18s;
+}
+.pill:hover{background:var(--gray-text); color:#fff;}
+.pill:disabled{opacity:.5; cursor:not-allowed;}
+</style>
+</head>
+<body>
+
+<div class="shell">
+    <div class="term">
+        <div class="term-bar">
+            <span class="leds"><i></i><i></i><i></i></span>
+            <span>IMTI-BBS v2.1 · 대화방 #07 · <span id="userCount">0</span>명 접속 · 28,800bps</span>
+            <span class="conn" id="conn"><span class="ind"></span><span id="connTxt">연결대기</span></span>
+            <span class="keys">  [F9]나가기</span>
+        </div>
+        <div class="log" id="log"></div>
+    </div>
+    <div class="side">
+        <h4>접속자 명단</h4>
+        <ul class="users" id="users"></ul>
+        <div class="count" id="sideCount">회원 0</div>
+    </div>
+</div>
+
+<div class="composer">
+    <span class="ps1" id="ps1">guest&gt;</span>
+    <input id="msg" type="text" maxlength="300" autocomplete="off"
+           placeholder="대화 내용을 입력하고 엔터를 누르세요…  ( /quit 입력 시 나가기 )" disabled>
+</div>
+
+<div class="gate" id="gate">
+    <div class="gate-box">
+        <div class="gate-top">
+            <div class="ln">IMTI BBS 호스트에 연결되었습니다 ......... <b>OK</b></div>
+            <div class="ln">사용자 인증을 시작합니다 <span class="amber">[자료실 / 자유대화방]</span></div>
+            <div class="ln">대화명(닉네임)을 입력하십시오.<span class="cursor">_</span></div>
+        </div>
+        <div class="gate-body">
+            <label for="nick">대화명</label>
+            <input id="nick" type="text" maxlength="12" autocomplete="off"
+                   placeholder="예) 모뎀소년" onkeydown="if(event.key==='Enter')enterRoom()">
+            <div class="gate-err" id="gateErr"></div>
+            <div class="row"><button class="pill" id="enterBtn" onclick="enterRoom()">접속</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ───────── IMTI BBS 자유대화방 (Google Sheets + GAS 실시간) ─────────
+   · 메시지는 GAS(웹앱)를 통해 시트에 append 되고, 폴링으로 받아온다.
+   · 대화는 영구 보관하지 않음 (GAS 가 오래된 행을 자동 삭제)
+   · 닉네임을 입력해 입장한 사용자끼리만 대화 */
+
+/* ===== 1) 설정: 배포한 GAS 웹앱 /exec URL 을 여기에 붙여넣으세요 ===== */
+var CHAT_URL = 'https://script.google.com/macros/s/AKfycbw7OvZv4rsxsU2Z76Y6tSlP1pPl0xOBLKCzJBSRWOLfbiqE08Z5opxqCjGiztFz58LxxA/exec';
+
+var ROOM       = 'room-07';
+var POLL_MS    = 2500;   // 폴링 주기 (시트/한도 부담을 고려해 2~3초 권장)
+var PRESENCE_MS= 20000;  // 접속자 만료 시간: 이 시간 내 신호 없으면 명단에서 제거
+
+var me = { id:'u'+Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4), nick:null };
+var sinceTs = 0;          // 마지막으로 받은 메시지 ts
+var presence = {};        // uid -> { nick, last(ms) }
+var pollTimer = null, presenceBeat = null;
+
+var logEl=document.getElementById('log');
+var usersEl=document.getElementById('users');
+var msgEl=document.getElementById('msg');
+var connEl=document.getElementById('conn');
+var connTxt=document.getElementById('connTxt');
+
+function now(){var d=new Date();function p(n){return String(n).padStart(2,'0');}return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function colorFor(nick){var c=['#7fb069','#d8b14a','#c98ab5','#6fb7b0','#cf8e6d','#9aa7d6'];var h=0;for(var i=0;i<nick.length;i++)h=(h*31+nick.charCodeAt(i))>>>0;return c[h%c.length];}
+
+function addLine(html,cls){var div=document.createElement('div');div.className='line'+(cls?' '+cls:'');div.innerHTML=html;logEl.appendChild(div);logEl.scrollTop=logEl.scrollHeight;}
+function sysLine(t){addLine('<span class="ts">['+now()+']</span><span class="sys">'+esc(t)+'</span>');}
+function chatLine(nick,text,mine,whisper){
+    var col=colorFor(nick);
+    addLine(
+        '<span class="ts">['+now()+']</span>'+
+        '<span class="nick" style="color:'+(mine?'':col)+'">'+esc(nick)+'</span>'+
+        '<span class="arrow">&gt;</span>'+
+        '<span class="body'+(whisper?' whisper':'')+'">'+esc(text)+'</span>',
+        mine?'me':'');
+}
+
+function setConn(state){ // 'on' | 'err' | ''
+    connEl.className='conn'+(state?' '+state:'');
+    connTxt.textContent = state==='on' ? '연결됨' : state==='err' ? '재연결중' : '연결대기';
+}
+
+/* ===== 2) 통신 레이어: JSONP 로 GAS 호출 ===== */
+function gasJsonp(params, cbName){
+    return new Promise(function(resolve, reject){
+        if(CHAT_URL.indexOf('PASTE_YOUR')===0){ reject(new Error('CHAT_URL 미설정')); return; }
+        var cb = cbName + Math.random().toString(36).slice(2,8);
+        var url = CHAT_URL + '?callback=' + cb;
+        for(var k in params){ if(params[k]!=null) url += '&' + k + '=' + encodeURIComponent(params[k]); }
+        var s = document.createElement('script');
+        var done=false;
+        window[cb]=function(res){ done=true; cleanup(); resolve(res); };
+        function cleanup(){ try{delete window[cb];}catch(e){window[cb]=undefined;} if(s.parentNode)s.parentNode.removeChild(s); }
+        s.onerror=function(){ if(!done){ cleanup(); reject(new Error('network')); } };
+        s.src=url;
+        document.head.appendChild(s);
+        setTimeout(function(){ if(!done){ cleanup(); reject(new Error('timeout')); } }, 12000);
+    });
+}
+
+function sendToServer(type, text, target){
+    return gasJsonp({
+        action:'send', room:ROOM, uid:me.id, nick:me.nick||'',
+        type:type, text:text||'', target:target||''
+    }, 'scb').catch(function(e){ setConn('err'); });
+}
+
+/* ===== 3) 접속자 명단 (presence) ===== */
+function touchPresence(uid, nick){
+    if(!uid || uid===me.id) return;
+    presence[uid]={ nick:nick, last:Date.now() };
+}
+function dropPresence(uid){ delete presence[uid]; }
+function renderUsers(){
+    var rows=[];
+    if(me.nick) rows.push({nick:me.nick+' (나)', tag:'ME'});
+    var cutoff=Date.now()-PRESENCE_MS;
+    for(var uid in presence){
+        if(presence[uid].last < cutoff){ delete presence[uid]; continue; }
+        rows.push({nick:presence[uid].nick, tag:''});
+    }
+    usersEl.innerHTML='';
+    rows.forEach(function(r){
+        var li=document.createElement('li');
+        li.innerHTML='<span class="st"></span>'+esc(r.nick)+(r.tag?'<span class="tag">'+r.tag+'</span>':'');
+        usersEl.appendChild(li);
+    });
+    document.getElementById('userCount').textContent=rows.length;
+    document.getElementById('sideCount').textContent='회원 '+rows.length;
+}
+
+/* ===== 4) 폴링: 새 메시지 수신 ===== */
+function applyMessage(m){
+    touchPresence(m.uid, m.nick);
+    if(m.uid===me.id) return;            // 내 메시지는 화면에 이미 표시됨
+    if(m.type==='msg'){ chatLine(m.nick, m.text, false); }
+    else if(m.type==='join'){ sysLine("'"+m.nick+"' 님이 대화방에 입장하셨습니다."); }
+    else if(m.type==='leave'){ dropPresence(m.uid); sysLine("'"+m.nick+"' 님이 대화방을 나가셨습니다."); }
+    else if(m.type==='whisper'){ if(m.target===me.nick) chatLine(m.nick, m.text, false, true); }
+}
+function poll(){
+    gasJsonp({ action:'poll', room:ROOM, since:sinceTs }, 'pcb').then(function(res){
+        if(res && res.status==='OK'){
+            setConn('on');
+            if(res.messages && res.messages.length){
+                res.messages.forEach(function(m){
+                    if(m.ts>sinceTs) sinceTs=m.ts;
+                    applyMessage(m);
+                });
+            }
+            renderUsers();
+        } else { setConn('err'); }
+    }).catch(function(){ setConn('err'); });
+}
+
+/* ===== 5) 입장 / 퇴장 / 전송 ===== */
+function enterRoom(){
+    var v=document.getElementById('nick').value.trim();
+    var err=document.getElementById('gateErr');
+    if(CHAT_URL.indexOf('PASTE_YOUR')===0){ err.textContent='관리자: CHAT_URL(GAS 주소)을 먼저 설정하세요.'; return; }
+    if(v.length<2){ err.textContent='대화명은 2자 이상 입력하십시오.'; return; }
+    if(/[<>&]/.test(v)){ err.textContent='사용할 수 없는 문자가 포함되어 있습니다.'; return; }
+
+    var btn=document.getElementById('enterBtn'); btn.disabled=true; btn.textContent='접속중…';
+    me.nick=v;
+
+    // 폴링 시작점을 '지금'으로 맞춰 과거 메시지는 받지 않음
+    gasJsonp({ action:'ping' }, 'gcb').then(function(res){
+        sinceTs = (res && res.now) ? res.now : Date.now();
+    }).catch(function(){ sinceTs = Date.now(); }).then(function(){
+        document.getElementById('gate').style.display='none';
+        document.getElementById('ps1').textContent=v+'>';
+        msgEl.disabled=false; msgEl.focus();
+
+        addLine('<span class="sys">─────────────────────────────────────</span>');
+        sysLine("'"+v+"' 님이 대화방에 입장하셨습니다.");
+        sysLine('현재 회선속도 28,800bps · 호스트 응답 양호');
+
+        sendToServer('join','','');
+        poll();
+        pollTimer=setInterval(poll, POLL_MS);
+        presenceBeat=setInterval(function(){ sendToServer('join','',''); }, PRESENCE_MS/2); // 접속 유지 하트비트
+        setConn('on');
+    });
+}
+
+/* /quit · F9 → 퇴장 후 탭 닫기 */
+function leaveRoom(){
+    if(!me.nick) return;
+    sysLine("'"+me.nick+"' 님이 대화방을 나가셨습니다.");
+    msgEl.disabled=true; msgEl.value='';
+    if(pollTimer) clearInterval(pollTimer);
+    if(presenceBeat) clearInterval(presenceBeat);
+
+    sendToServer('leave','','').then(closeTab).catch(closeTab);
+    setTimeout(closeTab, 600); // 응답이 늦어도 닫기
+}
+function closeTab(){
+    window.open('', '_self');   // 일부 브라우저에서 self-close 허용을 돕는 처리
+    window.close();
+    // 스크립트로 닫히지 않는 환경(직접 연 탭이 아님) 대비 안내
+    setTimeout(function(){
+        document.body.innerHTML =
+            '<div style="height:100vh;display:flex;align-items:center;justify-content:center;'+
+            'font-family:DM Mono,monospace;color:#7fb069;background:#101418;letter-spacing:.05em;">'+
+            '접속이 종료되었습니다. 이 탭을 닫아 주세요.</div>';
+    }, 300);
+}
+
+function sendMsg(){
+    if(!me.nick) return;
+    var raw=msgEl.value.trim(); if(!raw) return;
+    msgEl.value='';
+    if(raw.charAt(0)==='/'){ handleCmd(raw); return; }
+    chatLine(me.nick, raw, true);
+    sendToServer('msg', raw, '');
+}
+
+function handleCmd(raw){
+    var parts=raw.slice(1).split(' ');
+    var c=parts.shift().toLowerCase();
+    if(c==='quit'||c==='나가기'||c==='exit'){ leaveRoom(); return; }
+    if(c==='명단'||c==='who'){
+        var names=[me.nick];
+        for(var uid in presence) names.push(presence[uid].nick);
+        sysLine('접속자 명단: '+names.join(', ')); return;
+    }
+    if(c==='귓'||c==='w'||c==='귓속말'){
+        var target=parts.shift(); var text=parts.join(' ');
+        if(!target||!text){ sysLine('사용법: /귓 닉네임 내용'); return; }
+        addLine(
+            '<span class="ts">['+now()+']</span>'+
+            '<span class="nick" style="color:var(--term-cyan)">'+esc(me.nick)+'</span>'+
+            '<span class="arrow">→</span><span class="nick">'+esc(target)+'</span>'+
+            '<span class="body whisper">'+esc(text)+'</span>');
+        sendToServer('whisper', text, target);
+        return;
+    }
+    sysLine('알 수 없는 명령입니다: /'+esc(c)+'  (사용 가능: /귓 /명단 /quit)');
+}
+
+msgEl.addEventListener('keydown',function(e){ if(e.key==='Enter') sendMsg(); });
+document.addEventListener('keydown',function(e){ if(e.key==='F9'){ e.preventDefault(); leaveRoom(); } });
+window.addEventListener('beforeunload',function(){
+    if(me.nick){ try{ sendToServer('leave','',''); }catch(e){} }
+});
+
+(function boot(){
+    sysLine('IMTI BBS 자료실 자유대화방에 오신 것을 환영합니다.');
+    sysLine('이곳의 대화는 저장되지 않으며, 접속을 종료하면 사라집니다.');
+    renderUsers();
+    document.getElementById('nick').focus();
+})();
+</script>
+</body>
+</html>
