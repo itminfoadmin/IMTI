@@ -189,7 +189,7 @@ var CHAT_URL = 'https://script.google.com/macros/s/AKfycbw7OvZv4rsxsU2Z76Y6tSlP1
 
 var ROOM       = 'room-07';
 var POLL_MS    = 2500;   // 폴링 주기 (시트/한도 부담을 고려해 2~3초 권장)
-var PRESENCE_MS= 20000;  // 접속자 만료 시간: 이 시간 내 신호 없으면 명단에서 제거
+var PRESENCE_MS= 40000;  // 접속자 만료 시간: 이 시간 내 신호 없으면 명단에서 제거 (하트비트는 절반 주기인 20초마다 전송)
 
 var me = { id:'u'+Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4), nick:null };
 var sinceTs = 0;          // 마지막으로 받은 메시지 ts
@@ -278,6 +278,7 @@ function applyMessage(m){
     if(m.uid===me.id) return;            // 내 메시지는 화면에 이미 표시됨
     if(m.type==='msg'){ chatLine(m.nick, m.text, false); }
     else if(m.type==='join'){ sysLine("'"+m.nick+"' 님이 대화방에 입장하셨습니다."); }
+    else if(m.type==='beat'){ /* 접속 유지 신호: 명단만 갱신, 입장 안내 없음 */ }
     else if(m.type==='leave'){ dropPresence(m.uid); sysLine("'"+m.nick+"' 님이 대화방을 나가셨습니다."); }
     else if(m.type==='whisper'){ if(m.target===me.nick) chatLine(m.nick, m.text, false, true); }
 }
@@ -322,7 +323,7 @@ function enterRoom(){
         sendToServer('join','','');
         poll();
         pollTimer=setInterval(poll, POLL_MS);
-        presenceBeat=setInterval(function(){ sendToServer('join','',''); }, PRESENCE_MS/2); // 접속 유지 하트비트
+        presenceBeat=setInterval(function(){ sendToServer('beat','',''); }, PRESENCE_MS/2); // 접속 유지 하트비트
         setConn('on');
     });
 }
