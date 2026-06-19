@@ -111,9 +111,9 @@ body{
 .progress-wrap{position:relative;margin:14px auto 12px;padding:0 4%}
 .progress{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0}
 .home-btn{
-  display:block;margin:12px auto 0;font-family:'Noto Sans KR';font-size:.74rem;font-weight:700;
+  display:inline-flex;align-items:center;margin:0 0 0 12px;font-family:'Noto Sans KR';font-size:.64rem;font-weight:700;
   color:var(--terra);background:var(--terra-soft);border:1.5px solid #f0d4d4;
-  border-radius:20px;padding:6px 18px;cursor:pointer;transition:.2s;
+  border-radius:16px;padding:4px 11px;cursor:pointer;transition:.2s;white-space:nowrap;flex-shrink:0;
 }
 .home-btn:hover{background:var(--terra);color:#fff;border-color:var(--terra)}
 .home-btn:disabled{opacity:.4;cursor:not-allowed;background:var(--bg-soft);color:var(--muted);border-color:var(--line)}
@@ -204,8 +204,8 @@ body{
 .result-title-row{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .result-title-row .q-title{margin:0}
 
-.choices{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
-.chip{font-family:'DM Mono';font-size:.68rem;background:var(--terra-soft);color:var(--terra);border-radius:18px;padding:5px 11px;font-weight:500;border:1px solid #f0d4d4}
+.choices{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.chip{font-family:'Noto Sans KR';font-size:.66rem;padding:3px 8px;border-radius:5px;background:var(--terra-soft);color:var(--terra);font-weight:700}
 .chip.empty{background:var(--bg-soft);color:var(--muted);border-color:var(--line)}
 
 .match{border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:12px;overflow:hidden;transition:.25s;position:relative}
@@ -213,7 +213,7 @@ body{
 .m-head{display:flex;align-items:center;gap:13px;padding:16px 16px}
 .score-ring{--p:0;flex:0 0 46px;width:46px;height:46px;border-radius:50%;background:conic-gradient(var(--terra) calc(var(--p)*1%),var(--bg-soft) 0);display:grid;place-items:center;position:relative}
 .score-ring::before{content:"";position:absolute;inset:5px;background:#fff;border-radius:50%}
-.score-ring::after{content:var(--label,"");position:relative;font-family:'DM Mono';font-weight:500;font-size:.74rem;color:var(--terra)}
+.score-ring::after{content:"";position:relative;font-family:'DM Mono';font-weight:500;font-size:.74rem;color:var(--terra)}
 .m-meta{flex:1;min-width:0}
 .m-title{font-family:'Noto Sans KR';font-weight:700;font-size:.94rem;line-height:1.35;color:var(--ink)}
 .m-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
@@ -329,9 +329,74 @@ body{
 
 .page-foot{text-align:center;padding:0 5% 24px;color:var(--muted);font-family:'DM Mono';font-size:.68rem;letter-spacing:.04em}
 .page-foot b{color:var(--terra);font-weight:500}
+
+/* ---------- preload splash (loading screen) — m_main_what_about.html과 동일 ---------- */
+#preload-overlay {
+    position: fixed; inset: 0;
+    background: #fff;
+    z-index: 2000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 24px;
+    transition: opacity 0.5s ease;
+}
+#preload-overlay.fade-out { opacity: 0; pointer-events: none; }
+
+.preload-logo {
+    height: 84px; width: auto; opacity: 0.85;
+}
+
+.preload-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11.48px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: #adb5bd;
+}
+
+.preload-bar-row {
+    display: flex; align-items: center; gap: 10px;
+    width: 260px;
+}
+.preload-pulse-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #d47878; flex-shrink: 0;
+    animation: preload-pulse 1.2s ease-in-out infinite;
+}
+@keyframes preload-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.35; transform: scale(0.65); }
+}
+.preload-bar-wrap {
+    flex: 1; height: 2px;
+    background: #f1f3f5; border-radius: 99px; overflow: hidden;
+}
+.preload-bar {
+    height: 100%; width: 0%;
+    background: #d47878;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+}
+.preload-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10.08px; color: transparent;
+    letter-spacing: 0.1em;
+}
 </style>
 </head>
 <body>
+
+<div id="preload-overlay">
+    <img src="../img/logo.png" alt="IMTI" class="preload-logo"
+         onerror="this.style.display='none'">
+    <div class="preload-bar-row">
+        <div class="preload-pulse-dot" id="preload-dot"></div>
+        <div class="preload-bar-wrap">
+            <div class="preload-bar" id="preload-bar"></div>
+        </div>
+    </div>
+    <div class="preload-title">Loading Contents...</div>
+    <div class="preload-count" id="preload-count">0 / 2</div>
+</div>
 
 <div id="navbar-placeholder">
 <nav class="topnav">
@@ -485,14 +550,14 @@ body{
     <!-- RESULTS -->
     <div class="panel result-panel" data-step="4">
       <div class="result-head">
-        <div class="result-eyebrow">
-          <span class="q-num">Result</span>
-          <span class="result-desc">일치도가 높은 순서로 정렬했습니다.</span>
-        </div>
         <div class="rules-fallback-note" id="rulesFallbackNote" style="display:none"></div>
         <div class="result-title-row">
           <div class="q-title">추천 수업 모형</div>
           <div class="choices" id="choiceChips"></div>
+          <div class="result-eyebrow">
+            <span class="q-num">Result</span>
+            <span class="result-desc">일치도가 높은 순서로 정렬했습니다.</span>
+          </div>
         </div>
       </div>
       <div id="results" class="results-scroll"></div>
@@ -848,6 +913,32 @@ function pick(row, ...cands){
 }
 const clean = s => (s||'').toString().replace(/\s*대상$/,'').replace(/\s*지향$/,'').replace(/\s*영역$/,'').trim();
 
+/* ---------- preload splash control (same procedure as desktop) ---------- */
+let _preloadTimer = null;
+function startPreload(){
+  const bar = document.getElementById('preload-bar');
+  let pct = 0;
+  const target = 90;
+  if(_preloadTimer) clearInterval(_preloadTimer);
+  _preloadTimer = setInterval(()=>{
+    pct = Math.min(pct + 1.2, target);
+    if(bar) bar.style.width = pct + '%';
+  }, 80);
+}
+function dismissPreload(){
+  if(_preloadTimer){ clearInterval(_preloadTimer); _preloadTimer = null; }
+  const ov = document.getElementById('preload-overlay');
+  if(!ov || ov.classList.contains('fade-out')) return;
+  const bar = document.getElementById('preload-bar');
+  const dot = document.getElementById('preload-dot');
+  if(bar) bar.style.width = '100%';
+  if(dot){ dot.style.animation = 'none'; dot.style.opacity = '1'; }
+  setTimeout(()=>{
+    ov.classList.add('fade-out');
+    setTimeout(()=>{ if(ov.parentNode) ov.remove(); }, 520);
+  }, 300);
+}
+
 async function loadAll(){
   showStep('load');
   setLive('loading','MTI-DB에서 데이터를 불러오는 중…');
@@ -875,6 +966,7 @@ async function loadAll(){
     setLive('ok', MODELS.length + "개 모형 연동 완료");
     document.getElementById('reloadBtn').style.display='inline-block';
     goto(0);
+    dismissPreload();
   }catch(err){
     console.error(err);
     document.getElementById('errDetail').textContent = (err && (err.message||err.toString())) || '알 수 없는 오류';
@@ -882,6 +974,7 @@ async function loadAll(){
     setLive('err','데이터 로드 실패');
     document.getElementById('reloadBtn').style.display='inline-block';
     showStep('error');
+    dismissPreload();
   }
 }
 function setLive(kind,text){
@@ -998,8 +1091,7 @@ function renderProgress(){
   const home=document.createElement('button');
   home.id='homeBtn'; home.className='home-btn'; home.textContent='처음으로';
   home.addEventListener('click', ()=>{ if(step!==0) restartAll(); });
-  const wrap=document.querySelector('.progress-wrap');
-  wrap.appendChild(home);
+  p.appendChild(home);
 }
 function syncProgress(){
   document.querySelectorAll('.dot').forEach(d=>{const i=+d.dataset.i;d.classList.toggle('active',i===step);d.classList.toggle('done',i<step);d.innerHTML=i<step?'✓':(i+1);});
@@ -1061,11 +1153,11 @@ function esc(s){return(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':
 function renderResults(){
   const cc=document.getElementById('choiceChips'); cc.innerHTML='';
   const chip=(t,e)=>{const s=document.createElement('span');s.className='chip'+(e?' empty':'');s.textContent=t;cc.appendChild(s);};
-  chip('영역 · '+(state.domain||'전체'),!state.domain);
-  chip('대상 · '+(state.participants||'무관'),!state.participants);
-  chip('지향 · '+(state.orientation||'무관'),!state.orientation);
-  if(state.competencies.length) state.competencies.forEach(c=>chip('역량 · '+c));
-  else chip('역량 · 무관',true);
+  chip((state.domain||'전체'),!state.domain);
+  chip((state.participants||'무관'),!state.participants);
+  chip((state.orientation||'무관'),!state.orientation);
+  if(state.competencies.length) state.competencies.forEach(c=>chip(c));
+  else chip('무관',true);
 
   const ranked=MODELS.map(m=>{
       const r={m,...scoreModel(m)};
@@ -1092,7 +1184,7 @@ function renderResults(){
     wrap.innerHTML=
       (isTop?'<span class="badge-best">Best Match</span>':'')+
       '<div class="m-head">'+
-        '<div class="score-ring" style="--p:'+r.pct+';--label:\''+r.pct+'\'" title="일치도 '+r.pct+'%"></div>'+
+        '<div class="score-ring" style="--p:'+r.pct+'" title="일치도 '+r.pct+'%"></div>'+
         '<div class="m-meta">'+
           '<div class="m-title">'+esc(m.name)+'</div>'+
           (tags?'<div class="m-tags">'+tags+'</div>':'')+
@@ -1343,6 +1435,8 @@ document.querySelectorAll('[data-restart]').forEach(b=>b.addEventListener('click
 
 renderProgress();
 document.getElementById('progress').style.visibility='hidden';
+startPreload();
+setTimeout(dismissPreload, 15000); // safety: never leave splash stuck
 loadAll();
 </script>
 
