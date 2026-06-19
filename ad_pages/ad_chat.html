@@ -195,6 +195,8 @@ var me = { id:'u'+Math.random().toString(36).slice(2,8)+Date.now().toString(36).
 var sinceTs = 0;          // 마지막으로 받은 메시지 ts
 var presence = {};        // uid -> { nick, last(ms) }
 var pollTimer = null, presenceBeat = null;
+var seen = {};            // 중복 표시 차단: 이미 처리한 메시지 키 기록
+var polling = false;      // 폴링 중복 실행 방지 (응답 지연 시 겹침 차단)
 
 var logEl=document.getElementById('log');
 var usersEl=document.getElementById('users');
@@ -274,6 +276,13 @@ function renderUsers(){
 
 /* ===== 4) 폴링: 새 메시지 수신 ===== */
 function applyMessage(m){
+    // 같은 메시지가 폴링 겹침 등으로 두 번 들어와도 한 번만 처리
+    var key = (m.uid||'')+'|'+(m.ts||'')+'|'+(m.type||'')+'|'+(m.text||'');
+    if(seen[key]) return;
+    seen[key] = true;
+    // seen 이 무한정 커지지 않도록 가끔 비움 (오래된 ts 는 어차피 since 로 걸러짐)
+    var keys = Object.keys(seen);
+    if(keys.length > 600){ for(var i=0;i<200;i++) delete seen[keys[i]]; }
     touchPresence(m.uid, m.nick);
     if(m.uid===me.id) return;            // 내 메시지는 화면에 이미 표시됨
     if(m.type==='msg'){ chatLine(m.nick, m.text, false); }
@@ -283,6 +292,8 @@ function applyMessage(m){
     else if(m.type==='whisper'){ if(m.target===me.nick) chatLine(m.nick, m.text, false, true); }
 }
 function poll(){
+    if(polling) return;   // 이전 폴링 응답이 아직 안 왔으면 건너뜀 (같은 since 중복 요청 방지)
+    polling = true;
     gasJsonp({ action:'poll', room:ROOM, since:sinceTs }, 'pcb').then(function(res){
         if(res && res.status==='OK'){
             setConn('on');
@@ -294,7 +305,7 @@ function poll(){
             }
             renderUsers();
         } else { setConn('err'); }
-    }).catch(function(){ setConn('err'); });
+    }).catch(function(){ setConn('err'); }).then(function(){ polling = false; });
 }
 
 /* ===== 5) 입장 / 퇴장 / 전송 ===== */
