@@ -252,7 +252,6 @@ body.on-result .stage-wrap{margin-bottom:0}
 .tag.hit{background:var(--terra-soft);color:var(--terra);font-weight:700}
 .m-toggle{flex:0 0 auto;color:var(--muted);font-size:20px;transition:.3s;user-select:none;line-height:1}
 .match.open .m-toggle{transform:rotate(45deg);color:var(--terra)}
-.badge-best{position:absolute;top:-1px;left:16px;background:var(--terra);color:#fff;font-family:'DM Mono';font-size:.6rem;letter-spacing:.16em;font-weight:500;padding:4px 10px;border-radius:0 0 7px 7px;text-transform:uppercase}
 .m-body{max-height:0;overflow:hidden;transition:max-height .45s ease}
 .match.open .m-body{max-height:900px}
 .m-body-inner{padding:3px 20px 20px;border-top:1px dashed var(--line)}
@@ -262,7 +261,6 @@ body.on-result .stage-wrap{margin-bottom:0}
 .doclink{flex:0 0 auto;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;font-family:'Noto Sans KR';font-size:.8rem;font-weight:700;color:#fff;background:var(--blue);padding:9px 17px;border-radius:8px;text-decoration:none;border:none;cursor:pointer;transition:.2s}
 .doclink:hover{background:#1647b5;transform:translateY(-1px)}
 .doclink.disabled{background:var(--bg-soft);color:var(--muted);pointer-events:none;cursor:default}
-.match.top .m-head{padding-top:26px}
 .empty-state{text-align:center;padding:2.2rem .6rem;color:var(--text-soft);font-size:.85rem}
 .empty-state .big{font-size:2.4rem;margin-bottom:10px}
 
@@ -495,14 +493,14 @@ body.on-result .stage-wrap{margin-bottom:0}
     <!-- RESULTS -->
     <div class="panel result-panel" data-step="4">
       <div class="result-head">
+        <div class="result-title-row">
+          <div class="q-title">추천 수업 모형</div>
+          <div class="choices" id="choiceChips"></div>
+        </div>
         <div class="result-eyebrow">
           <span class="q-num">Notice!</span>
           <span class="result-desc">이하의 결과는 입력 조건에 따른 것으로 MTI의 수업 적용시 수업 상황 등에 대한 고려가 필요합니다. </span>
           <span class="rules-update" id="rulesUpdate"></span>
-        </div>
-        <div class="result-title-row">
-          <div class="q-title">추천 수업 모형</div>
-          <div class="choices" id="choiceChips"></div>
         </div><br>
       </div>
       <div id="results" class="results-scroll"></div>
@@ -1240,8 +1238,8 @@ function renderResults(){
   const visible=matched.length>=_maxN?matched.slice(0,_maxN):matched;
   if(!visible.length){ box.innerHTML='<div class="empty-state"><div class="big">🔍</div>조건에 맞는 MTI를 찾지 못했습니다.<br>조건을 줄여서 다시 시도해 보세요.</div>'; return; }
   visible.forEach((r,idx)=>{
-    const m=r.m, isTop=idx===0;
-    const wrap=document.createElement('div'); wrap.className='match'+(isTop?' top':'');
+    const m=r.m, isPerfect=r.pct===100;
+    const wrap=document.createElement('div'); wrap.className='match'+(isPerfect?' top':'');
     const tags=[
       r.hits.domain && m.domain ? '<span class="tag hit">'+esc(m.domain)+'</span>' : '',
       ...(r.hits.part && state.participants ? ['<span class="tag hit">'+esc(state.participants)+'</span>'] : []),
@@ -1252,7 +1250,6 @@ function renderResults(){
       ? '<button class="doclink" onclick="openDocModal(this.dataset.url, this.dataset.name, this.dataset.mtiid)" data-url="'+esc(m.docsUrl)+'" data-name="'+esc(m.name)+'" data-mtiid="'+esc(m.id||'')+'">수업 모형 확인하기</button>'
       : '<button class="doclink disabled" disabled>상세 자료 링크 없음</button>';
     wrap.innerHTML=
-      (isTop?'<span class="badge-best">Best Match</span>':'')+
       '<div class="m-head">'+
         '<div class="score-ring" style="--p:'+r.pct+'" title="일치도 '+r.pct+'%"></div>'+
         '<div class="m-meta">'+
