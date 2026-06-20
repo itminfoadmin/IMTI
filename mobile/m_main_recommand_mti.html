@@ -219,8 +219,6 @@ body{
 .m-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .tag{font-size:.66rem;padding:3px 8px;border-radius:5px;background:var(--bg-soft);color:var(--text-soft)}
 .tag.hit{background:var(--terra-soft);color:var(--terra);font-weight:700}
-.badge-best{position:absolute;top:-1px;left:14px;background:var(--terra);color:#fff;font-family:'DM Mono';font-size:.58rem;letter-spacing:.16em;font-weight:500;padding:4px 9px;border-radius:0 0 7px 7px;text-transform:uppercase}
-.match.top .m-head{padding-top:24px}
 .doclink{flex-shrink:0;width:100%;margin-top:0;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'Noto Sans KR';font-size:.82rem;font-weight:700;color:#fff;background:var(--blue);padding:11px 14px;border-radius:8px;text-decoration:none;border:none;cursor:pointer;transition:.2s}
 .doclink:active{background:#1647b5}
 .doclink.disabled{background:var(--bg-soft);color:var(--muted);pointer-events:none}
@@ -306,23 +304,6 @@ body{
 .pg-btn{min-width:28px;height:28px;padding:0 6px;background:#fff;border:1px solid #dee2e6;border-radius:5px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.72rem;color:#495057;display:inline-flex;align-items:center;justify-content:center}
 .pg-btn.active{background:#343a40;color:#fff;border-color:#343a40;font-weight:700}
 .pg-btn:disabled{opacity:.35;cursor:not-allowed}
-
-/* ---------- rules fallback modal ---------- */
-.rules-modal{position:fixed;inset:0;z-index:3500;display:none;align-items:center;justify-content:center;padding:6vh 6vw}
-.rules-modal.show{display:flex;animation:fade .25s ease both}
-.rules-modal-backdrop{position:absolute;inset:0;background:rgba(20,22,28,.55)}
-.rules-modal-box{position:relative;z-index:1;width:100%;max-width:340px;background:#fff;border-radius:14px;padding:24px 20px 18px;box-shadow:0 30px 80px -20px rgba(20,22,28,.5);text-align:center}
-.rules-modal-icon{width:42px;height:42px;margin:0 auto 12px;border-radius:50%;background:var(--terra-soft);color:var(--terra);display:grid;place-items:center;font-size:1.3rem;font-weight:700}
-.rules-modal-msg{font-family:'Noto Sans KR';font-size:.9rem;line-height:1.6;color:var(--text);word-break:keep-all}
-.rules-modal-sub{font-family:'DM Mono';font-size:.7rem;color:var(--muted);margin-top:8px}
-.rules-modal-btns{display:flex;gap:10px;justify-content:center;margin-top:20px}
-.rules-modal-btn{font-family:'Noto Sans KR';font-size:.84rem;font-weight:700;border-radius:8px;padding:10px 20px;cursor:pointer;border:1.5px solid;flex:1;max-width:130px}
-.rules-modal-btn.yes{color:#fff;background:var(--terra);border-color:var(--terra)}
-.rules-modal-btn.yes:active{background:#c46868;border-color:#c46868}
-.rules-modal-btn.no{color:var(--text-soft);background:#fff;border-color:var(--line)}
-.rules-modal-btn.no:active{border-color:var(--text-soft);color:var(--ink)}
-.rules-modal-spinner{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--terra);border-radius:50%;margin:4px auto 0;animation:rules-spin .8s linear infinite}
-@keyframes rules-spin{to{transform:rotate(360deg)}}
 
 /* fallback notice shown in the result screen when default rules are used */
 .rules-fallback-note{font-family:'Noto Sans KR';font-size:.74rem;font-weight:700;color:var(--terra);margin-top:6px}
@@ -690,17 +671,6 @@ body{
   </div>
 </div>
 
-<!-- Rules fallback confirmation modal -->
-<div class="rules-modal" id="rulesModal" aria-hidden="true">
-  <div class="rules-modal-backdrop"></div>
-  <div class="rules-modal-box" role="dialog" aria-modal="true">
-    <div class="rules-modal-icon" id="rulesModalIcon">!</div>
-    <div class="rules-modal-msg" id="rulesModalMsg"></div>
-    <div class="rules-modal-sub" id="rulesModalSub"></div>
-    <div class="rules-modal-btns" id="rulesModalBtns"></div>
-  </div>
-</div>
-
 <script>
 
 const SHEET_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZ3CV8vcwfqvjUixL5eyrt19qcJ0fxNcClV_DzsesMxPe_HE8LaNYNF2HhPXGutdBHHqYP0sg5SXYo/pub";
@@ -716,6 +686,11 @@ const CSV = {
    DEFAULT_RULES fallback below is used. Scalar values keep safe defaults;
    affinity chains and layout are emptied so the source does not expose the
    real rules (GAS replaces them wholesale at runtime). */
+/* Primary source: rules published as a Google Sheet CSV (same delivery path as
+   the MTI-DB sheets). This works in environments where the Apps Script web app
+   (script.google.com) is blocked by org account policies. */
+const REC_RULES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRvxulFWfB0chVvH9Ype4QnDpUw2pF5B3iyDbpme05ulVTjhWeSyhz-TlgNkZQAZCCTtaJFBRkBbXfz/pub?gid=0&single=true&output=csv";
+/* Legacy source (kept as a secondary fallback): Apps Script web app via JSONP. */
 const REC_RULES_GAS_URL = "https://script.google.com/macros/s/AKfycbyVyUYe-jNCPRMJoxYuBOZyB8z7Rbr979x1segiZEh-PLtz3t8X3kAqckARfHhLLtYEJw/exec";
 
 const DEFAULT_RULES = {
@@ -734,6 +709,46 @@ const DEFAULT_RULES = {
 
 function _deepRules(o){ return JSON.parse(JSON.stringify(o)); }
 let RULES = _deepRules(DEFAULT_RULES);
+
+/* Load rules from the published Google Sheet CSV (preferred).
+   The rules sheet has two columns, key | value, with one row whose key is
+   'rules_json' holding the full rules object as a JSON string. This path uses
+   the same CSV delivery as the MTI-DB sheets, so it keeps working where the
+   Apps Script web app is blocked by an organization's Google account policy. */
+function loadRecRulesCSV(){
+  return new Promise(resolve=>{
+    const timer = setTimeout(()=>resolve(false), 12000);
+    Papa.parse(REC_RULES_CSV_URL, {
+      download:true, header:true, skipEmptyLines:true,
+      complete:res=>{
+        clearTimeout(timer);
+        try{
+          const rows = res && res.data ? res.data : [];
+          const map = {};
+          rows.forEach(row=>{
+            const k = pick(row,'key');
+            if(!k) return;
+            let v = pick(row,'value');
+            if(v===''){
+              const keys = Object.keys(row).filter(h=>h.toLowerCase()!=='key');
+              if(keys.length) v = (row[keys[0]]||'').toString();
+            }
+            map[k.trim()] = v;
+          });
+          const raw = map['rules_json'];
+          if(!raw){ resolve(false); return; }
+          const parsed = JSON.parse(raw);
+          if(parsed && typeof parsed==='object'){
+            applyRules(parsed);
+            resolve(true); return;
+          }
+          resolve(false);
+        }catch(e){ console.error('[IMTI] rules CSV parse error:', e); resolve(false); }
+      },
+      error:()=>{ clearTimeout(timer); resolve(false); }
+    });
+  });
+}
 
 /* Load rules from GAS (JSONP). On failure, DEFAULT_RULES stays. */
 function loadRecRules(){
@@ -761,69 +776,36 @@ function loadRecRules(){
   });
 }
 
-/* ---------- rules fallback modal ---------- */
-let _rulesUsingFallback = false;   // true once the user accepts default rules
+/* ---------- rules loading fallback ---------- */
+let _rulesUsingFallback = false;   // true once the default rules are used
 
-/* Try to load sheet rules; if it fails, drive the confirmation modal.
-   Resolves only when either the sheet rules are applied OR the user chose
-   to proceed with the default fallback rules. */
+/* Try to load sheet rules; retry silently a few times, then fall back to the
+   built-in default rules without prompting the user.
+   Order: CSV (works under restrictive org account policies) first, then the
+   legacy Apps Script web app (JSONP) as a secondary attempt. */
+const MAX_RULES_RETRIES = 2;   // silent retries before falling back
 async function ensureRulesLoaded(){
-  let ok = await loadRecRules();
-  while(!ok){
-    const useDefault = await askUseDefaultRules();   // Yes -> true, No -> false (retry)
-    if(useDefault){
-      _rulesUsingFallback = true;
-      console.log('Rules load failed (using default fallback rules)');
-      renderFallbackNotice();
-      return;
-    }
-    await showRulesRetryMessage();   // "rules will be reloaded" notice
-    ok = await loadRecRules();       // retry the sheet rules once
+  // 1) Preferred path: published sheet CSV.
+  let ok = await loadRecRulesCSV();
+  let retries = 0;
+  while(!ok && retries < MAX_RULES_RETRIES){
+    retries++;
+    await new Promise(r=>setTimeout(r, 600));
+    ok = await loadRecRulesCSV();
+  }
+  // 2) Secondary path: legacy GAS web app (may be blocked in some environments).
+  if(!ok){
+    ok = await loadRecRules();
+  }
+  if(!ok){
+    _rulesUsingFallback = true;
+    console.log('Rules load failed (using default fallback rules)');
+    renderFallbackNotice();
+    return;
   }
   _rulesUsingFallback = false;
   renderFallbackNotice();            // clear the notice if it was shown
   console.log('Rules loaded (sheet rules applied)');
-}
-
-/* Yes/No confirmation modal. Resolves true (use defaults) or false (retry). */
-function askUseDefaultRules(){
-  return new Promise(resolve=>{
-    document.getElementById('rulesModalIcon').textContent = '!';
-    document.getElementById('rulesModalMsg').innerHTML =
-      'MTI 추천을 위한 규칙이 정상적으로 로딩되지 않았습니다.<br>정확도가 낮은 기본 규칙으로 MTI를 추천받으시겠습니까?';
-    document.getElementById('rulesModalSub').textContent = '';
-    const btns = document.getElementById('rulesModalBtns');
-    btns.innerHTML = '';
-    const yes = document.createElement('button');
-    yes.className = 'rules-modal-btn yes'; yes.textContent = '네 (Yes)';
-    const no = document.createElement('button');
-    no.className = 'rules-modal-btn no'; no.textContent = '아니오 (No)';
-    yes.onclick = ()=>{ hideRulesModal(); resolve(true); };
-    no.onclick  = ()=>{ resolve(false); };
-    btns.appendChild(yes); btns.appendChild(no);
-    showRulesModal();
-  });
-}
-
-/* Brief "reloading" notice shown before a retry. Auto-dismisses. */
-function showRulesRetryMessage(){
-  return new Promise(resolve=>{
-    document.getElementById('rulesModalIcon').textContent = '↻';
-    document.getElementById('rulesModalMsg').textContent = 'MTI 추천 규칙을 다시 로딩합니다.';
-    document.getElementById('rulesModalSub').innerHTML = '<div class="rules-modal-spinner"></div>';
-    document.getElementById('rulesModalBtns').innerHTML = '';
-    showRulesModal();
-    setTimeout(()=>{ hideRulesModal(); resolve(); }, 900);
-  });
-}
-
-function showRulesModal(){
-  const m = document.getElementById('rulesModal');
-  m.classList.add('show'); m.setAttribute('aria-hidden','false');
-}
-function hideRulesModal(){
-  const m = document.getElementById('rulesModal');
-  m.classList.remove('show'); m.setAttribute('aria-hidden','true');
 }
 
 /* Show/clear the fallback notice in the result screen. */
@@ -831,7 +813,7 @@ function renderFallbackNotice(){
   const el = document.getElementById('rulesFallbackNote');
   if(!el) return;
   if(_rulesUsingFallback){
-    el.textContent = '정확도가 낮은 MTI 추천 기본 규칙이 사용되었습니다.';
+    el.textContent = '기본 규칙으로 추천되었습니다.';
     el.style.display = 'block';
   }else{
     el.textContent = '';
@@ -857,7 +839,7 @@ function applyRules(r){
 
 /* Affinity chains. Empty by default; populated from GAS via applyRules(). */
 let AFFINITY_CHAINS = { participants: [], orientation: [], competencies: [] };
-const _norm = s => (s||'').replace(/\s+/g,'').toLowerCase();
+const _norm = s => (s||'').normalize('NFC').replace(/\s+/g,'').toLowerCase();
 
 function _idxInChain(chain, val){
   const t=_norm(val);
@@ -911,7 +893,7 @@ function pick(row, ...cands){
   for(const c of cands){const k=keys.find(k=>k.toLowerCase().includes(c.toLowerCase()));if(k)return(row[k]||'').toString().trim();}
   return '';
 }
-const clean = s => (s||'').toString().replace(/\s*대상$/,'').replace(/\s*지향$/,'').replace(/\s*영역$/,'').trim();
+const clean = s => (s||'').toString().normalize('NFC').replace(/\s*대상$/,'').replace(/\s*지향$/,'').replace(/\s*영역$/,'').trim();
 
 /* ---------- preload splash control (same procedure as desktop) ---------- */
 let _preloadTimer = null;
@@ -986,7 +968,7 @@ function setLive(kind,text){
 
 const uniq = a => [...new Set(a.filter(Boolean))];
 
-function normName(s){ return (s||'').replace(/\s+/g,'').toLowerCase(); }
+function normName(s){ return (s||'').normalize('NFC').replace(/\s+/g,'').toLowerCase(); }
 
 let OPTIONS_COL = {};
 function buildOptions(){
@@ -1170,8 +1152,8 @@ function renderResults(){
   const visible=matched.length>=_maxN?matched.slice(0,_maxN):matched;
   if(!visible.length){ box.innerHTML='<div class="empty-state"><div class="big">🔍</div>조건에 맞는 MTI를 찾지 못했습니다.<br>조건을 줄여서 다시 시도해 보세요.</div>'; return; }
   visible.forEach((r,idx)=>{
-    const m=r.m, isTop=idx===0;
-    const wrap=document.createElement('div'); wrap.className='match'+(isTop?' top':'');
+    const m=r.m, isPerfect=r.pct===100;
+    const wrap=document.createElement('div'); wrap.className='match'+(isPerfect?' top':'');
     const tags=[
       r.hits.domain && m.domain ? '<span class="tag hit">'+esc(m.domain)+'</span>' : '',
       ...(r.hits.part && state.participants ? ['<span class="tag hit">'+esc(state.participants)+'</span>'] : []),
@@ -1182,7 +1164,6 @@ function renderResults(){
       ? '<button class="doclink" onclick="openDocModal(this.dataset.url, this.dataset.name, this.dataset.mtiid)" data-url="'+esc(m.docsUrl)+'" data-name="'+esc(m.name)+'" data-mtiid="'+esc(m.id||'')+'">수업 모형 확인하기</button>'
       : '<button class="doclink disabled" disabled>상세 자료 링크 없음</button>';
     wrap.innerHTML=
-      (isTop?'<span class="badge-best">Best Match</span>':'')+
       '<div class="m-head">'+
         '<div class="score-ring" style="--p:'+r.pct+'" title="일치도 '+r.pct+'%"></div>'+
         '<div class="m-meta">'+
