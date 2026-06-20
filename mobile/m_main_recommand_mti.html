@@ -1145,7 +1145,7 @@ function renderResults(){
       const r={m,...scoreModel(m)};
       r.matchCount = (r.hits.domain?_prW('domain'):0) + (r.hits.part?_prW('participants'):0) + (r.hits.orient?_prW('orientation'):0) + (r.hits.comps?r.hits.comps.length*_prW('competencies'):0);
       return r;
-    }).sort((a,b)=> (b.matchCount-a.matchCount) || (b.pct-a.pct));
+    }).sort((a,b)=> (b.pct-a.pct) || (b.matchCount-a.matchCount));
   const box=document.getElementById('results'); box.innerHTML='';
   const _minPct=RULES.thresholds.minMatchPercent, _maxN=RULES.thresholds.maxResults;
   const matched=ranked.filter(r=>r.pct>=_minPct);
