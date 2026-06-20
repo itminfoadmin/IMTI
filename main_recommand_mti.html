@@ -99,6 +99,7 @@ body.on-result .stage-wrap{margin-bottom:0}
 .progress-wrap .page-foot{position:absolute;right:5%;top:50%;transform:translateY(-50%);margin:0;padding:0;white-space:nowrap}
 .rules-update{margin-left:auto;white-space:nowrap;font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.04em;color:var(--muted)}
 .rules-update b{color:var(--terra);font-weight:500}
+.rules-update .rules-fallback{color:var(--camel);font-weight:500}
 @media(max-width:900px){
   .progress-wrap .page-foot{position:static;transform:none;text-align:center;margin-top:8px}
   .rules-update{display:block;margin-left:0;margin-top:4px;text-align:right}
@@ -883,7 +884,7 @@ function renderRulesUpdate(v){
 function renderFallbackNotice(){
   const el = document.getElementById('rulesUpdate');
   if(!el) return;
-  el.innerHTML = '';
+  el.innerHTML = '<span class="rules-fallback">기본 규칙으로 추천되었습니다.</span>';
 }
 
 /* Merge GAS rules over the fallback defaults */
