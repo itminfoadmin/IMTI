@@ -905,7 +905,7 @@ function pick(row, ...cands){
   for(const c of cands){const k=keys.find(k=>k.toLowerCase().includes(c.toLowerCase()));if(k)return(row[k]||'').toString().trim();}
   return '';
 }
-const clean = s => (s||'').toString().replace(/\s*대상$/,'').replace(/\s*지향$/,'').replace(/\s*영역$/,'').trim();
+const clean = s => (s||'').toString().normalize('NFC').replace(/\s*대상$/,'').replace(/\s*지향$/,'').replace(/\s*영역$/,'').trim();
 
 let _preloadTimer = null;
 function startPreload(){
@@ -986,7 +986,7 @@ function setLive(kind,text){
 
 const uniq = a => [...new Set(a.filter(Boolean))];
 
-function normName(s){ return (s||'').replace(/\s+/g,'').toLowerCase(); }
+function normName(s){ return (s||'').normalize('NFC').replace(/\s+/g,'').toLowerCase(); }
 
 let OPTIONS_COL = {}; // group -> {col1:[...], col2:[...]}
 function buildOptions(){
