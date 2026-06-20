@@ -662,6 +662,11 @@ const CSV = {
 };
 
 /* Recommendation rules */
+/* Primary source: rules published as a Google Sheet CSV (same delivery path as
+   the MTI-DB sheets). This works in environments where the Apps Script web app
+   (script.google.com) is blocked by org account policies. */
+const REC_RULES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRvxulFWfB0chVvH9Ype4QnDpUw2pF5B3iyDbpme05ulVTjhWeSyhz-TlgNkZQAZCCTtaJFBRkBbXfz/pub?gid=0&single=true&output=csv";
+/* Legacy source (kept as a secondary fallback): Apps Script web app via JSONP. */
 const REC_RULES_GAS_URL = "https://script.google.com/macros/s/AKfycbyVyUYe-jNCPRMJoxYuBOZyB8z7Rbr979x1segiZEh-PLtz3t8X3kAqckARfHhLLtYEJw/exec";
 
 /* Fallback rules.
@@ -712,6 +717,49 @@ const DEFAULT_RULES = {
 function _deepRules(o){ return JSON.parse(JSON.stringify(o)); }
 let RULES = _deepRules(DEFAULT_RULES);
 
+/* Load rules from the published Google Sheet CSV (preferred).
+   The rules sheet has two columns, key | value, with one row whose key is
+   'rules_json' holding the full rules object as a JSON string, plus optional
+   'updated_at' / 'version' rows. This path uses the same CSV delivery as the
+   MTI-DB sheets, so it keeps working where the Apps Script web app is blocked
+   by an organization's Google account policy. */
+function loadRecRulesCSV(){
+  return new Promise(resolve=>{
+    const timer = setTimeout(()=>resolve(false), 12000);
+    Papa.parse(REC_RULES_CSV_URL, {
+      download:true, header:true, skipEmptyLines:true,
+      complete:res=>{
+        clearTimeout(timer);
+        try{
+          const rows = res && res.data ? res.data : [];
+          const map = {};
+          rows.forEach(row=>{
+            const k = pick(row,'key');
+            if(!k) return;
+            // value may live under a 'value' header; fall back to the 2nd column
+            let v = pick(row,'value');
+            if(v==='' ){
+              const keys = Object.keys(row).filter(h=>h.toLowerCase()!=='key');
+              if(keys.length) v = (row[keys[0]]||'').toString();
+            }
+            map[k.trim()] = v;
+          });
+          const raw = map['rules_json'];
+          if(!raw){ resolve(false); return; }
+          const parsed = JSON.parse(raw);
+          if(parsed && typeof parsed==='object'){
+            applyRules(parsed);
+            renderRulesUpdate(map['updated_at'] || map['updatedAt'] || extractRulesUpdate(parsed));
+            resolve(true); return;
+          }
+          resolve(false);
+        }catch(e){ console.error('[IMTI] rules CSV parse error:', e); resolve(false); }
+      },
+      error:()=>{ clearTimeout(timer); resolve(false); }
+    });
+  });
+}
+
 /* Load rules from GAS (JSONP) */
 function loadRecRules(){
   return new Promise(resolve=>{
@@ -744,14 +792,21 @@ function loadRecRules(){
 let _rulesUsingFallback = false;   // true once the default rules are used
 
 /* Try to load sheet rules; retry silently a few times, then fall back to the
-   built-in default rules without prompting the user. */
+   built-in default rules without prompting the user.
+   Order: CSV (works under restrictive org account policies) first, then the
+   legacy Apps Script web app (JSONP) as a secondary attempt. */
 const MAX_RULES_RETRIES = 2;   // silent retries before falling back
 async function ensureRulesLoaded(){
-  let ok = await loadRecRules();
+  // 1) Preferred path: published sheet CSV.
+  let ok = await loadRecRulesCSV();
   let retries = 0;
   while(!ok && retries < MAX_RULES_RETRIES){
     retries++;
-    await new Promise(r=>setTimeout(r, 600));   // brief pause, no prompt
+    await new Promise(r=>setTimeout(r, 600));
+    ok = await loadRecRulesCSV();
+  }
+  // 2) Secondary path: legacy GAS web app (may be blocked in some environments).
+  if(!ok){
     ok = await loadRecRules();
   }
   if(!ok){
@@ -849,7 +904,7 @@ function applyRules(r){
 
 /* Affinity chains. Empty by default; populated from GAS via applyRules(). */
 let AFFINITY_CHAINS = { participants: [], orientation: [], competencies: [] };
-const _norm = s => (s||'').replace(/\s+/g,'').toLowerCase();
+const _norm = s => (s||'').normalize('NFC').replace(/\s+/g,'').toLowerCase();
 
 function _idxInChain(chain, val){
   const t=_norm(val);
