@@ -822,12 +822,13 @@ function renderRulesUpdate(v){
   el.innerHTML = f ? ('Matching Rule Latest Update: <b>' + esc(f) + '</b>') : '';
 }
 
-/* Show the fallback notice in place of the rule-update timestamp when the
-   default rules are used because the sheet rules could not be loaded. */
+/* When the default rules are used (sheet rules could not be loaded), do not
+   show any notice. The rules-update area is left blank so nothing is displayed;
+   the normal rule-update timestamp still shows when sheet rules load. */
 function renderFallbackNotice(){
   const el = document.getElementById('rulesUpdate');
   if(!el) return;
-  el.innerHTML = '<b>정확도가 낮은 MTI 추천 기본 규칙이 사용되었습니다.</b>';
+  el.innerHTML = '';
 }
 
 /* Merge GAS rules over the fallback defaults */
