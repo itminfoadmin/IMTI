@@ -16,8 +16,8 @@
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbyLTQ-1r9n-3weRUtRL9Cqo5H4GeRDYnKzlGXL60Tk3geSF86OwXJ0RvJQxZ4ucXRkJ/exec';
 const SHEET_ID = '1ZEczHs1ARAmu8XKSfREE8JuNHOSW3QxKSzXpgJrJ9EU';
 
-/* ── Root index (mobile is two levels below site root) ── */
-const ROOT_INDEX = '../../index.html';
+/* ── Root index (mobile is two levels below site root; redirect to mobile login) ── */
+const ROOT_INDEX = '../../mobile/m_index.html';
 
 /* ── Session guard — redirect to login if no admin session ── */
 function requireAdminSession() {
