@@ -54,12 +54,26 @@
         }
         .pw-submit-btn.active { color: var(--gray-text); border-color: var(--gray-text); cursor: pointer; opacity: 1; }
         .pw-submit-btn.active:hover { background: var(--gray-text); color: #fff; }
+
+        .admin-list {
+            margin-top: 150px;
+            font-family: 'Gowun Batang', serif;
+            line-height: 1.9; word-break: break-all;
+            text-align: center;
+        }
+        .admin-list .al-header {
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+            color: var(--gray-mid); text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .admin-list .al-item {
+            font-size: 0.78rem; color: var(--gray-text);
+        }
     </style>
 </head>
 <body>
-
 <div class="main">
-    <div class="pw-card">
+    <div class="pw-card"><br><br><br><br><br><br>
         <div class="pw-card-title">Add — Administrator</div>
 
         <div class="field-row">
@@ -84,6 +98,8 @@
         <div class="pw-submit-wrap">
             <button class="pw-submit-btn" id="pw-submit-btn" onclick="onSubmitClick()" disabled>Add Admin</button>
         </div>
+
+        <div class="admin-list" id="admin-list"></div>
     </div>
 </div>
 
@@ -135,6 +151,50 @@
 <script src="ad_common.js"></script>
 <script>
     let _pendingNewPw = '';
+
+    const ADMIN_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTl_lyF4ykH7Kbs_Y8wOUPNeru3HSReqZUwzBNLAGHJDoXA3g8TuQsa-efBkwtBiXudxTknoz4CX1NE/pub?gid=0&single=true&output=csv';
+
+    function parseCsv(text) {
+        const rows = [];
+        let row = [], field = '', inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+            const c = text[i];
+            if (inQuotes) {
+                if (c === '"') {
+                    if (text[i + 1] === '"') { field += '"'; i++; }
+                    else inQuotes = false;
+                } else field += c;
+            } else {
+                if (c === '"') inQuotes = true;
+                else if (c === ',') { row.push(field); field = ''; }
+                else if (c === '\r') { /* skip */ }
+                else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+                else field += c;
+            }
+        }
+        if (field !== '' || row.length) { row.push(field); rows.push(row); }
+        return rows;
+    }
+
+    async function loadAdminList() {
+        const el = document.getElementById('admin-list');
+        try {
+            const res = await fetch(ADMIN_CSV_URL + '&t=' + Date.now());
+            const text = await res.text();
+            const rows = parseCsv(text);
+            const items = [];
+            for (let i = 1; i < rows.length; i++) {   // 1행은 헤더이므로 건너뜀
+                const email = (rows[i][1] || '').trim();   // B열
+                const date  = (rows[i][3] || '').trim();   // D열
+                if (!email) continue;
+                items.push('<div class="al-item">' + email + (date ? ' (' + date + ')' : '') + '</div>');
+            }
+            if (!items.length) { el.innerHTML = ''; return; }
+            el.innerHTML = '<div class="al-header">{Registed Administrator}</div>' + items.join('');
+        } catch (e) {
+            el.innerHTML = '';
+        }
+    }
 
     function onFieldInput() {
         const email  = document.getElementById('inp-email').value.trim();
@@ -206,7 +266,10 @@
             document.getElementById(id).value = '';
         });
         onFieldInput();
+        loadAdminList();
     }
+
+    loadAdminList();
 
     function openPopup(id)  { document.getElementById(id).classList.add('active'); }
     function closePopup(id) { document.getElementById(id).classList.remove('active'); }
