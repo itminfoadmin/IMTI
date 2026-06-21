@@ -1,8 +1,11 @@
 /**
- * ad_common.js — IMTI Admin shared script
+ * ad_common.js — IMTI Admin shared script (PC / DESKTOP)
+ *
+ * PC pages live directly under ad_pages/, so the site root is one level up
+ * ('../index.html'). Mobile pages use m_ad_common.js instead.
  *
  * - Constants (GAS_URL, SHEET_ID)
- * - Navbar + logout popup injection
+ * - Navbar + logout popup injection (ad_navbar.html)
  * - Logout handling
  * - Session timer (30-min countdown, auto-logout on idle)
  * - Shared utilities: generatePassword, sha256, gasJsonp
@@ -16,13 +19,12 @@ const SHEET_ID = '1ZEczHs1ARAmu8XKSfREE8JuNHOSW3QxKSzXpgJrJ9EU';
 function requireAdminSession() {
     if (!sessionStorage.getItem('admin_email')) {
         sessionStorage.clear();
-        window.location.replace('/index.html');
+        window.location.replace('../index.html');
     }
 }
 
 /* ── Inject navbar from ad_navbar.html ── */
 async function injectNavbar() {
-    if (window.__skipPCNavbar) return;
     try {
         const res = await fetch('ad_navbar.html');
         if (!res.ok) throw new Error('fetch failed: ' + res.status);
