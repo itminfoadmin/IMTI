@@ -85,24 +85,8 @@
     <div class="dashboard" id="dashboard" style="display:none;"></div>
 </div>
 
-<script>window.__skipPCNavbar = true;</script>
-<script src="../ad_common.js"></script>
+<script src="m_ad_common.js"></script>
 <script>
-/* Load the mobile navbar fragment */
-fetch('m_ad_navbar.html')
-    .then(r => r.text())
-    .then(html => {
-        const mount = document.getElementById('m-navbar-mount');
-        mount.innerHTML = html;
-        // re-execute inline scripts from the fragment
-        mount.querySelectorAll('script').forEach(old => {
-            const s = document.createElement('script');
-            if (old.src) s.src = old.src; else s.textContent = old.textContent;
-            document.body.appendChild(s);
-        });
-    })
-    .catch(err => console.error('[m_ad_intro] navbar load error:', err));
-
 window.__pageInit = function() {
     const SHEET_ID = '2PACX-1vQRxi28M9azVIO7Nyp3wpr5PUuCUSDNXMwuIbPZ-KaZxuPUVVF15zFlfAao0QttcGN4BJJcZQLikqv_';
     const GID      = '557422957';

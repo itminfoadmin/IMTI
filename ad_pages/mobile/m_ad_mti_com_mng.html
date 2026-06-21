@@ -162,23 +162,6 @@
 
 <!-- Mobile navbar injected here -->
 <div id="m-navbar-mount"></div>
-<script>
-/* Load the mobile navbar fragment */
-fetch('m_ad_navbar.html')
-    .then(r => r.text())
-    .then(html => {
-        const mount = document.getElementById('m-navbar-mount');
-        mount.innerHTML = html;
-        mount.querySelectorAll('script').forEach(old => {
-            const s = document.createElement('script');
-            if (old.src) s.src = old.src; else s.textContent = old.textContent;
-            document.body.appendChild(s);
-        });
-    })
-    .catch(err => console.error('navbar load error:', err));
-</script>
-
-
 <div class="page-body">
 <div class="main">
     <div id="table-area">
@@ -273,8 +256,7 @@ fetch('m_ad_navbar.html')
     </div>
 </div>
 
-<script>window.__skipPCNavbar = true;</script>
-<script src="../ad_common.js"></script>
+<script src="m_ad_common.js"></script>
 <script>
     window.__pageInit = function() { loadData(); };
 
