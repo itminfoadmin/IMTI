@@ -226,6 +226,14 @@
             outline: none; background: #fff; transition: border-color 0.18s;
         }
         .chip-add:focus { border-color: #868e96; }
+        .chip[draggable="true"] { cursor: grab; }
+        .chip .chip-grip {
+            color: #ced4da; font-size: 0.8rem; line-height: 1; cursor: grab;
+            padding-right: 2px; user-select: none;
+        }
+        .chip.dragging { opacity: 0.4; cursor: grabbing; }
+        .chip.drop-before { box-shadow: -3px 0 0 0 #d49860; }
+        .chip.drop-after  { box-shadow:  3px 0 0 0 #d49860; }
         .chain-del {
             border: 1.5px solid #e03131; color: #e03131; background: #fff;
             border-radius: 14px; padding: 3px 12px; cursor: pointer;
@@ -730,12 +738,47 @@ function buildChainItem(groupKey, chain, ci){
   item.appendChild(top);
 
   const field = document.createElement('div'); field.className='tag-field';
+  let dragFrom = -1;
+  function clearDropMarks(){
+    field.querySelectorAll('.chip').forEach(c=>c.classList.remove('drop-before','drop-after'));
+  }
   chain.forEach((tag, ti)=>{
     const chip = document.createElement('span'); chip.className='chip';
-    chip.innerHTML = '<span>'+escapeHtml(tag)+'</span>';
+    chip.draggable = true;
+    chip.dataset.idx = ti;
+    chip.innerHTML = '<span class="chip-grip" title="드래그하여 순서 변경">⠿</span><span>'+escapeHtml(tag)+'</span>';
     const x = document.createElement('button'); x.className='chip-x'; x.textContent='×';
     x.addEventListener('click', ()=>{ chain.splice(ti,1); setDirty(true); renderChains(); });
     chip.appendChild(x);
+
+    chip.addEventListener('dragstart', e=>{
+      dragFrom = ti; chip.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try{ e.dataTransfer.setData('text/plain', String(ti)); }catch(_){}
+    });
+    chip.addEventListener('dragend', ()=>{ chip.classList.remove('dragging'); clearDropMarks(); });
+    chip.addEventListener('dragover', e=>{
+      e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      const r = chip.getBoundingClientRect();
+      const after = e.clientX > r.left + r.width/2;
+      clearDropMarks();
+      chip.classList.add(after ? 'drop-after' : 'drop-before');
+    });
+    chip.addEventListener('drop', e=>{
+      e.preventDefault();
+      let from = dragFrom;
+      if(from < 0){ const d=parseInt(e.dataTransfer.getData('text/plain'),10); if(!isNaN(d)) from=d; }
+      clearDropMarks();
+      if(from < 0 || from === ti) return;
+      const r = chip.getBoundingClientRect();
+      let to = e.clientX > r.left + r.width/2 ? ti+1 : ti;
+      if(from < to) to--;            // 제거 후 인덱스 보정
+      if(to === from) return;
+      const [moved] = chain.splice(from,1);
+      chain.splice(to,0,moved);
+      setDirty(true); renderChains();
+    });
+
     field.appendChild(chip);
   });
   const add = document.createElement('input');
