@@ -210,6 +210,7 @@ body{
 
 .match{border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:12px;overflow:hidden;transition:.25s;position:relative}
 .match.top{border-color:var(--terra);box-shadow:0 0 0 1.5px var(--terra) inset}
+.best-badge{display:inline-block;color:#fff;background:var(--terra);font-size:.74rem;line-height:1;padding:2px 6px;border-radius:6px;vertical-align:middle;white-space:nowrap}
 .m-head{display:flex;align-items:center;gap:13px;padding:16px 16px}
 .score-ring{--p:0;flex:0 0 46px;width:46px;height:46px;border-radius:50%;background:conic-gradient(var(--terra) calc(var(--p)*1%),var(--bg-soft) 0);display:grid;place-items:center;position:relative}
 .score-ring::before{content:"";position:absolute;inset:5px;background:#fff;border-radius:50%}
@@ -427,7 +428,7 @@ body{
       <span id="liveText">MTI_DB에서 데이터를 불러오는 중…</span>
       <button class="reload" id="reloadBtn" style="display:none" onclick="loadAll()">↻ 새로고침</button>
     </div>
-    <div class="sub">MTI에 대한 연구 결과를 바탕으로<br>수업 모형(MTI)을 추천해 드립니다.</div>
+    <div class="sub">MTI에 대한 연구 결과를 바탕으로<br>조건에 따른 MTI를 추천합니다.</div>
   </div>
   <div class="progress-wrap">
     <div class="progress" id="progress"></div>
@@ -1151,8 +1152,12 @@ function renderResults(){
   const matched=ranked.filter(r=>r.pct>=_minPct);
   const visible=matched.length>=_maxN?matched.slice(0,_maxN):matched;
   if(!visible.length){ box.innerHTML='<div class="empty-state"><div class="big">🔍</div>조건에 맞는 MTI를 찾지 못했습니다.<br>조건을 줄여서 다시 시도해 보세요.</div>'; return; }
+  const _hasPerfect=visible.some(r=>r.pct===100);
+  const _topPct=visible.length?Math.max(...visible.map(r=>r.pct)):0;
+  const _bestPct=_hasPerfect?100:_topPct;
   visible.forEach((r,idx)=>{
     const m=r.m, isPerfect=r.pct===100;
+    const isBest=r.pct===_bestPct;
     const wrap=document.createElement('div'); wrap.className='match'+(isPerfect?' top':'');
     const tags=[
       r.hits.domain && m.domain ? '<span class="tag hit">'+esc(m.domain)+'</span>' : '',
@@ -1167,7 +1172,7 @@ function renderResults(){
       '<div class="m-head">'+
         '<div class="score-ring" style="--p:'+r.pct+'" title="일치도 '+r.pct+'%"></div>'+
         '<div class="m-meta">'+
-          '<div class="m-title">'+esc(m.name)+'</div>'+
+          '<div class="m-title">'+esc(m.name)+(isBest?' <span class="best-badge">★</span>':'')+'</div>'+
           (tags?'<div class="m-tags">'+tags+'</div>':'')+
         '</div>'+
         doc+
