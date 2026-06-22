@@ -504,6 +504,9 @@ const DEFAULT_RULES = {
 
   // RULE 03 — 친화도 체인
   affinityChains: {
+    domain: [
+      ["컴퓨팅 시스템","데이터","알고리즘","프로그래밍","인공지능","디지털 문화"]
+    ],
     participants: [
       ["특수학습자","영유아","초등학생(1-2학년)","초등학생(3-4학년)","초등학생(5-6학년)","중학생","고등학생","영재학습자","성인학습자"]
     ],
@@ -541,6 +544,8 @@ const DEFAULT_RULES = {
 };
 
 const CHAIN_GROUPS = [
+  { key:'domain',       name:'영역',  note:'domain',
+    help:'학습 영역(주제) 간 유사도. 같은 체인에 가까이 있을수록 부분 점수를 더 많이 부여합니다. 예: 알고리즘↔프로그래밍은 높은 친화도.' },
   { key:'participants', name:'대상',  note:'participants',
     help:'학습 대상의 연령/특성 인접도. 예: 초등 학년 간에는 높은 친화도, 영유아↔성인은 낮은 친화도.' },
   { key:'orientation',  name:'지향',  note:'orientation',
@@ -720,6 +725,7 @@ function renderChains(){
     const addBtn = document.createElement('button');
     addBtn.className='chain-add-btn'; addBtn.textContent='+ 체인 추가';
     addBtn.addEventListener('click', ()=>{
+      if(!Array.isArray(RULES.affinityChains[g.key])) RULES.affinityChains[g.key] = [];
       RULES.affinityChains[g.key].push([]); setDirty(true); renderChains();
     });
     grp.appendChild(addBtn);
@@ -980,8 +986,8 @@ function normalizeRules(r){
   if(r.priority)  Object.assign(out.priority, r.priority);
   if(r.defaults)  Object.assign(out.defaults, r.defaults);
   if(r.thresholds)Object.assign(out.thresholds, r.thresholds);
-  if(r.affinityChains) out.affinityChains = r.affinityChains;
-  if(r.layout)         out.layout = r.layout;
+  if(r.affinityChains) Object.assign(out.affinityChains, r.affinityChains);
+  if(r.layout)         Object.assign(out.layout, r.layout);
   return out;
 }
 
