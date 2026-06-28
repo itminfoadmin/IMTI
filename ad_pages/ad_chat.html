@@ -338,6 +338,7 @@ body{
             </div>
             <div class="ft-row">
                 <button class="ft-btn" onclick="closeFtSend()">닫기</button>
+                <button class="ft-btn" id="fts-resend-btn" onclick="ftResend()" style="display:none;border-color:var(--term-amber);color:var(--term-amber)">재전송</button>
                 <button class="ft-btn primary" id="fts-send-btn" onclick="ftStartSend()" disabled>전송</button>
             </div>
         </div>
@@ -938,6 +939,9 @@ function openFtSend(){
     document.getElementById('ft-target-wrap').style.display = 'none';
     document.getElementById('fts-prog-wrap').classList.remove('show');
     document.getElementById('fts-send-btn').disabled = true;
+    document.getElementById('fts-send-btn').textContent = '전송';
+    document.getElementById('fts-send-btn').onclick = ftStartSend;
+    document.getElementById('fts-resend-btn').style.display = 'none';
     document.getElementById('fts-status').textContent = '파일 선택 후 대상을 지정하세요';
     document.getElementById('ft-drop').style.display = '';
     document.getElementById('ft-file-input').value = '';
@@ -1206,6 +1210,27 @@ function ftOnDone(fromUid, transferId){
     }, 2000);
 }
 
+/* 거절 후 재전송 */
+function ftResend(){
+    var resendBtn = document.getElementById('fts-resend-btn');
+    var targetUid = resendBtn.dataset.targetUid;
+    if(!ftSend.file || !targetUid) return;
+
+    /* 재전송 대상만 선택 상태로 복원 */
+    ftSend.targets = {};
+    ftSend.targets[targetUid] = true;
+
+    /* 진행바 초기화 */
+    var fill = document.getElementById('fts-prog-fill');
+    fill.className  = 'ft-prog-fill';
+    fill.style.width = '0%';
+    document.getElementById('fts-prog-pct').textContent = '';
+    document.getElementById('fts-prog-txt').textContent = '수락 대기 중…';
+    resendBtn.style.display = 'none';
+
+    ftStartSend();
+}
+
 /* DataChannel에서 파일 전송 제어 메시지 처리 (setupDataChannel 에서 호출) */
 function ftHandleDcMessage(fromUid, event){
     var data = event.data;
@@ -1222,10 +1247,16 @@ function ftHandleDcMessage(fromUid, event){
     if(msg.cmd === 'offer')  { ftOnOffer(fromUid, msg); }
     else if(msg.cmd === 'accept') { ftOnAccept(fromUid); }
     else if(msg.cmd === 'reject') {
-        sysLine('[파일] '+esc(presence[fromUid]&&presence[fromUid].nick||fromUid)+' 님이 파일 수신을 거절했습니다.');
-        document.getElementById('fts-prog-txt').textContent = '거절됨';
+        var rejNick = presence[fromUid]&&presence[fromUid].nick||fromUid;
+        sysLine('[파일] '+esc(rejNick)+' 님이 파일 수신을 거절했습니다.');
+        document.getElementById('fts-prog-txt').textContent = esc(rejNick)+' 님이 거절했습니다.';
+        document.getElementById('fts-prog-pct').textContent = '';
         document.getElementById('fts-prog-fill').classList.add('err');
-        document.getElementById('fts-status').textContent = '거절됨';
+        document.getElementById('fts-status').textContent   = '거절됨';
+        /* 재전송 버튼 표시 */
+        var resendBtn = document.getElementById('fts-resend-btn');
+        resendBtn.style.display = '';
+        resendBtn.dataset.targetUid = fromUid;
     }
     else if(msg.cmd === 'done')  { ftOnDone(fromUid, msg.transferId); }
     return true;
