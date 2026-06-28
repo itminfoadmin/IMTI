@@ -4,16 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IMTI - 운영진 보드</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="ad_common.css">
-<script>
-  window.__pageInit = function() {
-    const email = sessionStorage.getItem('admin_email');
-    if (window.__pageInitReady) window.__pageInitReady(email);
-    else window.__pendingEmail = email;
-  };
-</script>
 <style>
+body { height: 100vh; overflow: hidden; }
 :root {
   --y-bg:#FFF9C4;--y-bd:#E8D848;--y-tx:#4A3800;
   --b-bg:#DBEAFE;--b-bd:#93C5FD;--b-tx:#1E3A5F;
@@ -22,8 +16,12 @@
   --accent:#3B5BDB;--accent-bg:#EEF2FF;
   --fn:'Noto Sans KR',sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-.main{flex:1;display:flex;flex-direction:column;margin:20px;border:1px dashed #fff;border-radius:2px;overflow:hidden;min-height:0}
+.main *{box-sizing:border-box}
+.main{
+    flex:1;display:flex;flex-direction:column;
+    margin:20px;border:1px dashed #fff;border-radius:2px;
+    overflow:hidden;min-height:0;
+}
 /* 로딩 */
 .auth-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 .auth-loading .sp2{width:22px;height:22px;border:2px solid #e9ecef;border-top-color:#adb5bd;border-radius:50%;animation:spin .8s linear infinite}
@@ -38,6 +36,8 @@
 .chip{padding:7px 16px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid #adb5bd;background:#fff;color:#495057;cursor:pointer;font-family:var(--fn);transition:all .12s}
 .chip:hover{border-color:#495057;color:#212529;background:#f8f9fa}
 .chip.active{background:#212529;border-color:#212529;color:#fff}
+.btn-refresh{padding:8px 16px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid #adb5bd;background:#fff;color:#495057;cursor:pointer;font-family:var(--fn);transition:all .12s;white-space:nowrap}
+.btn-refresh:hover{border-color:#495057;color:#212529;background:#f8f9fa}
 .btn-archive{padding:8px 16px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid #adb5bd;background:#fff;color:#495057;cursor:pointer;font-family:var(--fn);transition:all .12s;white-space:nowrap}
 .btn-archive:hover{border-color:#495057;color:#212529}
 .btn-conf{padding:8px 18px;border-radius:99px;background:#e9ecef;color:#212529;border:1.5px solid #ced4da;font-size:13px;font-weight:700;font-family:var(--fn);cursor:pointer;white-space:nowrap;transition:all .15s}
@@ -45,8 +45,8 @@
 .btn-add{padding:10px 24px;border-radius:99px;background:#212529;color:#fff;border:none;font-size:14px;font-weight:700;font-family:var(--fn);cursor:pointer;white-space:nowrap;transition:opacity .15s}
 .btn-add:hover{opacity:.82}
 /* 카드 그리드 */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(315px,1fr));gap:18px}
-.card{border-radius:10px;padding:20px;border:1px solid;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(315px,1fr));gap:18px;align-items:start}
+.card{border-radius:10px;padding:20px;border:1px solid;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:transform .12s,box-shadow .12s;height:260px;overflow:hidden}
 .card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.18)}
 .card.y{background:var(--y-bg);border-color:var(--y-bd)}
 .card.b{background:var(--b-bg);border-color:var(--b-bd)}
@@ -60,7 +60,7 @@
 .badge-공지{background:rgba(255,200,0,.25);color:#7A5000}
 .badge-아이디어{background:rgba(59,91,219,.12);color:#2040AA}
 .badge-할일{background:rgba(20,83,45,.12);color:#14532D}
-.card-body{font-size:14px;line-height:1.7;flex:1}
+.card-body{font-size:14px;line-height:1.7;overflow:hidden;flex:1;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap;mask-image:linear-gradient(to bottom,#000 70%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent 100%)}
 .card.y .card-body{color:var(--y-tx)}.card.b .card-body{color:var(--b-tx)}.card.g .card-body{color:var(--g-tx)}.card.p .card-body{color:var(--p-tx)}
 .tagged{display:flex;flex-wrap:wrap;gap:4px}
 .tag-pill{font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(0,0,0,.08);font-weight:700}
@@ -87,7 +87,7 @@
 .form-label{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px;display:block;letter-spacing:.04em}
 .form-input,.form-textarea{width:100%;padding:9px 12px;border:.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:var(--fn);color:#1a1a1a;background:#f9fafb}
 .form-input:focus,.form-textarea:focus{outline:none;border-color:var(--accent);background:#fff}
-.form-textarea{resize:vertical;min-height:80px}
+.form-textarea{resize:vertical;min-height:160px}
 .type-row{display:flex;gap:6px}
 .type-btn{flex:1;padding:7px 4px;border-radius:8px;border:.5px solid #e5e7eb;background:#f9fafb;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--fn);color:#9ca3af;transition:all .12s}
 .type-btn.sel{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
@@ -112,7 +112,7 @@
 .detail-card-preview{border-radius:8px;padding:13px;border:1px solid;margin-bottom:1.25rem}
 .detail-card-preview.y{background:var(--y-bg);border-color:var(--y-bd)}.detail-card-preview.b{background:var(--b-bg);border-color:var(--b-bd)}
 .detail-card-preview.g{background:var(--g-bg);border-color:var(--g-bd)}.detail-card-preview.p{background:var(--p-bg);border-color:var(--p-bd)}
-.detail-card-text{font-size:13px;line-height:1.65}
+.detail-card-text{font-size:13px;line-height:1.65;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
 .detail-card-preview.y .detail-card-text{color:var(--y-tx)}.detail-card-preview.b .detail-card-text{color:var(--b-tx)}
 .detail-card-preview.g .detail-card-text{color:var(--g-tx)}.detail-card-preview.p .detail-card-text{color:var(--p-tx)}
 .comments-list{display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;max-height:240px;overflow-y:auto}
@@ -181,9 +181,10 @@
         <button class="chip" onclick="setFilter(this,'아이디어')">💡 아이디어</button>
         <button class="chip" onclick="setFilter(this,'할일')">✅ 할일</button>
       </div>
+      <button class="btn-refresh" onclick="location.reload(true)" title="강제 새로고침">🔄 새로고침</button>
       <button class="btn-archive" onclick="openArchive()">📦 보관함</button>
-      <button class="btn-conf" onclick="window.open('ad_chat.html','_blank')">🚪 Conference-Room</button>
-      <button class="btn-add" onclick="openAddModal()">＋ 카드 추가</button>
+      <button class="btn-conf" onclick="window.open('ad_chat.html?uid='+encodeURIComponent(currentUser?currentUser.email:''),'_blank')">🚪 Conference-Room</button>
+      <button class="btn-add" onclick="openAddModal()">＋ Post-It 추가</button>
     </div>
     <div id="cards-container"></div>
   </div>
@@ -192,7 +193,7 @@
 <!-- ── 카드 추가 모달 ── -->
 <div class="overlay" id="add-overlay">
   <div class="modal">
-    <h2>새 카드 작성</h2>
+    <h2>새 Post-It 작성</h2>
     <div class="form-group">
       <label class="form-label">유형</label>
       <div class="type-row">
@@ -212,15 +213,6 @@
     <div class="form-group">
       <label class="form-label">멤버 태그 (선택)</label>
       <div class="member-checks" id="tag-checks"></div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">색상</label>
-      <div class="color-row">
-        <div class="color-dot sel" style="background:#FFF9C4;border-color:#E8D848" onclick="selColor(this,'y')"></div>
-        <div class="color-dot" style="background:#DBEAFE" onclick="selColor(this,'b')"></div>
-        <div class="color-dot" style="background:#DCFCE7" onclick="selColor(this,'g')"></div>
-        <div class="color-dot" style="background:#F3E8FF" onclick="selColor(this,'p')"></div>
-      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeAdd()">취소</button>
@@ -248,15 +240,6 @@
     <div class="form-group">
       <label class="form-label">마감일 (선택)</label>
       <input type="date" class="form-input" id="edit-deadline">
-    </div>
-    <div class="form-group">
-      <label class="form-label">색상</label>
-      <div class="color-row">
-        <div class="color-dot" id="edit-color-y" style="background:#FFF9C4;border-color:#E8D848" onclick="selEditColor(this,'y')"></div>
-        <div class="color-dot" id="edit-color-b" style="background:#DBEAFE" onclick="selEditColor(this,'b')"></div>
-        <div class="color-dot" id="edit-color-g" style="background:#DCFCE7" onclick="selEditColor(this,'g')"></div>
-        <div class="color-dot" id="edit-color-p" style="background:#F3E8FF" onclick="selEditColor(this,'p')"></div>
-      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeEdit()">취소</button>
@@ -323,6 +306,11 @@
 
 <script src="ad_common.js"></script>
 <script>
+window.__pageInit = function() {
+  const email = sessionStorage.getItem('admin_email');
+  initWithEmail(email);
+};
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const POSTIT_GAS_URL = "https://script.google.com/macros/s/AKfycby8cCP7M_gYF3smbOe1lweXYJVtldfPpLSOpwtmYvnCytfMT68g3riwjCYBAjrYvybYYA/exec";
 const CSV_CARDS    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlaICJucqoPp-IUQzEU5Z0xKfY8CYLym7dVYlMSSndi3kUD2sBczVi84zE0dglr9TOJEyYnEuJ-SL5/pub?gid=0&single=true&output=csv";
@@ -343,12 +331,36 @@ let selCardColor = 'y', selCardType = '공지', taggedEmails = [];
 let editCardId = null, editCardColor = 'y', editCardType = '공지';
 let _archiveCache = []; // 보관함 카드 캐시 (재게시 즉시 반영용)
 
-// ── 헬퍼
+// 유형 → 색상 자동 매핑 (공지=p, 아이디어=g, 할일=b)
+function typeToColor(type){ return type==='공지'?'p':type==='아이디어'?'g':'b'; }
+
+// 날짜 문자열을 정렬용 숫자로 변환 (작을수록 앞)
+function dateToSort(d){
+  if(!d) return Infinity;
+  // "2026. 6. 29. 오전 1:08:04" 형식 처리
+  const m=d.match(/(\d{4})[.\s]+(\d{1,2})[.\s]+(\d{1,2})/);
+  if(m) return parseInt(m[1])*10000+parseInt(m[2])*100+parseInt(m[3]);
+  return Infinity;
+}
+
+function sortCards(cards){
+  const typeOrder={'공지':0,'아이디어':1,'할일':2};
+  return [...cards].sort((a,b)=>{
+    const ta=typeOrder[a.type]??9, tb=typeOrder[b.type]??9;
+    if(ta!==tb) return ta-tb;
+    // 같은 유형: 마감일 있으면 빠른 순, 없으면 입력일 빠른 순
+    const hasDlA=!!a.deadline, hasDlB=!!b.deadline;
+    if(hasDlA&&hasDlB) return a.deadline<b.deadline?-1:a.deadline>b.deadline?1:0;
+    if(hasDlA) return -1;
+    if(hasDlB) return 1;
+    return dateToSort(a.date)-dateToSort(b.date);
+  });
+}
 function emailLocal(e){ return (e||'').split('@')[0]; }
-function emailToColor(e){ let h=0; for(let i=0;i<e.length;i++) h=(h*31+e.charCodeAt(i))>>>0; return AV_COLORS[h%AV_COLORS.length]; }
+function emailToColor(e){ if(!e) return {bg:'#E9ECEF',tx:'#495057'}; let h=0; for(let i=0;i<e.length;i++) h=(h*31+e.charCodeAt(i))>>>0; return AV_COLORS[h%AV_COLORS.length]; }
 function emailToInitials(e){ return emailLocal(e).slice(0,1).toUpperCase(); }
 function emailToName(e){ const l=emailLocal(e); return l.charAt(0).toUpperCase()+l.slice(1); }
-function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 모달 유틸
@@ -398,15 +410,6 @@ function hideProgress(){ clearInterval(_progressTimer); closeOverlay('progress-o
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 초기화
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-window.__pageInitReady = function(email){ initWithEmail(email); };
-if(window.__pendingEmail !== undefined) initWithEmail(window.__pendingEmail);
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(function(){
-    const bw = document.getElementById('board-wrap');
-    if(!bw || bw.style.display==='none' || bw.style.display==='')
-      initWithEmail(sessionStorage.getItem('admin_email'));
-  }, 500);
-});
 
 function initWithEmail(email){
   if(!email){
@@ -430,16 +433,23 @@ function initWithEmail(email){
 // CSV 파서
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function parseCSV(text){
-  return text.trim().split('\n').map(row=>{
-    const cells=[]; let cur='',inQ=false;
-    for(let i=0;i<row.length;i++){
-      const ch=row[i];
-      if(ch==='"'){inQ=!inQ;}
-      else if(ch===','&&!inQ){cells.push(cur.trim());cur='';}
-      else{cur+=ch;}
+  const rows=[]; let cur='', inQ=false, cells=[];
+  for(let i=0;i<text.length;i++){
+    const ch=text[i], next=text[i+1];
+    if(ch==='"'){
+      if(inQ&&next==='"'){cur+='"';i++;} // escaped quote ""
+      else inQ=!inQ;
+    } else if(ch===','&&!inQ){
+      cells.push(cur); cur='';
+    } else if((ch==='\n'||ch==='\r')&&!inQ){
+      if(ch==='\r'&&next==='\n') i++; // CRLF
+      cells.push(cur); rows.push(cells); cells=[]; cur='';
+    } else {
+      cur+=ch;
     }
-    cells.push(cur.trim()); return cells;
-  });
+  }
+  cells.push(cur); if(cells.some(c=>c!=='')) rows.push(cells);
+  return rows;
 }
 
 function rowsToCards(rows){
@@ -478,7 +488,7 @@ function loadMembersAndCards(){
   document.getElementById('cards-container').innerHTML='<div class="loading"><span class="sp"></span>불러오는 중...</div>';
   Promise.all([
     fetch(CSV_MEMBERS+'&t='+Date.now()).then(r=>r.text()).catch(()=>''),
-    fetch(CSV_CARDS+'&t='+Date.now()).then(r=>r.text()),
+    fetch(CSV_CARDS+'&t='+Date.now()).then(r=>r.text()).catch(e=>{console.error('[CSV_CARDS]',e);throw e;}),
   ]).then(([mText, cText])=>{
     // 운영진 이메일
     if(mText){
@@ -492,7 +502,8 @@ function loadMembersAndCards(){
     const rows=parseCSV(cText);
     allCards=rowsToCards(rows);
     renderCards();
-  }).catch(()=>{
+  }).catch(e=>{
+    console.error('[loadMembersAndCards]',e);
     document.getElementById('cards-container').innerHTML=
       '<div class="empty"><p>⚠️ 데이터를 불러올 수 없어요.</p></div>';
   });
@@ -508,7 +519,9 @@ function setFilter(btn,type){
 }
 
 function renderCards(){
-  const filtered=currentFilter==='all'?allCards:allCards.filter(c=>c.type===currentFilter);
+  let filtered=currentFilter==='all'?allCards:allCards.filter(c=>c.type===currentFilter);
+  // 유형별 색상 자동 보정 + 정렬
+  filtered=sortCards(filtered.map(c=>({...c,color:typeToColor(c.type)})));
   const container=document.getElementById('cards-container');
   if(!filtered.length){
     container.innerHTML='<div class="empty"><p>아직 카드가 없어요 ✨<br>첫 번째 카드를 올려보세요!</p></div>';
@@ -575,13 +588,11 @@ function buildTagChecks(){
 // 카드 추가
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openAddModal(){
-  selCardColor='y'; selCardType='공지'; taggedEmails=[];
+  selCardType='공지'; taggedEmails=[];
   document.getElementById('card-text').value='';
   document.getElementById('card-deadline').value='';
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('sel'));
   document.querySelector('.type-btn').classList.add('sel');
-  document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('sel'));
-  document.querySelector('.color-dot').classList.add('sel');
   document.querySelectorAll('#tag-checks .member-check').forEach(m=>m.classList.remove('sel'));
   const btn=document.getElementById('post-btn'); btn.disabled=false; btn.textContent='올리기';
   document.getElementById('add-overlay').classList.add('open');
@@ -599,7 +610,7 @@ function submitCard(){
 
   const deadline=document.getElementById('card-deadline').value;
   const tagged=[...taggedEmails];
-  const color=selCardColor;
+  const color=typeToColor(selCardType);
   const type=selCardType;
 
   // GAS 저장
@@ -630,13 +641,11 @@ function submitCard(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openEdit(id){
   const c=allCards.find(x=>x.id===id); if(!c) return;
-  editCardId=id; editCardType=c.type; editCardColor=c.color;
+  editCardId=id; editCardType=c.type;
   document.getElementById('edit-text').value=c.text;
   document.getElementById('edit-deadline').value=c.deadline||'';
   document.querySelectorAll('[id^="edit-type-"]').forEach(b=>b.classList.remove('sel'));
   const tb=document.getElementById('edit-type-'+c.type); if(tb) tb.classList.add('sel');
-  document.querySelectorAll('[id^="edit-color-"]').forEach(d=>d.classList.remove('sel'));
-  const cb=document.getElementById('edit-color-'+c.color); if(cb) cb.classList.add('sel');
   const btn=document.getElementById('edit-btn'); btn.disabled=false; btn.textContent='저장';
   document.getElementById('edit-overlay').classList.add('open');
 }
@@ -653,7 +662,7 @@ function submitEdit(){
   const deadline=document.getElementById('edit-deadline').value;
   const id=editCardId;
   const type=editCardType;
-  const color=editCardColor;
+  const color=typeToColor(editCardType);
 
   gas({action:'updateCard',id,text,type,color,deadline})
   .then(()=>{

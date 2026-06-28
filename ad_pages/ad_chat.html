@@ -20,13 +20,13 @@ body{
     background:var(--term-bg);
     font-family:'DM Mono',monospace;
     color:var(--term-fg);
-    font-size:110%;
+    font-size:106%;
     display:flex; flex-direction:column; height:100vh; overflow:hidden;
     -webkit-font-smoothing:antialiased;
 }
 .shell{
     flex:1; min-height:0; display:grid;
-    grid-template-columns:1fr 220px;
+    grid-template-columns:1fr;
     background:var(--term-bg); position:relative;
 }
 .shell::after{
@@ -40,38 +40,50 @@ body{
 }
 .term{display:flex; flex-direction:column; min-width:0; min-height:0;}
 .term-bar{
-    display:flex; align-items:center; gap:10px;
-    padding:8px 16px; background:#0a0d10; border-bottom:1px solid #000;
-    font-size:.9424rem; letter-spacing:.1em; color:var(--term-dim); flex:none;
+    display:flex; align-items:center; gap:12px;
+    padding:10px 20px; background:#0a0d10; border-bottom:1px solid #1d262b;
+    height:58px; font-size:.9424rem; letter-spacing:.1em; color:var(--term-dim); flex:none;
 }
 .term-bar .leds{display:flex; gap:5px;}
 .term-bar .leds i{width:9px;height:9px;border-radius:50%;display:block;opacity:.85;}
 .term-bar .leds i:nth-child(1){background:#c0573b;}
 .term-bar .leds i:nth-child(2){background:#c8a23e;}
 .term-bar .leds i:nth-child(3){background:#5f8d57;}
-.term-bar .conn{margin-left:auto; display:flex; align-items:center; gap:6px; color:var(--term-amber); opacity:.85;}
+.term-bar .conn{display:flex; align-items:center; gap:6px; color:var(--term-amber); opacity:.85;}
 .term-bar .conn .ind{width:7px;height:7px;border-radius:50%;background:var(--term-dim);}
 .term-bar .conn.on .ind{background:var(--term-green);}
 .term-bar .conn.err .ind{background:var(--term-red);}
 .term-bar .keys{color:var(--term-dim); opacity:.7;}
+/* 글자 크기 조절 버튼 */
+.bar-ctrl{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.bar-ctrl-group{display:flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid #2b3640;border-radius:6px;background:#0d1115;}
+.bar-ctrl-group label{font-size:.72rem;color:#4a5a52;letter-spacing:.08em;margin-right:2px;white-space:nowrap;}
+.bar-btn{background:none;border:1px solid #2b3640;border-radius:4px;color:#8a9e94;font-family:'DM Mono',monospace;font-size:.85rem;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.bar-btn:hover{border-color:var(--term-cyan);color:var(--term-cyan);background:#0f1e1d;}
+.bar-val{font-size:.78rem;color:#8a9e94;min-width:38px;text-align:center;letter-spacing:.04em;}
+.bar-select{background:#0d1115;border:1px solid #2b3640;border-radius:4px;color:#8a9e94;font-family:'DM Mono',monospace;font-size:.75rem;padding:3px 6px;cursor:pointer;outline:none;transition:all .15s;}
+.bar-select:hover,.bar-select:focus{border-color:var(--term-cyan);color:var(--term-cyan);}
 .log{
     flex:1; min-height:0; overflow-y:auto; padding:16px 18px 10px;
-    font-size:.9424rem; line-height:1.75; color:var(--term-fg);
+    font-size:inherit; line-height:1.75; color:var(--term-fg);
     scrollbar-width:thin; scrollbar-color:#2b3640 transparent;
 }
 .log::-webkit-scrollbar{width:10px;}
 .log::-webkit-scrollbar-thumb{background:#2b3640;}
-.log .line{margin:2px 0; word-break:break-word; white-space:pre-wrap;}
+.log .line{margin:2px 0; display:flex; align-items:baseline;}
+.log .line .prefix{white-space:nowrap; flex-shrink:0;}
+.log .line .body{word-break:break-word; white-space:pre-wrap; min-width:0; flex:1;}
+.log .line .sys{word-break:break-word; white-space:pre-wrap; flex:1;}
 .log .ts{color:var(--term-dim); margin-right:6px;}
 .log .nick{font-weight:500;}
 .log .arrow{color:var(--term-dim); margin:0 4px;}
-.log .sys{color:var(--term-amber); letter-spacing:.02em;}
-.log .sys::before{content:"\203B ";}
+.log .body.sys{color:var(--term-amber); letter-spacing:.02em;}
+.log .sys-label{color:var(--term-amber);}
 .log .me .nick{color:var(--term-cyan);}
 .log .body{color:var(--term-fg);}
 .log .whisper{color:var(--term-magenta);}
 .log .whisper::after{content:" (귓속말)"; color:var(--term-dim); font-size:.7em;}
-.side{background:#0c1014; border-left:1px solid #000; display:flex; flex-direction:column; min-height:0;}
+.side{display:none}
 .side h4{
     margin:0; padding:11px 16px; font-size:.9424rem; letter-spacing:.16em;
     color:var(--term-dim); border-bottom:1px solid var(--term-line);
@@ -92,10 +104,10 @@ body{
     flex:none; display:flex; align-items:center; gap:10px;
     padding:0 18px; height:81px; background:#0a0d10; border-top:1px solid #000;
 }
-.composer .ps1{color:var(--term-green); font-size:.9424rem; user-select:none; flex:none;}
+.composer .ps1{color:var(--term-green); font-size:inherit; user-select:none; flex:none;}
 #msg{
     flex:1; background:none; border:none; outline:none;
-    font-family:'DM Mono',monospace; font-size:.9424rem;
+    font-family:'DM Mono',monospace; font-size:inherit;
     color:var(--term-fg); padding:0; caret-color:var(--term-green);
 }
 #msg::placeholder{color:var(--term-dim);}
@@ -142,9 +154,39 @@ body{
     <div class="term">
         <div class="term-bar">
             <span class="leds"><i></i><i></i><i></i></span>
-            <span>IMTI-BBS v2.1 · 대화방 #07 · <span id="userCount">0</span>명 접속 · 28,800bps</span>
+            <span>IMTI-BBS v2.1 · 운영진 대화방 · <span id="userCount">0</span>명 접속 · 28,800bps</span>
+            <div class="bar-ctrl">
+                <!-- 글자 크기 -->
+                <div class="bar-ctrl-group">
+                    <label>SIZE</label>
+                    <button class="bar-btn" onclick="adjustFontSize(-5)">−</button>
+                    <span class="bar-val" id="font-size-display">100%</span>
+                    <button class="bar-btn" onclick="adjustFontSize(5)">＋</button>
+                </div>
+                <!-- 글자체 -->
+                <div class="bar-ctrl-group">
+                    <label>FONT</label>
+                    <select class="bar-select" id="font-select" onchange="changeFont(this.value)">
+                        <option value="'DM Mono',monospace">기본값</option>
+                        <option value="'Courier New',monospace">Courier</option>
+                        <option value="'Noto Sans KR',sans-serif">Noto Sans</option>
+                        <option value="monospace">System</option>
+                    </select>
+                </div>
+                <!-- 글자색 -->
+                <div class="bar-ctrl-group">
+                    <label>COLOR</label>
+                    <select class="bar-select" id="color-select" onchange="changeColor(this.value)">
+                        <option value="#c9d1cb">기본값</option>
+                        <option value="#e8e8e0">화이트</option>
+                        <option value="#d8b14a">앰버</option>
+                        <option value="#6fb7b0">시안</option>
+                        <option value="#c98ab5">마젠타</option>
+                    </select>
+                </div>
+            </div>
             <span class="conn" id="conn"><span class="ind"></span><span id="connTxt">연결대기</span></span>
-            <span class="keys">  [F9]나가기</span>
+            <span class="keys">[F9]나가기</span>
         </div>
         <div class="log" id="log"></div>
     </div>
@@ -158,7 +200,8 @@ body{
 <div class="composer">
     <span class="ps1" id="ps1">guest&gt;</span>
     <input id="msg" type="text" maxlength="300" autocomplete="off"
-           placeholder="대화 내용을 입력하고 엔터를 누르세요…  ( /나가기 입력 시 종료 )" disabled>
+           placeholder="대화 내용을 입력하고 엔터를 누르세요…  ( /누구: 접속자 확인 · /나가기: 종료 )" disabled>
+    <button onclick="leaveRoom()" style="flex:none;background:none;border:1px solid #2b3640;border-radius:6px;color:#5c6b62;font-family:'DM Mono',monospace;font-size:.78rem;padding:5px 12px;cursor:pointer;white-space:nowrap;transition:all .15s;" onmouseover="this.style.borderColor='#c0573b';this.style.color='#c0573b'" onmouseout="this.style.borderColor='#2b3640';this.style.color='#5c6b62'">나가기</button>
 </div>
 
 <div class="gate" id="gate">
@@ -166,14 +209,31 @@ body{
         <div class="gate-top">
             <div class="ln">IMTI BBS 호스트에 연결되었습니다 ......... <b>OK</b></div>
             <div class="ln">사용자 인증을 시작합니다 <span class="amber">[자료실 / 자유대화방]</span></div>
-            <div class="ln">대화명(닉네임)을 입력하십시오.<span class="cursor">_</span></div>
+            <div class="ln" id="gate-hint">대화명(닉네임)을 확인하십시오.<span class="cursor">_</span></div>
         </div>
         <div class="gate-body">
             <label for="nick">대화명</label>
             <input id="nick" type="text" maxlength="12" autocomplete="off"
                    placeholder="예) 모뎀소년" onkeydown="if(event.key==='Enter')enterRoom()">
             <div class="gate-err" id="gateErr"></div>
-            <div class="row"><button class="pill" id="enterBtn" onclick="enterRoom()">접속</button></div>
+            <div class="row" id="gate-btns">
+                <button class="pill" id="editBtn" onclick="enableEdit()" style="display:none">수정</button>
+                <button class="pill" id="enterBtn" onclick="enterRoom()">접속</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── 나가기 확인 모달 ── -->
+<div id="leave-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(16,20,24,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:14px;width:360px;max-width:92vw;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);">
+        <div style="background:#101418;padding:20px 24px;font-family:'DM Mono',monospace;line-height:1.8;">
+            <div style="color:#5c6b62;font-size:.82rem;">※ 대화방 퇴장 확인</div>
+            <div style="color:#d8b14a;font-size:.9rem;margin-top:6px;">정말 대화방을 나가시겠습니까?</div>
+        </div>
+        <div style="padding:18px 24px 22px;display:flex;justify-content:flex-end;gap:10px;background:#f8f9fa;">
+            <button onclick="closeLeaveModal()" style="background:#fff;border:1.5px solid #495057;border-radius:20px;padding:7px 24px;font-family:'Gowun Batang',serif;font-weight:700;font-size:.9rem;letter-spacing:.06em;color:#495057;cursor:pointer;">취소</button>
+            <button id="leave-confirm-btn" onclick="doLeave()" style="background:#343a40;border:1.5px solid #343a40;border-radius:20px;padding:7px 24px;font-family:'Gowun Batang',serif;font-weight:700;font-size:.9rem;letter-spacing:.06em;color:#fff;cursor:pointer;">나가기</button>
         </div>
     </div>
 </div>
@@ -188,7 +248,7 @@ body{
 var CHAT_URL = 'https://script.google.com/macros/s/AKfycbw7OvZv4rsxsU2Z76Y6tSlP1pPl0xOBLKCzJBSRWOLfbiqE08Z5opxqCjGiztFz58LxxA/exec';
 
 var ROOM       = 'room-07';
-var POLL_MS    = 2500;   // 폴링 주기 (시트/한도 부담을 고려해 2~3초 권장)
+var POLL_MS    = 1000;   // 폴링 주기 (1초)
 var PRESENCE_MS= 40000;  // 접속자 만료 시간: 이 시간 내 신호 없으면 명단에서 제거 (하트비트는 절반 주기인 20초마다 전송)
 
 var me = { id:'u'+Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4), nick:null };
@@ -204,18 +264,34 @@ var msgEl=document.getElementById('msg');
 var connEl=document.getElementById('conn');
 var connTxt=document.getElementById('connTxt');
 
+var BASE_FONT = 106;   // 실제 기본 크기 (이것이 표시상 100%)
+var currentFontPct = 100; // 표시상 크기 (100 = 기본)
+function adjustFontSize(delta){
+    currentFontPct = Math.min(200, Math.max(50, currentFontPct + delta));
+    document.body.style.fontSize = (BASE_FONT * currentFontPct / 100) + '%';
+    document.getElementById('font-size-display').textContent = Math.round(currentFontPct) + '%';
+}
+function changeFont(val){
+    document.querySelector('.log').style.fontFamily = val;
+    document.querySelector('#msg').style.fontFamily = val;
+}
+function changeColor(val){
+    document.documentElement.style.setProperty('--term-fg', val);
+    document.querySelector('.log').style.color = val;
+}
+
 function now(){var d=new Date();function p(n){return String(n).padStart(2,'0');}return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function colorFor(nick){var c=['#7fb069','#d8b14a','#c98ab5','#6fb7b0','#cf8e6d','#9aa7d6'];var h=0;for(var i=0;i<nick.length;i++)h=(h*31+nick.charCodeAt(i))>>>0;return c[h%c.length];}
 
 function addLine(html,cls){var div=document.createElement('div');div.className='line'+(cls?' '+cls:'');div.innerHTML=html;logEl.appendChild(div);logEl.scrollTop=logEl.scrollHeight;}
-function sysLine(t){addLine('<span class="ts">['+now()+']</span><span class="sys">'+esc(t)+'</span>');}
+function sysLine(t){addLine('<span class="prefix"><span class="ts">['+now()+']</span><span class="sys-label">※ </span></span><span class="body sys">'+esc(t)+'</span>');}
 function chatLine(nick,text,mine,whisper){
     var col=colorFor(nick);
     addLine(
-        '<span class="ts">['+now()+']</span>'+
-        '<span class="nick" style="color:'+(mine?'':col)+'">'+esc(nick)+'</span>'+
-        '<span class="arrow">&gt;</span>'+
+        '<span class="prefix"><span class="ts">['+now()+']</span>'+
+        '<span class="nick" style="color:'+(mine?'var(--term-cyan)':col)+'">'+esc(nick)+'</span>'+
+        '<span class="arrow">&gt;</span></span>'+
         '<span class="body'+(whisper?' whisper':'')+'">'+esc(text)+'</span>',
         mine?'me':'');
 }
@@ -339,16 +415,25 @@ function enterRoom(){
     });
 }
 
-/* /나가기 · F9 → 퇴장 후 탭 닫기 */
+/* /나가기 · F9 → 퇴장 확인 모달 */
 function leaveRoom(){
     if(!me.nick) return;
+    var modal = document.getElementById('leave-modal');
+    modal.style.display = 'flex';
+    document.getElementById('leave-confirm-btn').focus();
+}
+function closeLeaveModal(){
+    document.getElementById('leave-modal').style.display = 'none';
+    msgEl.focus();
+}
+function doLeave(){
+    document.getElementById('leave-modal').style.display = 'none';
     sysLine("'"+me.nick+"' 님이 대화방을 나가셨습니다.");
     msgEl.disabled=true; msgEl.value='';
     if(pollTimer) clearInterval(pollTimer);
     if(presenceBeat) clearInterval(presenceBeat);
-
     sendToServer('leave','','').then(closeTab).catch(closeTab);
-    setTimeout(closeTab, 600); // 응답이 늦어도 닫기
+    setTimeout(closeTab, 600);
 }
 function closeTab(){
     window.open('', '_self');   // 일부 브라우저에서 self-close 허용을 돕는 처리
@@ -366,19 +451,19 @@ function sendMsg(){
     if(!me.nick) return;
     var raw=msgEl.value.trim(); if(!raw) return;
     msgEl.value='';
-    if(raw.charAt(0)==='/'){ handleCmd(raw); return; }
+    if(raw[0]==='/'){ handleCmd(raw); return; }
     chatLine(me.nick, raw, true);
     sendToServer('msg', raw, '');
 }
 
 function handleCmd(raw){
-    var parts=raw.slice(1).split(' ');
-    var c=parts.shift().toLowerCase();
-    if(c==='quit'||c==='나가기'||c==='exit'){ leaveRoom(); return; }
-    if(c==='명단'||c==='who'){
-        var names=[me.nick];
+    var parts=raw.trim().slice(1).trim().split(/\s+/);
+    var c=parts.shift().toLowerCase().trim();
+    if(c==='quit'||c==='exit'||c==='나가기'){ leaveRoom(); return; }
+    if(c==='명단'||c==='who'||c==='누구'){
+        var names=[me.nick+' (나)'];
         for(var uid in presence) names.push(presence[uid].nick);
-        sysLine('접속자 명단: '+names.join(', ')); return;
+        sysLine('현재 접속자 ('+names.length+'명): '+names.join(', ')); return;
     }
     if(c==='귓'||c==='w'||c==='귓속말'){
         var target=parts.shift(); var text=parts.join(' ');
@@ -391,20 +476,57 @@ function handleCmd(raw){
         sendToServer('whisper', text, target);
         return;
     }
-    sysLine('알 수 없는 명령입니다: /'+esc(c)+'  (사용 가능: /귓 /명단 /나가기)');
+    sysLine('알 수 없는 명령입니다: /'+esc(c)+'  (사용 가능: /귓 /누구 /나가기)');
 }
 
-msgEl.addEventListener('keydown',function(e){ if(e.key==='Enter') sendMsg(); });
-document.addEventListener('keydown',function(e){ if(e.key==='F9'){ e.preventDefault(); leaveRoom(); } });
+msgEl.addEventListener('keyup',function(e){ if(e.key==='Enter'&&!e.isComposing) sendMsg(); });
+document.addEventListener('keydown',function(e){
+    if(e.key==='F9'){ e.preventDefault(); leaveRoom(); }
+    if(e.key==='Escape'){ closeLeaveModal(); }
+});
+document.getElementById('leave-modal').addEventListener('click',function(e){
+    if(e.target===this) closeLeaveModal();
+});
 window.addEventListener('beforeunload',function(){
     if(me.nick){ try{ sendToServer('leave','',''); }catch(e){} }
 });
 
+function enableEdit(){
+    var nickEl = document.getElementById('nick');
+    nickEl.readOnly = false;
+    nickEl.style.opacity = '1';
+    nickEl.style.borderBottomColor = '';
+    nickEl.focus(); nickEl.select();
+    document.getElementById('editBtn').style.display = 'none';
+    document.getElementById('enterBtn').textContent = '접속';
+    document.getElementById('gate-hint').innerHTML = '대화명(닉네임)을 입력하십시오.<span class="cursor">_</span>';
+}
+
 (function boot(){
     sysLine('IMTI BBS 자료실 자유대화방에 오신 것을 환영합니다.');
     sysLine('이곳의 대화는 저장되지 않으며, 접속을 종료하면 사라집니다.');
+    sysLine('Google Sheets 기반으로 개발되어 채팅시 지연이 발생합니다. 여유를 가져주세요^^.');
+    sysLine('대화방에서 퇴장시에는 채팅에 "/나가기"를 입력해주세요..');
     renderUsers();
-    document.getElementById('nick').focus();
+
+    var params = new URLSearchParams(location.search);
+    var uid = params.get('uid');
+    if(uid){
+        var nick = uid.split('@')[0];
+        var nickEl = document.getElementById('nick');
+        nickEl.value = nick;
+        nickEl.readOnly = true;
+        nickEl.style.opacity = '0.7';
+        nickEl.style.borderBottomColor = 'var(--term-green)';
+        document.getElementById('editBtn').style.display = '';
+        document.getElementById('enterBtn').textContent = '이 이름으로 접속';
+        document.getElementById('gate-hint').innerHTML =
+            '이전 페이지에서 확인된 대화명입니다. 그대로 접속하거나 수정할 수 있습니다.<span class="cursor">_</span>';
+        document.getElementById('enterBtn').focus();
+    } else {
+        document.getElementById('gate-hint').innerHTML = '대화명(닉네임)을 입력하십시오.<span class="cursor">_</span>';
+        document.getElementById('nick').focus();
+    }
 })();
 </script>
 </body>
