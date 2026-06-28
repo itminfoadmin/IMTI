@@ -459,11 +459,14 @@ function p2pCount(){
     var n=0; for(var uid in peers){ if(peers[uid].connected) n++; } return n;
 }
 function updateConnLabel(){
-    var n = p2pCount();
+    var n     = p2pCount();
     var total = Object.keys(presence).length;
     if(n > 0){
         connEl.className = 'conn on';
-        connTxt.textContent = 'P2P '+n+'/'+total+'명';
+        connTxt.textContent = 'P2P '+n+'/'+total+'명 직결';
+    } else if(total > 0){
+        connEl.className = 'conn on';
+        connTxt.textContent = '연결됨(연결중…)';
     } else {
         connEl.className = 'conn on';
         connTxt.textContent = '연결됨(GAS)';
@@ -556,6 +559,8 @@ function setupDataChannel(peer){
     peer.dc.onopen = function(){
         peer.connected = true;
         updateConnLabel();
+        var nick = presence[peer.uid] ? presence[peer.uid].nick : peer.uid;
+        sysLine('[P2P] ' + nick + ' 님과 직접 연결되었습니다. 이후 메시지는 서버를 거치지 않습니다.');
     };
     peer.dc.onclose = function(){
         peer.connected = false;
@@ -706,6 +711,8 @@ function poll(){
                     applyMessage(m);
                 });
             }
+            /* 폴링마다 presence에 있는 모든 유저에게 P2P 연결 시도 */
+            for(var uid in presence){ connectToPeer(uid); }
             renderUsers();
         } else { setConn('err'); }
     }).catch(function(){ setConn('err'); }).then(function(){ polling = false; });
@@ -790,6 +797,8 @@ function enterRoom(){
         sysLine('현재 회선속도 28,800bps · WebRTC P2P 메쉬 활성화');
 
         sendToServer('join','','');
+
+        /* 입장 즉시 첫 폴링 — 현재 접속자 파악 후 바로 P2P 연결 시도 */
         poll();
         pollTimer    = setInterval(poll, POLL_MS);
         presenceBeat = setInterval(function(){ sendToServer('beat','',''); }, PRESENCE_MS/2);
