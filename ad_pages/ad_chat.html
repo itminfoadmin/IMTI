@@ -219,6 +219,7 @@ body{
             <div class="row" id="gate-btns">
                 <button class="pill" id="editBtn" onclick="enableEdit()" style="display:none">수정</button>
                 <button class="pill" id="enterBtn" onclick="enterRoom()">접속</button>
+                <button class="pill" onclick="closeTab()" style="border-color:#c0573b;color:#c0573b;" onmouseover="this.style.background='#c0573b';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#c0573b'">나가기</button>
             </div>
         </div>
     </div>
@@ -509,8 +510,17 @@ function enableEdit(){
     sysLine('대화방에서 퇴장시에는 채팅에 "/나가기"를 입력해주세요..');
     renderUsers();
 
+    // URL 파라미터로 넘어온 uid가 있으면 sessionStorage에 저장 후 URL에서 제거
     var params = new URLSearchParams(location.search);
     var uid = params.get('uid');
+    if(uid){
+        sessionStorage.setItem('chat_uid', uid);
+        // 주소창에서 파라미터 제거 (뒤로가기 기록 없이)
+        history.replaceState(null, '', location.pathname);
+    } else {
+        uid = sessionStorage.getItem('chat_uid');
+    }
+
     if(uid){
         var nick = uid.split('@')[0];
         var nickEl = document.getElementById('nick');

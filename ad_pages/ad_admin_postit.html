@@ -36,6 +36,12 @@ body { height: 100vh; overflow: hidden; }
 .chip{padding:7px 16px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid #adb5bd;background:#fff;color:#495057;cursor:pointer;font-family:var(--fn);transition:all .12s}
 .chip:hover{border-color:#495057;color:#212529;background:#f8f9fa}
 .chip.active{background:#212529;border-color:#212529;color:#fff}
+.chip-공지{background:#F3E8FF !important;border-color:#C084FC !important;color:#4A1D96 !important}
+.chip-공지:hover,.chip-공지.active{background:#C084FC !important;border-color:#4A1D96 !important;color:#fff !important}
+.chip-아이디어{background:#DCFCE7 !important;border-color:#86EFAC !important;color:#14532D !important}
+.chip-아이디어:hover,.chip-아이디어.active{background:#86EFAC !important;border-color:#14532D !important;color:#14532D !important}
+.chip-할일{background:#DBEAFE !important;border-color:#93C5FD !important;color:#1E3A5F !important}
+.chip-할일:hover,.chip-할일.active{background:#93C5FD !important;border-color:#1E3A5F !important;color:#1E3A5F !important}
 .btn-refresh{padding:8px 16px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid #adb5bd;background:#fff;color:#495057;cursor:pointer;font-family:var(--fn);transition:all .12s;white-space:nowrap}
 .btn-refresh:hover{border-color:#495057;color:#212529;background:#f8f9fa}
 .btn-archive{padding:8px 16px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid #adb5bd;background:#fff;color:#495057;cursor:pointer;font-family:var(--fn);transition:all .12s;white-space:nowrap}
@@ -81,82 +87,82 @@ body { height: 100vh; overflow: hidden; }
 /* 모달 공통 */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:300;padding:1rem}
 .overlay.open{display:flex}
-.modal{background:#fff;border-radius:14px;border:.5px solid #e5e7eb;padding:1.5rem;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);font-family:var(--fn)}
-.modal h2{font-size:15px;font-weight:700;margin-bottom:1rem;color:#1a1a1a}
-.form-group{margin-bottom:1rem}
-.form-label{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px;display:block;letter-spacing:.04em}
-.form-input,.form-textarea{width:100%;padding:9px 12px;border:.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:var(--fn);color:#1a1a1a;background:#f9fafb}
+.modal{background:#fff;border-radius:16px;border:.5px solid #e5e7eb;padding:2rem;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);font-family:var(--fn)}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:1.25rem;color:#1a1a1a}
+.form-group{margin-bottom:1.25rem}
+.form-label{font-size:13px;font-weight:700;color:#6b7280;margin-bottom:7px;display:block;letter-spacing:.03em}
+.form-input,.form-textarea{width:100%;padding:11px 14px;border:.5px solid #d1d5db;border-radius:10px;font-size:14px;font-family:var(--fn);color:#1a1a1a;background:#f9fafb}
 .form-input:focus,.form-textarea:focus{outline:none;border-color:var(--accent);background:#fff}
-.form-textarea{resize:vertical;min-height:160px}
-.type-row{display:flex;gap:6px}
-.type-btn{flex:1;padding:7px 4px;border-radius:8px;border:.5px solid #e5e7eb;background:#f9fafb;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--fn);color:#9ca3af;transition:all .12s}
+.form-textarea{resize:vertical;min-height:180px}
+.type-row{display:flex;gap:8px}
+.type-btn{flex:1;padding:10px 6px;border-radius:10px;border:.5px solid #e5e7eb;background:#f9fafb;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn);color:#9ca3af;transition:all .12s}
 .type-btn.sel{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
-.color-row{display:flex;gap:8px}
-.color-dot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:all .12s}
+.color-row{display:flex;gap:10px}
+.color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:all .12s}
 .color-dot:hover{transform:scale(1.12)}
 .color-dot.sel{border-color:#1a1a1a}
-.member-checks{display:flex;flex-wrap:wrap;gap:5px}
-.member-check{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;border:.5px solid #e5e7eb;cursor:pointer;font-size:11px;font-weight:500;color:#6b7280;background:#f9fafb;transition:all .12s;user-select:none}
+.member-checks{display:flex;flex-wrap:wrap;gap:6px}
+.member-check{display:flex;align-items:center;gap:5px;padding:6px 13px;border-radius:99px;border:.5px solid #e5e7eb;cursor:pointer;font-size:13px;font-weight:500;color:#6b7280;background:#f9fafb;transition:all .12s;user-select:none}
 .member-check.sel{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
-.btn-cancel{padding:8px 16px;border-radius:8px;border:.5px solid #e5e7eb;background:#f9fafb;color:#6b7280;font-size:13px;cursor:pointer;font-family:var(--fn)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem}
+.btn-cancel{padding:10px 20px;border-radius:10px;border:.5px solid #e5e7eb;background:#f9fafb;color:#6b7280;font-size:14px;cursor:pointer;font-family:var(--fn)}
 .btn-cancel:hover{border-color:#d1d5db}
-.btn-primary{padding:8px 18px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fn)}
+.btn-primary{padding:10px 22px;border-radius:10px;background:var(--accent);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn)}
 .btn-primary:hover{opacity:.88}
 .btn-primary:disabled{opacity:.45;cursor:not-allowed}
-.btn-danger{padding:8px 18px;border-radius:8px;background:#dc2626;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fn)}
+.btn-danger{padding:10px 22px;border-radius:10px;background:#dc2626;color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn)}
 .btn-danger:hover{opacity:.88}
-.btn-success{padding:8px 18px;border-radius:8px;background:#16a34a;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fn)}
+.btn-success{padding:10px 22px;border-radius:10px;background:#16a34a;color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn)}
 .btn-success:hover{opacity:.88}
 /* 상세 모달 */
-.detail-card-preview{border-radius:8px;padding:13px;border:1px solid;margin-bottom:1.25rem}
+.detail-card-preview{border-radius:10px;padding:16px;border:1px solid;margin-bottom:1.25rem}
 .detail-card-preview.y{background:var(--y-bg);border-color:var(--y-bd)}.detail-card-preview.b{background:var(--b-bg);border-color:var(--b-bd)}
 .detail-card-preview.g{background:var(--g-bg);border-color:var(--g-bd)}.detail-card-preview.p{background:var(--p-bg);border-color:var(--p-bd)}
-.detail-card-text{font-size:13px;line-height:1.65;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
+.detail-card-text{font-size:14px;line-height:1.7;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
 .detail-card-preview.y .detail-card-text{color:var(--y-tx)}.detail-card-preview.b .detail-card-text{color:var(--b-tx)}
 .detail-card-preview.g .detail-card-text{color:var(--g-tx)}.detail-card-preview.p .detail-card-text{color:var(--p-tx)}
-.comments-list{display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;max-height:240px;overflow-y:auto}
-.comment-item{display:flex;gap:8px}
-.comment-av{width:24px;height:24px;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.comments-list{display:flex;flex-direction:column;gap:12px;margin-bottom:1rem;max-height:260px;overflow-y:auto}
+.comment-item{display:flex;gap:10px}
+.comment-av{width:28px;height:28px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .comment-bubble{flex:1}
-.comment-meta{font-size:10px;color:#9ca3af;margin-bottom:3px}
+.comment-meta{font-size:12px;color:#9ca3af;margin-bottom:4px}
 .comment-meta strong{color:#6b7280}
-.comment-text{font-size:12px;line-height:1.55;color:#1a1a1a;background:#f3f4f6;border-radius:0 8px 8px 8px;padding:7px 10px}
+.comment-text{font-size:14px;line-height:1.6;color:#1a1a1a;background:#f3f4f6;border-radius:0 8px 8px 8px;padding:9px 12px}
 .comment-input-row{display:flex;gap:8px;align-items:flex-end}
-.comment-input{flex:1;padding:8px 12px;border:.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:var(--fn);resize:none;min-height:38px;max-height:100px;background:#f9fafb}
+.comment-input{flex:1;padding:10px 14px;border:.5px solid #d1d5db;border-radius:10px;font-size:14px;font-family:var(--fn);resize:none;min-height:42px;max-height:120px;background:#f9fafb}
+.btn-comment{padding:10px 16px;border-radius:10px;background:var(--accent);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn);flex-shrink:0}
 .comment-input:focus{outline:none;border-color:var(--accent);background:#fff}
-.btn-comment{padding:8px 13px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fn);flex-shrink:0}
 .btn-comment:hover{opacity:.88}
 /* 보관함 */
 .archive-cards{display:flex;flex-direction:column;gap:10px;max-height:55vh;overflow-y:auto}
-.archive-item{border-radius:8px;padding:12px 14px;border:1px solid;display:flex;flex-direction:column;gap:6px}
+.archive-item{border-radius:10px;padding:14px 16px;border:1px solid;display:flex;flex-direction:column;gap:8px}
 .archive-item.y{background:var(--y-bg);border-color:var(--y-bd)}.archive-item.b{background:var(--b-bg);border-color:var(--b-bd)}
 .archive-item.g{background:var(--g-bg);border-color:var(--g-bd)}.archive-item.p{background:var(--p-bg);border-color:var(--p-bd)}
-.archive-item-text{font-size:13px;line-height:1.5}
+.archive-item-text{font-size:14px;line-height:1.6}
 .archive-item.y .archive-item-text{color:var(--y-tx)}.archive-item.b .archive-item-text{color:var(--b-tx)}
 .archive-item.g .archive-item-text{color:var(--g-tx)}.archive-item.p .archive-item-text{color:var(--p-tx)}
-.archive-item-meta{font-size:10px;opacity:.6}
+.archive-item-meta{font-size:12px;opacity:.6}
 .archive-item.y .archive-item-meta{color:var(--y-tx)}.archive-item.b .archive-item-meta{color:var(--b-tx)}
 .archive-item.g .archive-item-meta{color:var(--g-tx)}.archive-item.p .archive-item-meta{color:var(--p-tx)}
-.archive-item-actions{display:flex;gap:6px;margin-top:2px}
-.btn-repost{padding:5px 12px;border-radius:99px;background:#fff;border:1px solid #adb5bd;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--fn);color:#495057;transition:all .12s}
+.archive-item-actions{display:flex;gap:8px;margin-top:2px}
+.btn-repost{padding:7px 14px;border-radius:99px;background:#fff;border:1px solid #adb5bd;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fn);color:#495057;transition:all .12s}
 .btn-repost:hover{background:#f8f9fa;border-color:#495057}
-.btn-archive-del{padding:5px 12px;border-radius:99px;background:#fff;border:1px solid #fca5a5;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--fn);color:#dc2626;transition:all .12s}
+.btn-archive-del{padding:7px 14px;border-radius:99px;background:#fff;border:1px solid #fca5a5;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fn);color:#dc2626;transition:all .12s}
 .btn-archive-del:hover{background:#fef2f2;border-color:#dc2626}
 /* 알림 모달 */
-.alert-modal{background:#fff;border-radius:14px;padding:1.5rem;width:100%;max-width:360px;box-shadow:0 12px 40px rgba(0,0,0,.3);font-family:var(--fn)}
-.alert-modal .alert-icon{font-size:32px;text-align:center;margin-bottom:12px}
-.alert-modal .alert-title{font-size:15px;font-weight:700;color:#1a1a1a;text-align:center;margin-bottom:8px}
-.alert-modal .alert-msg{font-size:13px;color:#6b7280;text-align:center;line-height:1.6;margin-bottom:1.25rem}
-.alert-modal .alert-actions{display:flex;gap:8px;justify-content:center}
+.alert-modal{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.3);font-family:var(--fn)}
+.alert-modal .alert-icon{font-size:38px;text-align:center;margin-bottom:14px}
+.alert-modal .alert-title{font-size:18px;font-weight:700;color:#1a1a1a;text-align:center;margin-bottom:10px}
+.alert-modal .alert-msg{font-size:14px;color:#6b7280;text-align:center;line-height:1.7;margin-bottom:1.5rem;white-space:pre-line}
+.alert-modal .alert-actions{display:flex;gap:10px;justify-content:center}
 /* 진행 모달 */
-.progress-modal{background:#fff;border-radius:14px;padding:1.5rem 2rem;width:100%;max-width:320px;box-shadow:0 12px 40px rgba(0,0,0,.3);font-family:var(--fn);text-align:center}
-.progress-modal .pm-icon{font-size:28px;margin-bottom:10px}
-.progress-modal .pm-msg{font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:6px}
-.progress-modal .pm-sub{font-size:12px;color:#9ca3af}
-.pm-spinner{display:inline-block;width:20px;height:20px;border:2px solid #e5e7eb;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px}
+.progress-modal{background:#fff;border-radius:16px;padding:2rem 2.5rem;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,.3);font-family:var(--fn);text-align:center}
+.progress-modal .pm-icon{font-size:32px;margin-bottom:12px}
+.progress-modal .pm-msg{font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:8px}
+.progress-modal .pm-sub{font-size:14px;color:#9ca3af}
+.pm-spinner{display:inline-block;width:26px;height:26px;border:3px solid #e5e7eb;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:12px}
 /* 스피너 */
-.loading{text-align:center;padding:2rem;color:#9ca3af;font-size:13px}
+.loading{text-align:center;padding:2rem;color:#9ca3af;font-size:14px}
 .loading .sp{display:inline-block;width:18px;height:18px;border:2px solid #e5e7eb;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
 @media(max-width:600px){#board-wrap{padding:16px 16px 32px}.cards-grid{grid-template-columns:1fr 1fr;gap:10px}}
 @media(max-width:380px){.cards-grid{grid-template-columns:1fr}}
@@ -177,9 +183,9 @@ body { height: 100vh; overflow: hidden; }
     <div class="board-toolbar">
       <div class="filter-chips">
         <button class="chip active" onclick="setFilter(this,'all')">전체</button>
-        <button class="chip" onclick="setFilter(this,'공지')">📢 공지</button>
-        <button class="chip" onclick="setFilter(this,'아이디어')">💡 아이디어</button>
-        <button class="chip" onclick="setFilter(this,'할일')">✅ 할일</button>
+        <button class="chip" style="background:#F3E8FF;border-color:#C084FC;color:#4A1D96" onmouseenter="this.style.background='#C084FC'" onmouseleave="this.style.background='#F3E8FF'" onclick="setFilter(this,'공지')">📢 공지</button>
+        <button class="chip" style="background:#DCFCE7;border-color:#86EFAC;color:#14532D" onmouseenter="this.style.background='#86EFAC'" onmouseleave="this.style.background='#DCFCE7'" onclick="setFilter(this,'아이디어')">💡 아이디어</button>
+        <button class="chip" style="background:#DBEAFE;border-color:#93C5FD;color:#1E3A5F" onmouseenter="this.style.background='#93C5FD'" onmouseleave="this.style.background='#DBEAFE'" onclick="setFilter(this,'할일')">✅ 할일</button>
       </div>
       <button class="btn-refresh" onclick="location.reload(true)" title="강제 새로고침">🔄 새로고침</button>
       <button class="btn-archive" onclick="openArchive()">📦 보관함</button>
@@ -485,10 +491,13 @@ function gas(params){
 
 // ── 운영진 + 카드 동시 로드
 function loadMembersAndCards(){
+  // 기존 카드 즉시 초기화 (강제 새로고침 시 이전 카드 노출 방지)
+  allCards=[];
   document.getElementById('cards-container').innerHTML='<div class="loading"><span class="sp"></span>불러오는 중...</div>';
+  const noCache={cache:'no-store',headers:{'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache'}};
   Promise.all([
-    fetch(CSV_MEMBERS+'&t='+Date.now()).then(r=>r.text()).catch(()=>''),
-    fetch(CSV_CARDS+'&t='+Date.now()).then(r=>r.text()).catch(e=>{console.error('[CSV_CARDS]',e);throw e;}),
+    fetch(CSV_MEMBERS+'&t='+Date.now(), noCache).then(r=>r.text()).catch(()=>''),
+    fetch(CSV_CARDS+'&t='+Date.now(), noCache).then(r=>r.text()).catch(e=>{console.error('[CSV_CARDS]',e);throw e;}),
   ]).then(([mText, cText])=>{
     // 운영진 이메일
     if(mText){
@@ -616,19 +625,9 @@ function submitCard(){
   // GAS 저장
   gas({action:'addCard',text,type,color,deadline,taggedMembers:tagged.join(',')})
   .then(()=>{
-    // 즉시 카드를 화면에 추가 (낙관적)
-    const now=new Date().toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});
-    const newCard={
-      id:'opt_'+Date.now(), text, type, color,
-      author:currentUser.email, date:now,
-      likes:0, likedBy:[], hiddenBy:[],
-      deadline, taggedMembers:tagged
-    };
-    allCards.unshift(newCard);
     closeAdd();
-    renderCards();
-    showToast('카드를 올렸어요 ✨');
     btn.disabled=false; btn.textContent='올리기';
+    reloadAfterAction('카드를 올렸어요 ✨');
   })
   .catch(()=>{
     btn.disabled=false; btn.textContent='올리기';
@@ -666,13 +665,9 @@ function submitEdit(){
 
   gas({action:'updateCard',id,text,type,color,deadline})
   .then(()=>{
-    // 즉시 allCards에서 해당 카드 업데이트
-    const idx=allCards.findIndex(c=>c.id===id);
-    if(idx>=0){ allCards[idx].text=text; allCards[idx].type=type; allCards[idx].color=color; allCards[idx].deadline=deadline; }
     closeEdit();
-    renderCards();
-    showToast('카드를 수정했어요 ✏️');
     btn.disabled=false; btn.textContent='저장';
+    reloadAfterAction('카드를 수정했어요 ✏️');
   })
   .catch(()=>{
     btn.disabled=false; btn.textContent='저장';
@@ -689,16 +684,9 @@ function confirmHide(id){
     '숨기기','btn-danger',()=>doHide(id));
 }
 function doHide(id){
-  // 즉시 화면에서 제거
-  allCards=allCards.filter(c=>c.id!==id);
-  renderCards();
   gas({action:'hideCard',id})
-    .then(()=>showToast('보관함으로 이동했어요 📦'))
-    .catch(()=>{
-      showAlert('❌','오류','숨기기 중 오류가 발생했어요.');
-      // 실패 시 복구를 위해 CSV 재로드
-      loadCards().catch(()=>{});
-    });
+    .then(()=>reloadAfterAction('보관함으로 이동했어요 📦'))
+    .catch(()=>showAlert('❌','오류','숨기기 중 오류가 발생했어요.'));
 }
 
 // ── 좋아요
@@ -859,30 +847,9 @@ function confirmRepost(id){
   showConfirm('📌','재게시','이 카드를 다시 보드에 게시할까요?','재게시','btn-success',()=>doRepost(id));
 }
 function doRepost(id){
-  // 보관함에서 즉시 제거
-  const el=document.getElementById('arc-'+id);
-  if(el) el.remove();
-  const list=document.getElementById('archive-list');
-  if(list&&!list.querySelector('.archive-item'))
-    list.innerHTML='<div style="text-align:center;padding:1.5rem;font-size:13px;color:#9ca3af">숨긴 카드가 없어요</div>';
   closeOverlay('archive-overlay');
-
-  // allCards에 hiddenBy를 제거해 보드에 즉시 복귀
-  // (숨긴 카드는 rowsToCards에서 allCards에 없으므로 CSV에서 꺼낸 원본 데이터 필요)
-  // → 보관함 열 때 archiveCards 배열에 저장해두고 여기서 사용
-  const cached=_archiveCache.find(x=>x.id===id);
-  if(cached){
-    allCards.unshift({
-      id:cached.id, text:cached.text, type:cached.type, color:cached.color,
-      author:currentUser.email, date:cached.date,
-      likes:0, likedBy:[], hiddenBy:[],
-      deadline:cached.deadline, taggedMembers:[]
-    });
-    renderCards();
-  }
-
   gas({action:'repostCard',id})
-    .then(()=>showToast('카드를 재게시했어요 📌'))
+    .then(()=>reloadAfterAction('카드를 재게시했어요 📌'))
     .catch(()=>showAlert('❌','오류','재게시 중 오류가 발생했어요.'));
 }
 
@@ -893,16 +860,26 @@ function confirmDeleteCard(id){
     '영구 삭제','btn-danger',()=>doDeleteCard(id));
 }
 function doDeleteCard(id){
-  // 보관함 목록에서 즉시 제거
-  const el=document.getElementById('arc-'+id);
-  if(el) el.remove();
-  const list=document.getElementById('archive-list');
-  if(list&&!list.querySelector('.archive-item'))
-    list.innerHTML='<div style="text-align:center;padding:1.5rem;font-size:13px;color:#9ca3af">숨긴 카드가 없어요</div>';
-
   gas({action:'deleteCard',id})
-    .then(()=>showToast('카드를 삭제했어요 🗑'))
+    .then(()=>reloadAfterAction('카드를 삭제했어요 🗑'))
     .catch(()=>showAlert('❌','오류','삭제 중 오류가 발생했어요.'));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 액션 후 스피너 대기 → CSV 재로드
+// (구글 시트 CSV 캐시 반영 대기용, 5초)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function reloadAfterAction(toastMsg, waitSec=5){
+  // 기존 카드 즉시 비우기
+  allCards=[];
+  document.getElementById('cards-container').innerHTML='';
+  // 진행 모달 표시
+  showProgress('시트에 반영 중...', waitSec);
+  setTimeout(()=>{
+    hideProgress();
+    loadMembersAndCards();
+    showToast(toastMsg);
+  }, waitSec*1000);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
