@@ -65,9 +65,14 @@ body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
 .toolbar-row1{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%;margin-bottom:8px}
 .toolbar-row2{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%}
 
-/* 카드 그리드: 모바일 2열 */
-.cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:start}
-@media(max-width:380px){.cards-grid{grid-template-columns:1fr}}
+/* 카드 그리드: 세로 1열, 가로 2열 이상 */
+.cards-grid{display:grid;grid-template-columns:1fr;gap:10px;align-items:start}
+@media(orientation:landscape){
+  .cards-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(orientation:landscape)and(min-width:900px){
+  .cards-grid{grid-template-columns:repeat(3,1fr)}
+}
 .card{border-radius:10px;padding:14px;border:1px solid;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:transform .12s,box-shadow .12s;min-height:180px;overflow:hidden}
 .card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.18)}
 .card.y{background:var(--y-bg);border-color:var(--y-bd)}
