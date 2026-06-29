@@ -1102,16 +1102,34 @@ function ftHandleDcMessage(fromUid, event){
 /* ===== visualViewport: 키보드가 올라오면 composer를 그 위로 올림 ===== */
 (function(){
     var composer = document.querySelector('.composer');
+    var shell    = document.querySelector('.shell');
+    var COMPOSER_H = 56; // composer 높이(px)
+
     function onViewportChange(){
         var vv = window.visualViewport;
         if(!vv || !composer) return;
-        // visualViewport 기준 하단 = 전체 레이아웃 하단 - 뷰포트 하단
-        var offsetBottom = window.innerHeight - (vv.offsetTop + vv.height);
-        composer.style.bottom = Math.max(0, offsetBottom) + 'px';
-        // 메시지 로그 자동 스크롤
+
+        // 키보드가 차지하는 높이 = 전체 창 높이 - 가시 뷰포트 하단
+        var kbHeight = window.innerHeight - (vv.offsetTop + vv.height);
+        var bottom   = Math.max(0, kbHeight);
+
+        // 1) composer를 키보드 바로 위로
+        composer.style.bottom = bottom + 'px';
+
+        // 2) shell의 하단 패딩 = composer 높이 + 키보드 높이
+        //    → log 영역이 composer 뒤에 숨지 않도록
+        if(shell) shell.style.paddingBottom = (COMPOSER_H + bottom) + 'px';
+
+        // 3) 최신 메시지가 보이도록 로그 스크롤
         var log = document.getElementById('log');
-        if(log) log.scrollTop = log.scrollHeight;
+        if(log) {
+            // requestAnimationFrame으로 레이아웃 재계산 후 스크롤
+            requestAnimationFrame(function(){
+                log.scrollTop = log.scrollHeight;
+            });
+        }
     }
+
     if(window.visualViewport){
         window.visualViewport.addEventListener('resize',  onViewportChange);
         window.visualViewport.addEventListener('scroll',  onViewportChange);
