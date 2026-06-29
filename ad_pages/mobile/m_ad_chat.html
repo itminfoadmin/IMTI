@@ -28,6 +28,8 @@ body{
 .shell{
     flex:1; min-height:0; display:flex; flex-direction:column;
     background:var(--term-bg); position:relative;
+    /* composer fixed 전환으로 인한 하단 여백 */
+    padding-bottom:56px;
 }
 .shell::after{
     content:""; position:absolute; inset:0; pointer-events:none; z-index:5;
@@ -88,10 +90,13 @@ body{
 /* 접속자 사이드바 — 모바일에서 숨김 */
 .side{display:none}
 
-/* 입력창 */
+/* 입력창 — visualViewport 키보드 대응 */
 .composer{
-    flex:none; display:flex; align-items:center; gap:8px;
+    position:fixed; left:0; right:0; bottom:0;
+    display:flex; align-items:center; gap:8px;
     padding:0 12px; height:56px; background:#0a0d10; border-top:1px solid #000;
+    z-index:10;
+    padding-bottom:env(safe-area-inset-bottom);
 }
 .composer .ps1{color:var(--term-green); font-size:inherit; user-select:none; flex:none;}
 #msg{
@@ -1093,6 +1098,25 @@ function ftHandleDcMessage(fromUid, event){
     else if(msg.cmd === 'done')  { ftOnDone(fromUid, msg.transferId); }
     return true;
 }
+
+/* ===== visualViewport: 키보드가 올라오면 composer를 그 위로 올림 ===== */
+(function(){
+    var composer = document.querySelector('.composer');
+    function onViewportChange(){
+        var vv = window.visualViewport;
+        if(!vv || !composer) return;
+        // visualViewport 기준 하단 = 전체 레이아웃 하단 - 뷰포트 하단
+        var offsetBottom = window.innerHeight - (vv.offsetTop + vv.height);
+        composer.style.bottom = Math.max(0, offsetBottom) + 'px';
+        // 메시지 로그 자동 스크롤
+        var log = document.getElementById('log');
+        if(log) log.scrollTop = log.scrollHeight;
+    }
+    if(window.visualViewport){
+        window.visualViewport.addEventListener('resize',  onViewportChange);
+        window.visualViewport.addEventListener('scroll',  onViewportChange);
+    }
+})();
 </script>
 </body>
 </html>
