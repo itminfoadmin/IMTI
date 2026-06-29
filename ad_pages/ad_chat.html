@@ -104,6 +104,12 @@ body{
     flex:none; display:flex; align-items:center; gap:10px;
     padding:0 18px; height:81px; background:#0a0d10; border-top:1px solid #000;
 }
+.composer-gap{
+    flex:none; height:30px; background:#000;
+}
+.term-gap{
+    flex:none; height:30px; background:#000; border-bottom:1px solid #1d262b;
+}
 .composer .ps1{color:var(--term-green); font-size:inherit; user-select:none; flex:none;}
 #msg{
     flex:1; background:none; border:none; outline:none;
@@ -234,6 +240,7 @@ body{
 </head>
 <body>
 
+<div class="term-gap"></div>
 <div class="shell">
     <div class="term">
         <div class="term-bar">
@@ -287,6 +294,8 @@ body{
            placeholder="대화 내용을 입력하고 엔터를 누르세요…  ( /파일: 파일전송 · /누구: 접속자 확인 · /나가기: 종료 )" disabled>
     <button onclick="leaveRoom()" style="flex:none;background:none;border:1px solid #2b3640;border-radius:6px;color:#5c6b62;font-family:'DM Mono',monospace;font-size:.78rem;padding:5px 12px;cursor:pointer;white-space:nowrap;transition:all .15s;" onmouseover="this.style.borderColor='#c0573b';this.style.color='#c0573b'" onmouseout="this.style.borderColor='#2b3640';this.style.color='#5c6b62'">나가기</button>
 </div>
+
+<div class="composer-gap"></div>
 
 <div class="gate" id="gate">
     <div class="gate-box">
