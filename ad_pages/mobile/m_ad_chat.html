@@ -261,7 +261,7 @@ body{
     <span class="ps1" id="ps1">guest&gt;</span>
     <input id="msg" type="text" maxlength="300" autocomplete="off"
            placeholder="입력 후 엔터 (전송: Enter · 명령: /누구 /파일 /나가기)" disabled>
-    <button onclick="leaveRoom()" style="flex:none;background:none;border:1px solid #2b3640;border-radius:6px;color:#5c6b62;font-family:'DM Mono',monospace;font-size:.72rem;padding:5px 8px;cursor:pointer;white-space:nowrap;transition:all .15s;" onmouseover="this.style.borderColor='#c0573b';this.style.color='#c0573b'" onmouseout="this.style.borderColor='#2b3640';this.style.color='#5c6b62'">나가기</button>
+    <button onclick="sendMsg()" id="send-btn" style="flex:none;background:none;border:1px solid #2b3640;border-radius:6px;color:#5c6b62;font-family:'DM Mono',monospace;font-size:.72rem;padding:5px 8px;cursor:pointer;white-space:nowrap;transition:all .15s;" onmouseover="this.style.borderColor='var(--term-cyan)';this.style.color='var(--term-cyan)'" onmouseout="this.style.borderColor='#2b3640';this.style.color='#5c6b62'">전송</button>
 </div>
 
 <div class="gate" id="gate">
