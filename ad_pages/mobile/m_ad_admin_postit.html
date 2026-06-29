@@ -73,7 +73,7 @@ body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
 @media(orientation:landscape)and(min-width:900px){
   .cards-grid{grid-template-columns:repeat(3,1fr)}
 }
-.card{border-radius:10px;padding:14px;border:1px solid;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:transform .12s,box-shadow .12s;min-height:180px;overflow:hidden}
+.card{border-radius:10px;padding:14px;border:1px solid;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:transform .12s,box-shadow .12s;height:auto}
 .card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.18)}
 .card.y{background:var(--y-bg);border-color:var(--y-bd)}
 .card.b{background:var(--b-bg);border-color:var(--b-bd)}
@@ -87,7 +87,7 @@ body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
 .badge-공지{background:rgba(255,200,0,.25);color:#7A5000}
 .badge-아이디어{background:rgba(59,91,219,.12);color:#2040AA}
 .badge-할일{background:rgba(20,83,45,.12);color:#14532D}
-.card-body{font-size:12px;line-height:1.6;overflow:hidden;flex:1;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap;mask-image:linear-gradient(to bottom,#000 60%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 60%,transparent 100%)}
+.card-body{font-size:12px;line-height:1.6;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
 .card.y .card-body{color:var(--y-tx)}.card.b .card-body{color:var(--b-tx)}.card.g .card-body{color:var(--g-tx)}.card.p .card-body{color:var(--p-tx)}
 .tagged{display:flex;flex-wrap:wrap;gap:3px}
 .tag-pill{font-size:10px;padding:1px 6px;border-radius:99px;background:rgba(0,0,0,.08);font-weight:700}
