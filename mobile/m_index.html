@@ -262,16 +262,13 @@
 
         /* Warmup status indicator */
         #warmup-indicator {
-            position      : fixed;
-            bottom        : 12px;
-            right         : 12px;
             font-family   : 'DM Mono', monospace;
             font-size     : 0.62rem;
             color         : #adb5bd;
             letter-spacing: 0.08em;
             pointer-events: none;
-            z-index       : 9999;
             transition    : opacity 0.5s;
+            white-space   : nowrap;
         }
         #warmup-indicator.ready { color: #2b8a3e; }
 
@@ -396,7 +393,7 @@
             /* Stack the two columns vertically */
             #main-inner {
                 flex-direction: column !important;
-                gap           : 84px !important;
+                gap           : 74px !important;
                 max-width     : 100% !important;
             }
             /* Logo panel on top (order 1) */
@@ -420,8 +417,8 @@
                 display     : flex !important;
                 width       : 86% !important;
                 max-width   : 86% !important;
-                /* Pull closer to the logo; login gap (84px) stays unchanged */
-                margin-top  : -25px !important;
+                /* Pull closer to the logo; login gap stays at the (now reduced) main-inner gap */
+                margin-top  : -28px !important;
                 margin-right: 0 !important;
                 margin-left : 0 !important;
                 align-self  : center !important;
@@ -499,11 +496,8 @@
             /* Labels */
             #left-panel label { font-size: 1.2rem !important; margin-bottom: 6px !important; }
             #login-email, #login-pw { font-size: 1rem !important; }
-            /* LOG-IN / JOIN-US buttons */
+            /* LOG-IN / JOIN-US / CONTACT-US buttons */
             #left-panel > div > button { font-size: 1.14rem !important; padding: 15px 0 !important; }
-            /* Contact notice + [Contact-Us] button */
-            #left-panel p { font-size: 1.14rem !important; margin-top: 30px !important; }
-            #left-panel p button { font-size: 1.26rem !important; }
 
             /* ----- Modal body text, bulk size (uses !important to beat inline styles) ----- */
             .modal-box p, .modal-box span, .modal-box label,
@@ -541,22 +535,22 @@
 </head>
 <body>
 
-<!-- 화면 최상단 우측 고정: PC 버전 보기 -->
-<button onclick="gotoPCVersion()"
-        style="position:fixed; top:12px; right:12px; z-index:1000; background:rgba(255,255,255,0.92); border:1px solid #dee2e6; border-radius:8px; padding:10px 16px; cursor:pointer; color:#6c757d; font-weight:700; font-family:'DM Mono',monospace; font-size:0.95rem; transition:all 0.2s; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); box-shadow:0 1px 6px rgba(0,0,0,0.08);"
-        onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
-        onmouseout="this.style.background='rgba(255,255,255,0.92)'; this.style.color='#6c757d'; this.style.borderColor='#dee2e6'">
-    PC Version
-</button>
-
-<div id="warmup-indicator">● warming up...</div>
+<!-- Fixed top-right: status indicator + PC version button -->
+<div style="position:fixed; top:12px; right:12px; z-index:1000; display:flex; align-items:center; gap:10px;">
+    <div id="warmup-indicator">● warming up...</div>
+    <button onclick="gotoPCVersion()"
+            style="background:rgba(255,255,255,0.92); border:1px solid #dee2e6; border-radius:8px; padding:10px 16px; cursor:pointer; color:#6c757d; font-weight:700; font-family:'DM Mono',monospace; font-size:0.95rem; transition:all 0.2s; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); box-shadow:0 1px 6px rgba(0,0,0,0.08);"
+            onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+            onmouseout="this.style.background='rgba(255,255,255,0.92)'; this.style.color='#6c757d'; this.style.borderColor='#dee2e6'">
+        PC Version
+    </button>
+</div>
 
 <div id="main-wrap" style="position:relative; z-index:1; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:40px 48px;">
     <div id="main-inner" style="display:flex; flex-direction:row; width:100%; max-width:1500px; align-items:center; justify-content:center; gap:168px; flex-wrap:wrap;">
 
         <!-- Logo panel -->
         <div id="logo-panel" style="flex:0 0 auto; width:min(300px,100%); display:flex; flex-direction:column; align-self:flex-start; margin-top:0; order:1;">
-            <!-- Logo -->
             <div class="logo-wrap" style="margin-bottom:0;">
                 <img src="../img/logo_index.png" alt="IMTI"
                      title="IMTI" 
@@ -648,14 +642,12 @@
                     JOIN-US
                 </button>
 
-                <p style="margin-top:28px; font-family:'DM Mono',monospace; font-size:1.1875rem; color:#adb5bd; line-height:1.5; text-align:center;">
-                    For any inquiries,<br>
-                    feel free to contact us at<br>
-                    <button onclick="openModal('modal-contact')"
-                            style="background:none; border:none; padding:6px 0 0; cursor:pointer; color:#6c757d; font-weight:700; font-family:'DM Mono',monospace; font-size:1.3125rem; transition:color 0.2s;"
-                            onmouseover="this.style.color='#1a56db'"
-                            onmouseout="this.style.color='#6c757d'">[Contact-Us]</button>
-                </p>
+                <button onclick="openModal('modal-contact')"
+                        style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#f1f3f5; border:1.5px solid #dee2e6; border-radius:10px; padding:11px 0; cursor:pointer; margin-top:8px; font-family:'DM Mono',monospace; font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#343a40; transition:background 0.2s, color 0.2s, border-color 0.2s;"
+                        onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+                        onmouseout="this.style.background='#f1f3f5';  this.style.color='#343a40'; this.style.borderColor='#dee2e6'">
+                    CONTACT-US
+                </button>
             </div>
         </div>
 
