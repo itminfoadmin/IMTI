@@ -25,7 +25,7 @@
             if (isMobile && !forcePC) {
                 window.location.replace('mobile/m_index.html');
             }
-        } catch (e) { /* 판별 실패 시 PC 페이지 그대로 표시 */ }
+        } catch (e) { /* detection failed — fall back to showing the PC page */ }
     })();
     </script>
 
@@ -81,8 +81,8 @@
             border-color: #495057;
         }
 
-        /* 카드 오른쪽 아래에 고정으로 떠 있는 클릭 뱃지 (rem 단위라 사이트 전체
-           글자 크기 스케일(adjustScale)에 맞춰 같이 커지고 줄어든다) */
+        /* "Click me" badge pinned to the card's bottom-right corner (uses rem so it
+           scales with the site-wide font-size scale, adjustScale) */
         .notice-click-badge {
             position: absolute; right: 5px; bottom: 4px; z-index: 2;
             display: flex; align-items: center; justify-content: center;
@@ -1733,8 +1733,6 @@ async function handleAdminLogin() {
             .then(r => { clearTimeout(_t); return r.json(); });
         if (progressEl) progressEl.style.display = 'none';
 
-        console.log('[IMTI] adminLogin response:', JSON.stringify(res));
-
         if (res && res.status === 'OK') {
             closeModal('modal-admin');
             sessionStorage.setItem('admin_email',      email);
@@ -1775,7 +1773,7 @@ async function fetchSheet() {
         const text = await fetch(SHEET_CSV + '&t=' + Date.now()).then(r => r.text());
         const rows = _parseCSV(text);
         if (rows.length > 1) {
-            // A4 셀의 "Latest Update: 2026/05/31 00:39" 에서 날짜 부분만 추출
+            // Extract just the date from cell A4's "Latest Update: 2026/05/31 00:39" text
             const raw     = (rows[3] && rows[3][0] ? rows[3][0] : '').trim();
             const m       = raw.match(/(\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}(?:\s+\d{1,2}:\d{2})?)/);
             const dateVal = (m ? m[1] : raw) || '2026/03/25';
@@ -1788,23 +1786,23 @@ async function fetchSheet() {
 }
 
 /* ----------------------------------------------------------------
-   Notice (공지사항) feed — read from the "index_notice" Google Sheet.
+   Notice feed — read from the "index_notice" Google Sheet.
 
    Expected sheet structure (sheet/tab name: index_notice), header row
    in row 1, one notice per row from row 2 onward:
 
-     A열 (title)   : 공지사항 제목
-     B열 (content) : 공지사항 내용 (모달에서 보여줄 본문)
-     C열 (visible) : 노출 여부  -> "Y" 또는 "TRUE" 면 노출, 그 외(빈칸/"N"/"FALSE")면 숨김
-     D열 (order)   : 노출 순서 -> 숫자가 작을수록 먼저 노출 (숫자가 비어있으면 행 순서대로)
+     Col A (title)   : notice title
+     Col B (content) : notice body (shown in the detail modal)
+     Col C (visible) : "Y" or "TRUE" to show, anything else (blank/"N"/"FALSE") to hide
+     Col D (order)   : display order — lower numbers show first (row order if blank)
 
    Example:
-     title              | content                          | visible | order
-     동계 워크숍 안내    | 2026년 1월에 진행되는...          | Y       | 1
-     서버 점검 안내      | 1월 15일 02:00~04:00 서버 점검...  | Y       | 2
-     (임시 비공개 공지)  | ...                               | N       | 3
+     title              | content                    | visible | order
+     Winter workshop     | Workshop info for Jan...   | Y       | 1
+     Server maintenance  | Maintenance 02:00-04:00... | Y       | 2
+     (draft, hidden)     | ...                        | N       | 3
    ---------------------------------------------------------------- */
-let _noticeList    = [];     // [{ title, content }] — 실제 공지 항목만 (위쪽 "Notice" 라벨은 별도로 항상 고정 표시)
+let _noticeList    = [];     // [{ title, content }] — actual notices only ("Notice" label above is always shown separately)
 let _noticeIndex   = 0;
 let _noticeTimer   = null;
 const NOTICE_ROTATE_MS = 5000;
@@ -1864,7 +1862,7 @@ function updateNoticeDots() {
         d.classList.toggle('active-dot', i === _noticeIndex));
 }
 
-/* animate: 메인 슬라이드쇼와 동일하게 살짝 페이드 전환 */
+/* animate: subtle fade transition, same as the main slideshow */
 function renderNoticeStage(animate) {
     const el = document.getElementById('notice-marquee');
     if (!el) return;
@@ -1889,7 +1887,7 @@ function startNoticeRotation() {
 
 function openNoticeDetail() {
     const item = _noticeList[_noticeIndex];
-    if (!item) return; // 등록된 공지사항이 없으면 모달을 띄우지 않음.
+    if (!item) return; // don't open the modal if there are no notices
     const titleEl = document.getElementById('notice-detail-title');
     const bodyEl  = document.getElementById('notice-detail-body');
     if (titleEl) titleEl.textContent = item.title;
@@ -1898,7 +1896,7 @@ function openNoticeDetail() {
 }
 
 
-// CSV 한 줄을 셀 배열로 파싱 (따옴표 안의 쉼표/줄바꿈 처리)
+// Parse one CSV row into a cell array (handles quoted commas/newlines)
 function _parseCSV(text) {
     const rows = [];
     let row = [], field = '', inQuotes = false;
@@ -1921,7 +1919,7 @@ function _parseCSV(text) {
     return rows;
 }
 
-// modal-why 가 열릴 때 시트(gid=0) B2,B3,B4,B5 를 세로로 표시
+// When modal-why opens, show sheet (gid=0) cells B2-B5 stacked vertically
 async function loadWhyCounterList() {
     const box = document.getElementById('why-counter-list');
     if (!box) return;
@@ -1929,7 +1927,7 @@ async function loadWhyCounterList() {
     try {
         const text = await fetch(SHEET_CSV + '&t=' + Date.now()).then(r => r.text());
         const rows = _parseCSV(text);
-        // A열 = index 0, 2~5행 = index 1~4 (A5 = index 4)
+        // Column A = index 0; rows 2-5 = index 1-4 (row 5 = index 4)
         const values = [1, 2, 3, 4]
             .map(r => ({ row: r + 1, v: (rows[r] && rows[r][0] != null ? rows[r][0].trim() : '') }))
             .filter(o => o.v.length > 0);
