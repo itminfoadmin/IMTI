@@ -65,6 +65,37 @@
             border-color: #6c757d;
         }
 
+        /* Notice card dots (smaller variant of slide-dot) */
+        .notice-dot {
+            width        : 9px;
+            height       : 9px;
+            border-radius: 50%;
+            background   : #fff;
+            border       : 2px solid #adb5bd;
+            transition   : background 0.3s, border-color 0.3s;
+            cursor       : pointer;
+            flex-shrink  : 0;
+        }
+        .notice-dot.active-dot {
+            background  : #495057;
+            border-color: #495057;
+        }
+
+        /* Pulsing ring behind the notice "click me" badge */
+        .notice-click-pulse {
+            position     : absolute;
+            top          : 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background   : #495057;
+            opacity      : 0.55;
+            animation    : noticeClickPulse 1.6s ease-out infinite;
+        }
+        @keyframes noticeClickPulse {
+            0%   { transform: scale(1);   opacity: 0.55; }
+            70%  { transform: scale(2.1); opacity: 0;    }
+            100% { transform: scale(2.1); opacity: 0;    }
+        }
+
         /* Dashboard layout */
         .side-cards  { width: 38%; display: flex; flex-direction: column; gap: 8px; }
         .stat-row    { height: 28%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -106,6 +137,22 @@
         .action-card:hover       { background: #6c757d; }
         .action-card.light       { background: #cacaca; color: #495057; cursor: default; }
         .action-card.light:hover { background: #cacaca; }
+        #visitor-overlay {
+            position       : absolute;
+            inset          : 0;
+            display        : flex;
+            flex-direction : column;
+            align-items    : center;
+            justify-content: center;
+            gap            : 3px;
+            background     : rgba(52, 58, 64, 0.88);
+            border-radius  : 3px;
+            opacity        : 0;
+            visibility     : hidden;
+            transition     : opacity 0.2s;
+            pointer-events : none;
+        }
+        #visitor-card:hover #visitor-overlay { opacity: 1; visibility: visible; }
 
         /* Modal */
         .modal-overlay {
@@ -432,7 +479,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#adb5bd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 18 9 12 15 6"/>
                             </svg>
-                            <span>New arrivals</span>
+                            <span id="page-status-label">Loading...</span>
                         </div>
                         <button class="shuffle-btn" onclick="openModal('modal-admin')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#adb5bd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -481,33 +528,54 @@
                                     </svg>
                                 </div>
 
-                                <div class="stat-card" id="visitor-card" style="display:flex; align-items:center; justify-content:center; cursor:default; position:relative;"
-                                     onmouseover="document.getElementById('visitor-count').style.color='#42a5f5'; document.getElementById('tooltip-visitor').style.opacity='1'; document.getElementById('tooltip-visitor').style.visibility='visible';"
-                                     onmouseleave="document.getElementById('visitor-count').style.color='#9e9e9e'; document.getElementById('tooltip-visitor').style.opacity='0'; document.getElementById('tooltip-visitor').style.visibility='hidden';">
-                                    <span id="visitor-count" style="font-size:20px; font-weight:900; color:#9e9e9e; font-family:'DM Mono',monospace; line-height:1; transition:color 0.3s; white-space:nowrap;">--</span>
-                                    <div id="tooltip-visitor" style="position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%); background:#343a40; color:#fff; font-family:'DM Mono',monospace; font-size:0.5rem; padding:5px 12px; border-radius:6px; white-space:nowrap; opacity:0; visibility:hidden; transition:opacity 0.2s; pointer-events:none; z-index:40;">
-                                        visiting
-                                        <div style="position:absolute; bottom:100%; left:50%; transform:translateX(-50%); border:5px solid transparent; border-bottom-color:#343a40;"></div>
-                                    </div>
+                                <div class="stat-card" id="depenvg-card" style="padding:0; overflow:hidden; position:relative; cursor:pointer;"
+                                     onclick="openModal('modal-tools-img')">
+                                    <img src="img/Home_depenvg.png" alt="Tools"
+                                         style="width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(100%); transition:filter 0.4s, transform 0.3s;"
+                                         onmouseover="this.style.filter='grayscale(0%)'; this.style.transform='scale(1.04)';"
+                                         onmouseleave="this.style.filter='grayscale(100%)'; this.style.transform='scale(1)';">
                                 </div>
                             </div>
 
-                            <div class="info-card" style="padding:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                                <img src="img/Home_card_tools.png" alt="Info"
-                                     style="width:90%; height:90%; object-fit:contain; display:block; transition:transform 0.3s;"
-                                     onmouseover="this.style.transform='scale(1.1)'"
-                                     onmouseleave="this.style.transform='scale(1)'">
+                            <div class="info-card" id="notice-card" style="padding:8px; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-start; gap:1px;">
+                                <div style="font-family:'Playfair Display',serif; font-weight:900; font-style:italic; font-size:20px; color:#495057; letter-spacing:0.03em; line-height:1.2; text-align:center; margin-top:10px; -webkit-text-stroke:0.5px #495057;">- Notice -</div>
+
+                                <div id="notice-stage" style="flex:0 0 auto; height:70%; width:100%; position:relative; overflow:hidden; border-radius:3px; background:#cacaca; cursor:pointer; display:flex; align-items:flex-start; justify-content:center; padding:17px 8px 21px;"
+                                     onclick="openNoticeDetail()">
+                                    <div style="display:flex; align-items:center; justify-content:center; gap:6px; max-width:100%;">
+                                        <span id="notice-marquee" style="font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:clamp(10px,1.4vw,15px); color:#343a40; text-align:center; line-height:1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; transition:opacity 0.4s; min-width:0;">공지사항을 불러오는 중...</span>
+
+                                        <span style="position:relative; width:18px; height:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+                                            <span class="notice-click-pulse"></span>
+                                            <span style="position:relative; width:18px; height:18px; border-radius:50%; background:#fff; border:1.5px solid #adb5bd; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.12);">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#495057" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M9 9l5 12 1.8-5.2L21 14Z"/>
+                                                    <path d="M7.2 2.2 8 5.1"/>
+                                                    <path d="m5.1 8-2.9-.8"/>
+                                                    <path d="M14 4.1 12 6"/>
+                                                    <path d="m6 12-1.9 2"/>
+                                                </svg>
+                                            </span>
+                                        </span>
+                                    </div>
+
+                                    <div id="notice-dots" style="position:absolute; bottom:4px; left:0; right:0; display:flex; gap:5px; align-items:center; justify-content:center;"></div>
+                                </div>
                             </div>
 
                             <div class="action-row">
                                 <button class="action-card" onclick="openModal('modal-why')" style="padding:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
                                     <img src="img/Home_notice.png" alt="Why" style="width:100%; height:100%; object-fit:contain; display:block;">
                                 </button>
-                                <div class="action-card light" style="padding:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                                <div class="action-card light" id="visitor-card" style="padding:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative;">
                                     <img src="img/Home_card_madein.png" alt="Made in IOWA"
                                          style="width:100%; height:100%; object-fit:contain; display:block; transition:transform 0.3s;"
                                          onmouseover="this.style.transform='scale(0.72)'"
                                          onmouseleave="this.style.transform='scale(1)'">
+                                    <div id="visitor-overlay">
+                                        <span id="visitor-count" style="font-size:28px; font-weight:900; color:#fff; font-family:'DM Mono',monospace; line-height:1; white-space:nowrap;">--</span>
+                                        <span style="font-size:11px; color:#dee2e6; font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;">visiting</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -886,6 +954,34 @@
     </div>
 </div>
 
+<div id="modal-tools-img" class="modal-overlay" onclick="outsideClose(event,'modal-tools-img')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:600px; padding:36px 40px;">
+        <div style="font-size:0.8rem; line-height:1.9; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all;">
+            <p style="margin:0 0 16px;">IMTI는 Claude AI의 도움을 받아 개발되었으며, 포함된 콘텐츠는 Google Docs, Google Sheets 및 Looker Studio를 기반으로 합니다.</p>
+            <p style="margin:0; font-family:'DM Mono',monospace; font-size:0.75rem; color:#6c757d; line-height:1.8;">IMTI was developed with the assistance of Claude AI, and the included content is based on Google Docs, Google Sheets, and Looker Studio.</p>
+        </div>
+        <div style="margin-top:28px; text-align:center;">
+            <button onclick="closeModal('modal-tools-img')"
+                    style="background:#fff; color:#343a40; border:1.5px solid #adb5bd; border-radius:6px; padding:8px 36px; font-family:'DM Mono',monospace; font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                    onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+                    onmouseout="this.style.background='#fff';    this.style.color='#343a40'; this.style.borderColor='#adb5bd'">닫기</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-notice-detail" class="modal-overlay" onclick="outsideClose(event,'modal-notice-detail')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:600px; padding:36px 40px;">
+        <div id="notice-detail-title" style="font-family:'DM Mono',monospace; font-size:1.05rem; font-weight:700; color:#212529; margin-bottom:16px; letter-spacing:0.02em; word-break:keep-all;"></div>
+        <div id="notice-detail-body" style="font-size:0.82rem; line-height:1.9; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all; white-space:pre-line;"></div>
+        <div style="margin-top:28px; text-align:center;">
+            <button onclick="closeModal('modal-notice-detail')"
+                    style="background:#fff; color:#343a40; border:1.5px solid #adb5bd; border-radius:6px; padding:8px 36px; font-family:'DM Mono',monospace; font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                    onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+                    onmouseout="this.style.background='#fff';    this.style.color='#343a40'; this.style.borderColor='#adb5bd'">닫기</button>
+        </div>
+    </div>
+</div>
+
 <div id="modal-why" class="modal-overlay" onclick="outsideClose(event,'modal-why')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:600px; padding:36px 40px;">
         <div style="font-size:0.8rem; line-height:1.9; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all; display:none;">
@@ -942,6 +1038,7 @@ const ADMIN_SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbwhgPJyoLR-Z
 const CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBInDqEoLUfRUKmAGEdvgJhFy6FHsp0uqv0HnhgVfh4Lb5F-NeeSACdMAJdT9DYaBZlA/exec';
 const COUNTER_URL        = 'https://script.google.com/macros/s/AKfycbydwUaYyMQsd-JmpvItpuj39s0vt6Ks0AquuX0-8Dk_Rp0ghPPLcFCyOirkqLsrYf_i/exec';
 const SHEET_CSV          = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRclbL-Jh5Bh7VxCbl55mj6iRMTwSUbofSLWurmkQF2opAmxQJqZqsXxl9-CgkbawoiV2eAxYmMr9YA/pub?gid=0&single=true&output=csv';
+const NOTICE_CSV          = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTUyFxl1bdprk3Oq_A_z5paVCW35ZtMl-6XVLm5K2e9WmkfVUaU-0O-AMmlUX65-4EB_3JHV-TZQPQL/pub?gid=0&single=true&output=csv';
 
 var _imtiReady     = false;
 var _adminReady    = false;
@@ -989,7 +1086,12 @@ function applySlide(index, animate) {
 function nextSlide() { currentSlide = (currentSlide + 1) % slides.length; applySlide(currentSlide, true); }
 
 window.addEventListener('load', () => {
-    if (window.lucide) lucide.createIcons();
+    /* Run the visitor counter first and on its own, so an error anywhere
+       else in this handler can never prevent it from firing. */
+    let _runCounterPromise = Promise.resolve();
+    try { _runCounterPromise = runCounter(); } catch (e) { console.error('[IMTI] runCounter call error:', e); }
+
+    try { if (window.lucide) lucide.createIcons(); } catch (e) { console.error('[IMTI] lucide error:', e); }
 
     /* Show the inactivity auto-logout notice if we arrived here via idle timeout.
        common.js sets sessionStorage 'imti_logout_reason' = 'idle' before redirecting,
@@ -1003,8 +1105,15 @@ window.addEventListener('load', () => {
     } catch (e) {}
 
     warmUpScripts();
-    runCounter();
-    fetchSheet();
+    Promise.allSettled([
+        _runCounterPromise,
+        fetchSheet(),
+        loadNoticeFeed(),
+        loadWhyCounterList()
+    ]).then(() => {
+        const label = document.getElementById('page-status-label');
+        if (label) label.textContent = 'Ready';
+    });
     applySlide(0, false);
     document.querySelectorAll('.slide-dot').forEach((dot, i) => {
         dot.addEventListener('click', () => {
@@ -1032,9 +1141,9 @@ function fitVisitorCount() {
     const card = document.getElementById('visitor-card');
     const span = document.getElementById('visitor-count');
     if (!card || !span) return;
-    let size = 20;
+    let size = 28;
     span.style.fontSize = size + 'px';
-    while (span.scrollWidth > card.clientWidth - 16 && size > 8) span.style.fontSize = --size + 'px';
+    while (span.scrollWidth > card.clientWidth - 16 && size > 12) span.style.fontSize = --size + 'px';
 }
 
 async function sha256(str) {
@@ -1166,7 +1275,7 @@ async function finalizeLogin(userId, email, redirectTo) {
     window.location.href = redirectTo;
 }
 
-function openModal(id)               { document.getElementById(id)?.classList.add('open'); if (id === 'modal-why') loadWhyCounterList(); }
+function openModal(id)               { document.getElementById(id)?.classList.add('open'); }
 function closeModal(id)              { document.getElementById(id)?.classList.remove('open'); }
 function outsideClose(e, id)         { if (e.target === document.getElementById(id)) closeModal(id); }
 
@@ -1175,7 +1284,8 @@ document.addEventListener('keydown', e => {
         if (document.getElementById('modal-dup-login')?.classList.contains('open')) { dupLoginCancel(); return; }
         ['modal-join','modal-admin','modal-why','modal-contact','modal-login-fail',
          'modal-join-success','modal-admin-fail','modal-join-errID','modal-join-errmail',
-         'modal-join-errPasscheck','modal-join-confirm','modal-join-cancel','modal-contact-success'
+         'modal-join-errPasscheck','modal-join-confirm','modal-join-cancel','modal-contact-success',
+         'modal-notice-detail'
         ].forEach(closeModal);
     }
     if (e.key === 'Enter') {
@@ -1628,13 +1738,21 @@ async function handleAdminLogin() {
     }
 }
 
-async function runCounter() {
+async function runCounter(retry) {
+    const el = document.getElementById('visitor-count');
     try {
-        const count = await fetch(COUNTER_URL).then(r => r.text());
-        const el    = document.getElementById('visitor-count');
+        const ctrl = new AbortController();
+        const _t   = setTimeout(() => ctrl.abort(), 10000);
+        const count = await fetch(COUNTER_URL, { method: 'GET', redirect: 'follow', cache: 'no-cache', signal: ctrl.signal })
+            .then(r => { clearTimeout(_t); return r.text(); });
         if (el) { el.innerText = count.trim() || '??'; fitVisitorCount(); }
-    } catch {
-        const el = document.getElementById('visitor-count');
+    } catch (e) {
+        console.error('[IMTI] runCounter error:', e);
+        if (!retry) {
+            /* Cold-start Google Apps Script can fail the first hit; try once more. */
+            setTimeout(() => runCounter(true), 1500);
+            return;
+        }
         if (el) { el.innerText = '??'; fitVisitorCount(); }
     }
 }
@@ -1655,6 +1773,113 @@ async function fetchSheet() {
         }
     } catch { console.error('[IMTI] Sheet fetch error'); }
 }
+
+/* ----------------------------------------------------------------
+   Notice (공지사항) feed — read from the "index_notice" Google Sheet.
+
+   Expected sheet structure (sheet/tab name: index_notice), header row
+   in row 1, one notice per row from row 2 onward:
+
+     A열 (title)   : 공지사항 제목
+     B열 (content) : 공지사항 내용 (모달에서 보여줄 본문)
+     C열 (visible) : 노출 여부  -> "Y" 또는 "TRUE" 면 노출, 그 외(빈칸/"N"/"FALSE")면 숨김
+     D열 (order)   : 노출 순서 -> 숫자가 작을수록 먼저 노출 (숫자가 비어있으면 행 순서대로)
+
+   Example:
+     title              | content                          | visible | order
+     동계 워크숍 안내    | 2026년 1월에 진행되는...          | Y       | 1
+     서버 점검 안내      | 1월 15일 02:00~04:00 서버 점검...  | Y       | 2
+     (임시 비공개 공지)  | ...                               | N       | 3
+   ---------------------------------------------------------------- */
+let _noticeList    = [];     // [{ title, content }] — 실제 공지 항목만 (위쪽 "Notice" 라벨은 별도로 항상 고정 표시)
+let _noticeIndex   = 0;
+let _noticeTimer   = null;
+const NOTICE_ROTATE_MS = 5000;
+
+async function loadNoticeFeed() {
+    try {
+        const text = await fetch(NOTICE_CSV + '&t=' + Date.now()).then(r => r.text());
+        const rows = _parseCSV(text);
+
+        const items = rows.slice(1) // skip header row
+            .map((r, i) => ({
+                title:   (r[0] || '').trim(),
+                content: (r[1] || '').trim(),
+                visible: (r[2] || '').trim().toUpperCase(),
+                order:   parseFloat(r[3]),
+                _row:    i
+            }))
+            .filter(o => o.title && (o.visible === 'Y' || o.visible === 'TRUE'))
+            .sort((a, b) => {
+                const ao = isNaN(a.order) ? a._row : a.order;
+                const bo = isNaN(b.order) ? b._row : b.order;
+                return ao - bo;
+            });
+
+        _noticeList  = items.map(o => ({ title: o.title, content: o.content }));
+        _noticeIndex = 0;
+        buildNoticeDots();
+        renderNoticeStage(false);
+        startNoticeRotation();
+    } catch (e) {
+        console.error('[IMTI] Notice feed fetch error:', e);
+        _noticeList = [];
+        buildNoticeDots();
+        renderNoticeStage(false);
+    }
+}
+
+function buildNoticeDots() {
+    const dots = document.getElementById('notice-dots');
+    if (!dots) return;
+    dots.innerHTML = _noticeList
+        .map((_, i) => `<div class="notice-dot${i === 0 ? ' active-dot' : ''}" data-index="${i}"></div>`)
+        .join('');
+    dots.querySelectorAll('.notice-dot').forEach((dot, i) => {
+        dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearInterval(_noticeTimer);
+            _noticeIndex = i;
+            renderNoticeStage(true);
+            startNoticeRotation();
+        });
+    });
+}
+
+function updateNoticeDots() {
+    document.querySelectorAll('#notice-dots .notice-dot').forEach((d, i) =>
+        d.classList.toggle('active-dot', i === _noticeIndex));
+}
+
+/* animate: 메인 슬라이드쇼와 동일하게 살짝 페이드 전환 */
+function renderNoticeStage(animate) {
+    const el = document.getElementById('notice-marquee');
+    if (!el) return;
+    const item = _noticeList[_noticeIndex];
+    const text = item ? item.title : '- Notice -';
+    const go = () => { el.textContent = text; el.style.opacity = '1'; updateNoticeDots(); };
+    if (animate) { el.style.opacity = '0'; setTimeout(go, 300); } else go();
+}
+
+function startNoticeRotation() {
+    clearInterval(_noticeTimer);
+    if (_noticeList.length <= 1) return;
+    _noticeTimer = setInterval(() => {
+        _noticeIndex = (_noticeIndex + 1) % _noticeList.length;
+        renderNoticeStage(true);
+    }, NOTICE_ROTATE_MS);
+}
+
+function openNoticeDetail() {
+    const item = _noticeList[_noticeIndex];
+    if (!item) return; // 등록된 공지사항이 없으면 모달을 띄우지 않음.
+    const titleEl = document.getElementById('notice-detail-title');
+    const bodyEl  = document.getElementById('notice-detail-body');
+    if (titleEl) titleEl.textContent = item.title;
+    if (bodyEl)  bodyEl.textContent  = item.content;
+    openModal('modal-notice-detail');
+}
+
 
 // CSV 한 줄을 셀 배열로 파싱 (따옴표 안의 쉼표/줄바꿈 처리)
 function _parseCSV(text) {
