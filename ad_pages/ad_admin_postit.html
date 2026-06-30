@@ -27,7 +27,7 @@ body { height: 100vh; overflow: hidden; }
 .auth-loading .sp2{width:22px;height:22px;border:2px solid #e9ecef;border-top-color:#adb5bd;border-radius:50%;animation:spin .8s linear infinite}
 .auth-loading p{font-family:var(--fn);font-size:13px;color:#adb5bd}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* 다이나믹 로딩 - 포스트잇 모티프 */
+/* 다이나믹 로딩 - Post-it 모티프 */
 .dyn-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:2rem}
 .dyn-stack{position:relative;width:54px;height:54px}
 .dyn-stack span{position:absolute;inset:0;width:38px;height:38px;margin:auto;border-radius:6px;animation:dynFloat 1.4s ease-in-out infinite}
@@ -69,7 +69,7 @@ body { height: 100vh; overflow: hidden; }
 .btn-notify:hover{background:#ffedd5;border-color:#fb923c}
 .btn-add{padding:10px 24px;border-radius:99px;background:#212529;color:#fff;border:none;font-size:14px;font-weight:700;font-family:var(--fn);cursor:pointer;white-space:nowrap;transition:opacity .15s}
 .btn-add:hover{opacity:.82}
-/* 카드 그리드 */
+/* Post-it 그리드 */
 .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(315px,1fr));gap:18px;align-items:start}
 .card{border-radius:10px;padding:20px;border:1px solid;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:transform .12s,box-shadow .12s;height:260px;overflow:hidden}
 .card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.18)}
@@ -140,7 +140,7 @@ body { height: 100vh; overflow: hidden; }
 .detail-card-text{font-size:14px;line-height:1.7;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
 .detail-card-preview.y .detail-card-text{color:var(--y-tx)}.detail-card-preview.b .detail-card-text{color:var(--b-tx)}
 .detail-card-preview.g .detail-card-text{color:var(--g-tx)}.detail-card-preview.p .detail-card-text{color:var(--p-tx)}
-.comments-list{display:flex;flex-direction:column;gap:12px;margin-bottom:1rem;max-height:260px;overflow-y:auto}
+.comments-list{display:flex;flex-direction:column;gap:12px;margin-bottom:1rem;min-height:120px;max-height:260px;overflow-y:auto;justify-content:center}
 .comment-item{display:flex;gap:10px}
 .comment-av{width:28px;height:28px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .comment-bubble{flex:1}
@@ -158,7 +158,7 @@ body { height: 100vh; overflow: hidden; }
 .comment-del-btn{background:none;border:none;cursor:pointer;font-size:11px;color:#cbd5e1;padding:0 0 0 6px;font-family:var(--fn);font-weight:700;vertical-align:middle}
 .comment-del-btn:hover{color:#dc2626}
 /* 보관함 */
-.archive-cards{display:flex;flex-direction:column;gap:10px;max-height:55vh;overflow-y:auto}
+.archive-cards{display:flex;flex-direction:column;gap:10px;min-height:140px;max-height:55vh;overflow-y:auto;justify-content:center}
 .archive-item{border-radius:10px;padding:14px 16px;border:1px solid;display:flex;flex-direction:column;gap:8px}
 .archive-item.y{background:var(--y-bg);border-color:var(--y-bd)}.archive-item.b{background:var(--b-bg);border-color:var(--b-bd)}
 .archive-item.g{background:var(--g-bg);border-color:var(--g-bd)}.archive-item.p{background:var(--p-bg);border-color:var(--p-bd)}
@@ -214,6 +214,9 @@ body { height: 100vh; overflow: hidden; }
         <button class="chip" style="background:#DCFCE7;border-color:#86EFAC;color:#14532D" onmouseenter="this.style.background='#86EFAC'" onmouseleave="this.style.background='#DCFCE7'" onclick="setFilter(this,'아이디어')">💡 아이디어</button>
         <button class="chip" style="background:#DBEAFE;border-color:#93C5FD;color:#1E3A5F" onmouseenter="this.style.background='#93C5FD'" onmouseleave="this.style.background='#DBEAFE'" onclick="setFilter(this,'할일')">✅ 할일</button>
       </div>
+      <span id="sync-indicator" style="display:none;align-items:center;gap:6px;font-size:11px;color:#9ca3af;font-weight:600;white-space:nowrap">
+        <span style="width:10px;height:10px;border:2px solid #e9ecef;border-top-color:#adb5bd;border-radius:50%;animation:spin .8s linear infinite;display:inline-block"></span>동기화 중...
+      </span>
       <button class="btn-refresh" onclick="location.reload(true)" title="강제 새로고침">🔄 새로고침</button>
       <button class="btn-archive" onclick="openArchive()">📦 보관함</button>
       <button class="btn-conf" onclick="window.open('ad_chat.html?uid='+encodeURIComponent(currentUser?currentUser.email:''),'_blank')">🚪 Conference-Room</button>
@@ -224,7 +227,7 @@ body { height: 100vh; overflow: hidden; }
   </div>
 </div>
 
-<!-- ── 카드 추가 모달 ── -->
+<!-- ── Post-it 추가 모달 ── -->
 <div class="overlay" id="add-overlay">
   <div class="modal">
     <h2>새 Post-It 작성</h2>
@@ -249,16 +252,16 @@ body { height: 100vh; overflow: hidden; }
       <div class="member-checks" id="tag-checks"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeAdd()">취소</button>
-      <button class="btn-primary" id="post-btn" onclick="submitCard()">올리기</button>
+      <button class="btn-cancel" onclick="closeAdd()">Cancel</button>
+      <button class="btn-primary" id="post-btn" onclick="submitCard()">Post</button>
     </div>
   </div>
 </div>
 
-<!-- ── 카드 수정 모달 ── -->
+<!-- ── Post-it 수정 모달 ── -->
 <div class="overlay" id="edit-overlay">
   <div class="modal">
-    <h2>카드 수정</h2>
+    <h2>Post-it 수정</h2>
     <div class="form-group">
       <label class="form-label">유형</label>
       <div class="type-row">
@@ -276,22 +279,22 @@ body { height: 100vh; overflow: hidden; }
       <input type="date" class="form-input" id="edit-deadline">
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeEdit()">취소</button>
-      <button class="btn-primary" id="edit-btn" onclick="submitEdit()">저장</button>
+      <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="btn-primary" id="edit-btn" onclick="submitEdit()">Re-Post</button>
     </div>
   </div>
 </div>
 
-<!-- ── 카드 상세 모달 ── -->
+<!-- ── Post-it 상세 모달 ── -->
 <div class="overlay" id="detail-overlay">
   <div class="modal" style="max-width:460px">
-    <h2 id="detail-title">카드 상세</h2>
+    <h2 id="detail-title">Post-it 상세</h2>
     <div id="detail-card-preview"></div>
     <div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:8px">
       💬 댓글 <span id="comment-count" style="font-weight:400;color:#9ca3af"></span>
     </div>
     <div class="comments-list" id="comments-list">
-      <div class="dyn-loading" style="padding:1rem"><div class="dyn-stack" style="width:38px;height:38px"><span></span><span></span><span></span></div><div class="dyn-text" style="font-size:12px">댓글을 불러오는 중<span class="dyn-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
+      <div style="text-align:center;padding:1.5rem;font-size:12px;color:#9ca3af">댓글을 불러오는 중...</div>
     </div>
     <div class="comment-input-row">
       <textarea class="comment-input" id="comment-input" placeholder="댓글을 입력하세요..." rows="1"
@@ -309,9 +312,9 @@ body { height: 100vh; overflow: hidden; }
 <div class="overlay" id="archive-overlay">
   <div class="modal" style="max-width:480px">
     <h2>📦 내 보관함</h2>
-    <p style="font-size:12px;color:#9ca3af;margin-bottom:1rem">내가 작성했지만 보드에서 숨긴 카드예요.</p>
+    <p style="font-size:12px;color:#9ca3af;margin-bottom:1rem">내가 작성했지만 보드에서 숨긴 Post-it이에요.</p>
     <div class="archive-cards" id="archive-list">
-      <div class="dyn-loading" style="padding:1rem"><div class="dyn-stack" style="width:38px;height:38px"><span></span><span></span><span></span></div><div class="dyn-text" style="font-size:12px">보관함을 불러오는 중<span class="dyn-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
+      <div style="text-align:center;padding:1.5rem;font-size:12px;color:#9ca3af">보관된 Post-it을 불러오는 중...</div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeOverlay('archive-overlay')">닫기</button>
@@ -388,7 +391,7 @@ let allCards = [], allEmails = [];
 let currentFilter = 'all', currentCardId = null;
 let selCardColor = 'y', selCardType = '공지', taggedEmails = [];
 let editCardId = null, editCardColor = 'y', editCardType = '공지';
-let _archiveCache = []; // 보관함 카드 캐시 (재게시 즉시 반영용)
+let _archiveCache = []; // 보관함 Post-it 캐시 (재게시 즉시 반영용)
 
 // 유형 → 색상 자동 매핑 (공지=p, 아이디어=g, 할일=b)
 function typeToColor(type){ return type==='공지'?'p':type==='아이디어'?'g':'b'; }
@@ -422,6 +425,10 @@ function emailToName(e){ const l=emailLocal(e); return l.charAt(0).toUpperCase()
 function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function dynLoadingHTML(text){
   return `<div class="dyn-loading" style="padding:1.5rem"><div class="dyn-stack"><span></span><span></span><span></span></div><div class="dyn-text">${text}<span class="dyn-dots"><span>.</span><span>.</span><span>.</span></span></div></div>`;
+}
+// 댓글/보관함처럼 가벼운 영역은 애니메이션 없이 1줄 문자열로만 로딩 표시
+function textLoadingHTML(text){
+  return `<div style="text-align:center;padding:1.5rem;font-size:12px;color:#9ca3af">${text}...</div>`;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -462,7 +469,7 @@ function showProgress(msg){
 // 폴링 중 진행 상태 갱신 (시도 횟수를 보여줘서 막연한 대기가 아니라 실제로 확인 중임을 표시)
 function updateProgress(msg, tries, maxTries){
   document.getElementById('pm-msg').textContent = msg;
-  document.getElementById('pm-sub').textContent = `반영 확인 중... (${tries}/${maxTries})`;
+  document.getElementById('pm-sub').textContent = '잠시만 기다려 주세요...';
 }
 function hideProgress(){ clearInterval(_progressTimer); closeOverlay('progress-overlay'); }
 
@@ -570,13 +577,58 @@ function gas(params){
   return fetch(`${POSTIT_GAS_URL}?${qs}`, {cache:'no-store'}).then(r=>r.json());
 }
 
-// ── 운영진 + 카드 동시 로드
-// 카드는 GAS getCards를 직접 호출해 캐시 지연 없이 항상 최신 상태를 읽는다.
+// ── 운영진 + Post-it 동시 로드
+// Post-it은 GAS getCards를 직접 호출해 캐시 지연 없이 항상 최신 상태를 읽는다.
 // (GAS가 막혀있는 예외 상황에서는 게시용 CSV로 자동 폴백)
-function loadMembersAndCards(){
-  // 기존 카드 즉시 초기화 (강제 새로고침 시 이전 카드 노출 방지)
+// GAS 호출 자체가 느릴 수 있어(콜드스타트 등), 직전에 불러온 결과를 짧은 시간 동안만
+// 캐시해뒀다가 즉시 보여주고 백그라운드에서 최신 데이터로 조용히 교체한다 (체감 속도 개선).
+// 캐시가 너무 오래되면(POSTIT_CACHE_MAX_AGE 초과) 그새 다른 운영진이 삭제/숨김한
+// 항목이 섞여있을 위험이 커지므로 그 경우는 캐시를 쓰지 않고 평소대로 로딩한다.
+const POSTIT_CACHE_MAX_AGE = 3 * 60 * 1000; // 3분
+function postitCacheKey(){
+  return 'imti_postit_cache_v1:' + ((currentUser && currentUser.email) || 'anon');
+}
+function setSyncIndicator(on){
+  const el=document.getElementById('sync-indicator');
+  if(el) el.style.display = on ? 'inline-flex' : 'none';
+}
+function loadMembersAndCards(skipLoadingUI){
+  // 기존 Post-it 즉시 초기화 (강제 새로고침 시 이전 Post-it 노출 방지)
   allCards=[];
-  document.getElementById('cards-container').innerHTML=dynLoadingHTML('포스트잇을 불러오는 중');
+  let renderedFromCache=false;
+  let finalLoaded=false; // GAS(최종) 결과가 이미 도착했는지 여부 (프리뷰 경쟁 방지용)
+
+  if(!skipLoadingUI){
+    try{
+      const cached=JSON.parse(localStorage.getItem(postitCacheKey())||'null');
+      if(cached && Array.isArray(cached.cards) && cached.cards.length &&
+         cached.ts && (Date.now()-cached.ts)<POSTIT_CACHE_MAX_AGE){
+        allCards=cached.cards;
+        allEmails=cached.allEmails||[];
+        buildTagChecks();
+        renderCards();
+        renderedFromCache=true;
+        setSyncIndicator(true); // 화면은 즉시 보여주되, 최신 상태 확인 중임을 표시
+      }
+    }catch(e){ /* 캐시 손상/미지원 시 무시 */ }
+
+    if(!renderedFromCache){
+      document.getElementById('cards-container').innerHTML=dynLoadingHTML('Post-it을 불러오는 중');
+      // 로컬 캐시가 없는 첫 접속의 경우, 응답이 느릴 수 있는 GAS를 기다리는 대신
+      // 게시용 CSV(공개된 정적 파일이라 훨씬 빠름)로 먼저 화면을 채워 체감 속도를 높인다.
+      // 최종 데이터는 항상 GAS 결과로 다시 한 번 교체되므로 정합성 문제는 없다.
+      fetch(CSV_CARDS+'&t='+Date.now(), {cache:'no-store'}).then(r=>r.text()).then(text=>{
+        if(finalLoaded) return; // 이미 GAS 결과가 먼저 도착했다면 무시
+        const previewCards=csvRowsToCards(parseCSV(text));
+        if(finalLoaded || !previewCards.length) return;
+        allCards=previewCards;
+        buildTagChecks();
+        renderCards();
+        setSyncIndicator(true);
+      }).catch(()=>{ /* 프리뷰 실패는 무시하고 GAS 결과를 기다림 */ });
+    }
+  }
+
   const noCache={cache:'no-store',headers:{'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache'}};
   const cardsPromise = gas({action:'getCards'})
     .then(res=>(res && res.cards) ? res.cards : [])
@@ -584,10 +636,11 @@ function loadMembersAndCards(){
       console.error('[getCards] GAS 읽기 실패, CSV로 폴백', e);
       return fetch(CSV_CARDS+'&t='+Date.now(), noCache).then(r=>r.text()).then(text=>csvRowsToCards(parseCSV(text)));
     });
-  Promise.all([
+  return Promise.all([
     fetch(CSV_MEMBERS+'&t='+Date.now(), noCache).then(r=>r.text()).catch(()=>''),
     cardsPromise,
   ]).then(([mText, cards])=>{
+    finalLoaded=true;
     // 운영진 이메일
     if(mText){
       const rows=parseCSV(mText);
@@ -596,18 +649,27 @@ function loadMembersAndCards(){
       allEmails=Array.from(emails).filter(e=>e!==currentUser.email);
     }
     buildTagChecks();
-    // 카드 (GAS/CSV 둘 다 이미 본인이 숨긴 카드는 제외, 최신순)
+    // Post-it (GAS/CSV 둘 다 이미 본인이 숨긴 Post-it은 제외, 최신순)
     allCards = cards || [];
     renderCards();
+    setSyncIndicator(false);
+    // 다음 로딩 때 즉시 보여줄 수 있도록 최신 결과를 캐시에 저장
+    try{
+      localStorage.setItem(postitCacheKey(), JSON.stringify({cards:allCards, allEmails, ts:Date.now()}));
+    }catch(e){ /* 저장 공간 부족 등은 무시 */ }
   }).catch(e=>{
+    finalLoaded=true;
     console.error('[loadMembersAndCards]',e);
-    document.getElementById('cards-container').innerHTML=
-      '<div class="empty"><p>⚠️ 데이터를 불러올 수 없어요.</p></div>';
+    setSyncIndicator(false);
+    if(!renderedFromCache && !allCards.length){
+      document.getElementById('cards-container').innerHTML=
+        '<div class="empty"><p>⚠️ 데이터를 불러올 수 없어요.</p></div>';
+    }
   });
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 카드 렌더링
+// Post-it 렌더링
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function setFilter(btn,type){
   currentFilter=type;
@@ -621,7 +683,7 @@ function renderCards(){
   filtered=sortCards(filtered.map(c=>({...c,color:typeToColor(c.type)})));
   const container=document.getElementById('cards-container');
   if(!filtered.length){
-    container.innerHTML='<div class="empty"><p>아직 카드가 없어요 ✨<br>첫 번째 카드를 올려보세요!</p></div>';
+    container.innerHTML='<div class="empty"><p>아직 Post-it이 없어요 ✨<br>첫 번째 Post-it을 올려보세요!</p></div>';
     return;
   }
   container.innerHTML=`<div class="cards-grid">${filtered.map(cardHTML).join('')}</div>`;
@@ -682,7 +744,7 @@ function buildTagChecks(){
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 카드 추가
+// Post-it 추가
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openAddModal(){
   selCardType='공지'; taggedEmails=[];
@@ -691,7 +753,7 @@ function openAddModal(){
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('sel'));
   document.querySelector('.type-btn').classList.add('sel');
   document.querySelectorAll('#tag-checks .member-check').forEach(m=>m.classList.remove('sel'));
-  const btn=document.getElementById('post-btn'); btn.disabled=false; btn.textContent='올리기';
+  const btn=document.getElementById('post-btn'); btn.disabled=false; btn.textContent='Post';
   document.getElementById('add-overlay').classList.add('open');
 }
 function closeAdd(){ closeOverlay('add-overlay'); }
@@ -701,32 +763,33 @@ function toggleTag(label,email){ label.classList.toggle('sel'); if(taggedEmails.
 
 function submitCard(){
   const text=document.getElementById('card-text').value.trim();
-  if(!text){showAlert('⚠️','내용 없음','카드 내용을 입력해주세요.');return;}
-  const btn=document.getElementById('post-btn');
-  btn.disabled=true; btn.textContent='저장 중...';
+  if(!text){showAlert('⚠️','내용 없음','Post-it 내용을 입력해주세요.');return;}
 
   const deadline=document.getElementById('card-deadline').value;
   const tagged=[...taggedEmails];
   const color=typeToColor(selCardType);
   const type=selCardType;
 
-  // GAS 저장
-  gas({action:'addCard',text,type,color,deadline,taggedMembers:tagged.join(',')})
-  .then(()=>{
+  showConfirm('📝','Post-it 저장','이 내용으로 Post-it을 저장할까요?','저장','btn-primary',()=>{
     closeAdd();
-    btn.disabled=false; btn.textContent='올리기';
-    reloadAfterAction('카드를 올렸어요 ✨', cards=>
-      cards.some(c=>c.author===currentUser.email && c.text===text)
-    );
-  })
-  .catch(()=>{
-    btn.disabled=false; btn.textContent='올리기';
-    showAlert('❌','오류','저장 중 오류가 발생했어요. 다시 시도해주세요.');
+    showProgress('Post-it Board에 반영 중...');
+
+    // GAS 저장
+    gas({action:'addCard',text,type,color,deadline,taggedMembers:tagged.join(',')})
+    .then(()=>{
+      reloadAfterAction('Post-it을 올렸어요 ✨', cards=>
+        cards.some(c=>c.author===currentUser.email && c.text===text)
+      );
+    })
+    .catch(()=>{
+      hideProgress();
+      showAlert('❌','오류','저장 중 오류가 발생했어요. 다시 시도해주세요.');
+    });
   });
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 카드 수정
+// Post-it 수정
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openEdit(id){
   const c=allCards.find(x=>x.id===id); if(!c) return;
@@ -735,7 +798,7 @@ function openEdit(id){
   document.getElementById('edit-deadline').value=c.deadline||'';
   document.querySelectorAll('[id^="edit-type-"]').forEach(b=>b.classList.remove('sel'));
   const tb=document.getElementById('edit-type-'+c.type); if(tb) tb.classList.add('sel');
-  const btn=document.getElementById('edit-btn'); btn.disabled=false; btn.textContent='저장';
+  const btn=document.getElementById('edit-btn'); btn.disabled=false; btn.textContent='Re-Post';
   document.getElementById('edit-overlay').classList.add('open');
 }
 function closeEdit(){ closeOverlay('edit-overlay'); }
@@ -744,43 +807,45 @@ function selEditColor(dot,c){ editCardColor=c; document.querySelectorAll('[id^="
 
 function submitEdit(){
   const text=document.getElementById('edit-text').value.trim();
-  if(!text){showAlert('⚠️','내용 없음','카드 내용을 입력해주세요.');return;}
-  const btn=document.getElementById('edit-btn');
-  btn.disabled=true; btn.textContent='저장 중...';
+  if(!text){showAlert('⚠️','내용 없음','Post-it 내용을 입력해주세요.');return;}
 
   const deadline=document.getElementById('edit-deadline').value;
   const id=editCardId;
   const type=editCardType;
   const color=typeToColor(editCardType);
 
-  gas({action:'updateCard',id,text,type,color,deadline})
-  .then(()=>{
+  showConfirm('📝','Post-it 수정','이 내용으로 Post-it을 수정할까요?','수정','btn-primary',()=>{
     closeEdit();
-    btn.disabled=false; btn.textContent='저장';
-    reloadAfterAction('카드를 수정했어요 ✏️', cards=>
-      cards.some(c=>c.id===id && c.text===text)
-    );
-  })
-  .catch(()=>{
-    btn.disabled=false; btn.textContent='저장';
-    showAlert('❌','오류','저장 중 오류가 발생했어요. 다시 시도해주세요.');
+    showProgress('Post-it Board에 반영 중...');
+
+    gas({action:'updateCard',id,text,type,color,deadline})
+    .then(()=>{
+      reloadAfterAction('Post-it을 수정했어요 ✏️', cards=>
+        cards.some(c=>c.id===id && c.text===text)
+      );
+    })
+    .catch(()=>{
+      hideProgress();
+      showAlert('❌','오류','저장 중 오류가 발생했어요. 다시 시도해주세요.');
+    });
   });
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 카드 숨기기 (삭제)
+// Post-it 숨기기 (삭제)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function confirmHide(id){
-  showConfirm('🗑️','카드 숨기기',
-    '이 카드를 보드에서 숨길까요?\n숨긴 카드는 보관함에서 확인할 수 있어요.',
+  showConfirm('🗑️','Post-it 숨기기',
+    '이 Post-it을 보드에서 숨길까요?\n숨긴 Post-it은 보관함에서 확인할 수 있어요.',
     '숨기기','btn-danger',()=>doHide(id));
 }
 function doHide(id){
+  showProgress('Post-it Board에 반영 중...');
   gas({action:'hideCard',id})
     .then(()=>reloadAfterAction('보관함으로 이동했어요 📦', cards=>
-      !cards.some(c=>c.id===id) // getCards는 본인이 숨긴 카드를 아예 제외하고 내려줌
+      !cards.some(c=>c.id===id) // getCards는 본인이 숨긴 Post-it을 아예 제외하고 내려줌
     ))
-    .catch(()=>showAlert('❌','오류','숨기기 중 오류가 발생했어요.'));
+    .catch(()=>{ hideProgress(); showAlert('❌','오류','숨기기 중 오류가 발생했어요.'); });
 }
 
 // ── 좋아요
@@ -800,7 +865,7 @@ function likeCard(id){
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 카드 상세 / 댓글
+// Post-it 상세 / 댓글
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openDetail(id){
   currentCardId=id;
@@ -825,7 +890,7 @@ function openDetail(id){
       <span style="font-size:10px;color:#9ca3af;margin-left:auto">${c.date}</span>
     </div>
     <div class="detail-card-text">${escHtml(c.text)}</div>${tagsHTML}${dlHTML}`;
-  document.getElementById('comments-list').innerHTML=dynLoadingHTML('댓글을 불러오는 중');
+  document.getElementById('comments-list').innerHTML=textLoadingHTML('댓글을 불러오는 중');
   document.getElementById('comment-input').value='';
   const cBtn=document.getElementById('comment-submit-btn'); cBtn.disabled=false; cBtn.textContent='등록';
   document.getElementById('comment-count').textContent='';
@@ -834,13 +899,17 @@ function openDetail(id){
 }
 
 function loadComments(cardId){
-  gas({action:'getComments', cardId})
-    .then(res=>(res && res.comments) ? res.comments : [])
-    .catch(e=>{
-      console.error('[getComments] GAS 읽기 실패, CSV로 폴백', e);
-      return fetch(CSV_COMMENTS+'&t='+Date.now(), {cache:'no-store'}).then(r=>r.text()).then(text=>csvRowsToComments(parseCSV(text), cardId));
-    })
-    .then(comments=>{
+  const minDelay=new Promise(resolve=>setTimeout(resolve, 700));
+  Promise.all([
+    gas({action:'getComments', cardId})
+      .then(res=>(res && res.comments) ? res.comments : [])
+      .catch(e=>{
+        console.error('[getComments] GAS 읽기 실패, CSV로 폴백', e);
+        return fetch(CSV_COMMENTS+'&t='+Date.now(), {cache:'no-store'}).then(r=>r.text()).then(text=>csvRowsToComments(parseCSV(text), cardId));
+      }),
+    minDelay
+  ])
+    .then(([comments])=>{
       document.getElementById('comment-count').textContent=`(${comments.length})`;
       document.getElementById('comments-list').innerHTML=comments.length
         ?comments.map(cm=>commentItemHTML(cm)).join('')
@@ -944,9 +1013,10 @@ function doDeleteComment(id){
 // 보관함
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openArchive(){
-  document.getElementById('archive-list').innerHTML=dynLoadingHTML('보관함을 불러오는 중');
+  document.getElementById('archive-list').innerHTML=textLoadingHTML('보관된 Post-it을 불러오는 중');
   document.getElementById('archive-overlay').classList.add('open');
-  gas({action:'getMyHidden'})
+  const minDelay=new Promise(resolve=>setTimeout(resolve, 700));
+  const dataPromise=gas({action:'getMyHidden'})
     .then(res=>({cards:(res && res.cards) ? res.cards : [], alreadySorted:true}))
     .catch(e=>{
       console.error('[getMyHidden] GAS 읽기 실패, CSV로 폴백', e);
@@ -962,12 +1032,13 @@ function openArchive(){
         }
         return {cards: cards.reverse(), alreadySorted:true};
       });
-    })
-    .then(({cards})=>{
+    });
+  Promise.all([dataPromise, minDelay])
+    .then(([{cards}])=>{
       _archiveCache = cards; // 재게시 즉시 반영을 위해 캐시
       if(!cards.length){
         document.getElementById('archive-list').innerHTML=
-          '<div style="text-align:center;padding:1.5rem;font-size:13px;color:#9ca3af">숨긴 카드가 없어요</div>';
+          '<div style="text-align:center;padding:1.5rem;font-size:13px;color:#9ca3af">숨긴 Post-it이 없어요</div>';
         return;
       }
       document.getElementById('archive-list').innerHTML=cards.map(c=>`
@@ -988,21 +1059,22 @@ function openArchive(){
 
 // 재게시
 function confirmRepost(id){
-  showConfirm('📌','재게시','이 카드를 다시 보드에 게시할까요?','재게시','btn-success',()=>doRepost(id));
+  showConfirm('📌','재게시','이 Post-it을 다시 보드에 게시할까요?','재게시','btn-success',()=>doRepost(id));
 }
 function doRepost(id){
   closeOverlay('archive-overlay');
+  showProgress('Post-it Board에 반영 중...');
   gas({action:'repostCard',id})
-    .then(()=>reloadAfterAction('카드를 재게시했어요 📌', cards=>
-      cards.some(c=>c.id===id) // getCards는 더 이상 숨겨지지 않은 카드만 보여줌
+    .then(()=>reloadAfterAction('Post-it을 재게시했어요 📌', cards=>
+      cards.some(c=>c.id===id) // getCards는 더 이상 숨겨지지 않은 Post-it만 보여줌
     ))
-    .catch(()=>showAlert('❌','오류','재게시 중 오류가 발생했어요.'));
+    .catch(()=>{ hideProgress(); showAlert('❌','오류','재게시 중 오류가 발생했어요.'); });
 }
 
 // 영구 삭제
 function confirmDeleteCard(id){
   showConfirm('🗑️','영구 삭제',
-    '이 카드를 완전히 삭제할까요?\n삭제 후에는 복구할 수 없어요.',
+    '이 Post-it을 완전히 삭제할까요?\n삭제 후에는 복구할 수 없어요.',
     '영구 삭제','btn-danger',()=>doDeleteCard(id));
 }
 function doDeleteCard(id){
@@ -1020,13 +1092,11 @@ function doDeleteCard(id){
           item.remove();
           if(!_archiveCache.length){
             document.getElementById('archive-list').innerHTML=
-              '<div style="text-align:center;padding:1.5rem;font-size:13px;color:#9ca3af">숨긴 카드가 없어요</div>';
+              '<div style="text-align:center;padding:1.5rem;font-size:13px;color:#9ca3af">숨긴 Post-it이 없어요</div>';
           }
         }, 600); // 다이나믹한 제거 애니메이션 후 DOM에서 정리
       }
-      showToast('카드를 삭제했어요 🗑');
-      // 보드 쪽 데이터도 조용히 동기화 (GAS는 시트를 직접 읽으므로 캐시 지연 없이 바로 반영됨)
-      loadMembersAndCards();
+      showToast('Post-it을 삭제했어요 🗑');
     })
     .catch(()=>{
       if(delBtn){ delBtn.disabled = false; delBtn.innerHTML = '🗑 영구 삭제'; }
@@ -1040,15 +1110,16 @@ function doDeleteCard(id){
 //  "수정/삭제 후에도 예전 내용이 남아있는" 문제를 방지)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function reloadAfterAction(toastMsg, checkFn, opts={}){
-  // 기존 카드 즉시 비우기 (이전 상태가 남아 보이는 것 방지)
+  // 기존 Post-it 즉시 비우기 (이전 상태가 남아 보이는 것 방지)
   allCards=[];
   document.getElementById('cards-container').innerHTML='';
   showProgress('Post-it Board에 반영 중...');
 
   const finish = ()=>{
-    hideProgress();
-    loadMembersAndCards();
-    showToast(toastMsg);
+    loadMembersAndCards(true).then(()=>{
+      hideProgress();
+      showToast(toastMsg);
+    });
   };
 
   if(typeof checkFn !== 'function'){
