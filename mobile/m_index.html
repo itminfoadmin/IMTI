@@ -18,7 +18,11 @@
             --gray-label  : #495057;
         }
         * { box-sizing: border-box; }
-        html { font-size: 16px; }
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
         /* Mobile/tablet: scale root font size with viewport width (scales all rem-based text) */
         @media (max-width: 820px) {
             html { font-size: 22px; }                       /* fallback */
@@ -122,7 +126,7 @@
             font-family  : 'Noto Sans KR', sans-serif;
             font-weight  : 700;
             font-size    : 1.37rem;
-            color        : #343a40;
+            color        : #868e96;
             white-space  : nowrap;
             overflow     : hidden;
             text-overflow: ellipsis;
@@ -132,13 +136,26 @@
 
         /* Notice ticker touch/tap badge (right corner) — small pulsing circle, same
            "click me" motif as the desktop notice card's badge */
+        .notice-bell-badge {
+            position : relative;
+            display  : flex;
+            align-items: center;
+            justify-content: center;
+            width : 1.55rem;
+            height: 1.55rem;
+            flex  : 0 0 auto;
+        }
+        .notice-bell-badge svg {
+            position: relative;
+            z-index : 1;
+        }
         .notice-touch-badge {
             position : relative;
             display  : flex;
             align-items: center;
             justify-content: center;
-            width : 1.5rem;
-            height: 1.5rem;
+            width : 1.8rem;
+            height: 1.8rem;
             flex  : 0 0 auto;
         }
         .notice-touch-badge .nc-circle {
@@ -495,7 +512,7 @@
             #left-panel { max-width: 86% !important; width: 86% !important; }
             /* Labels */
             #left-panel label { font-size: 1.2rem !important; margin-bottom: 6px !important; }
-            #login-email, #login-pw { font-size: 1rem !important; }
+            #login-email, #login-pw { font-size: 1.2rem !important; }
             /* LOG-IN / JOIN-US / CONTACT-US buttons */
             #left-panel > div > button { font-size: 1.14rem !important; padding: 15px 0 !important; }
 
@@ -524,6 +541,13 @@
             /* Auth-failure notice modal body (overrides inline 0.7-0.77rem) */
             #modal-login-fail .modal-box p { font-size: 1.05rem !important; line-height: 1.8 !important; }
             #modal-login-fail .modal-box button { font-size: 1.02rem !important; }
+
+            /* Notice detail modal — bumped up from the 1.02rem bulk rule above,
+               scoped to this modal only so it doesn't affect page-wide layout.
+               Uses px (not rem) so it isn't shrunk by the root-font scaling JS. */
+            #modal-notice-detail #notice-detail-title { font-size: 13px !important; }
+            #modal-notice-detail #notice-detail-body   { font-size: 13px !important; }
+            #modal-notice-detail .modal-box > div:last-child button { font-size: 13px !important; }
         }
 
         @media (max-width: 480px) {
@@ -567,16 +591,17 @@
                  style="display:flex; align-items:center; gap:10px; width:100%; box-sizing:border-box; background:#ffffff; border:1.5px solid #dee2e6; border-radius:12px; padding:13px 16px; cursor:pointer; box-shadow:0 1px 5px rgba(0,0,0,0.06); transition:background 0.2s, border-color 0.2s;"
                  onmouseover="this.style.background='#f8f9fa'; this.style.borderColor='#adb5bd';"
                  onmouseout="this.style.background='#ffffff'; this.style.borderColor='#dee2e6';">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#495057" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.05rem; height:1.05rem; flex:0 0 auto;">
-                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-                </svg>
+                <span class="notice-bell-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#495057" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.55rem; height:1.55rem; flex:0 0 auto;">
+                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                    </svg>
+                </span>
                 <div id="notice-ticker-viewport" style="flex:1 1 auto; min-width:0; height:1.9em; position:relative; overflow:hidden;">
                     <span id="notice-ticker-line-a" class="notice-ticker-line" style="position:absolute; left:0; right:0; top:0; transform:translateY(0); opacity:1;">Notice</span>
                     <span id="notice-ticker-line-b" class="notice-ticker-line" style="position:absolute; left:0; right:0; top:0; transform:translateY(-115%); opacity:0;"></span>
                 </div>
                 <span class="notice-touch-badge">
-                    <span class="notice-touch-pulse"></span>
                     <span class="nc-circle">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#495057" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M9 9l5 12 1.8-5.2L21 14Z"/>
@@ -1020,8 +1045,8 @@
 
 <div id="modal-notice-detail" class="modal-overlay" onclick="outsideClose(event,'modal-notice-detail')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:480px; padding:32px 28px;">
-        <div id="notice-detail-title" style="font-family:'DM Mono',monospace; font-size:1.02rem; font-weight:700; color:#212529; margin-bottom:16px; letter-spacing:0.02em; word-break:keep-all;"></div>
-        <div id="notice-detail-body" style="font-size:0.85rem; line-height:1.85; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all; white-space:pre-line;"></div>
+        <div id="notice-detail-title" style="font-family:'DM Mono',monospace; font-size:1.15rem; font-weight:700; color:#212529; margin-bottom:16px; letter-spacing:0.02em; word-break:keep-all;"></div>
+        <div id="notice-detail-body" style="font-size:0.95rem; line-height:1.85; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all; white-space:pre-line;"></div>
         <div style="margin-top:26px; text-align:center;">
             <button onclick="closeModal('modal-notice-detail')"
                     style="background:#fff; color:#343a40; border:1.5px solid #adb5bd; border-radius:6px; padding:8px 36px; font-family:'DM Mono',monospace; font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
