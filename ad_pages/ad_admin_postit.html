@@ -309,7 +309,7 @@ body { height: 100vh; overflow: hidden; }
 <div class="overlay" id="archive-overlay">
   <div class="modal" style="max-width:480px">
     <h2>📦 내 보관함</h2>
-    <p style="font-size:12px;color:#9ca3af;margin-bottom:1rem">내가 작성했지만 보드에서 숨긴 카드예요. 시트에는 보존됩니다.</p>
+    <p style="font-size:12px;color:#9ca3af;margin-bottom:1rem">내가 작성했지만 보드에서 숨긴 카드예요.</p>
     <div class="archive-cards" id="archive-list">
       <div class="dyn-loading" style="padding:1rem"><div class="dyn-stack" style="width:38px;height:38px"><span></span><span></span><span></span></div><div class="dyn-text" style="font-size:12px">보관함을 불러오는 중<span class="dyn-dots"><span>.</span><span>.</span><span>.</span></span></div></div>
     </div>
@@ -468,8 +468,8 @@ function hideProgress(){ clearInterval(_progressTimer); closeOverlay('progress-o
 
 // ── 변경이 실제로 반영됐는지 확인
 // GAS(getCards)는 시트를 직접 읽기 때문에 거의 즉시 반영되지만,
-// 만에 하나 지연/불일치가 있을 경우를 대비해 짧은 간격으로 몇 번 재확인한다.
-// GAS 호출 자체가 실패하면(차단 등) 게시용 CSV로 폴백해서 확인한다.
+// 만에 하나 지연/불일치가 있을 경우를 대비해 짧은 간격으로 몇 번 재확인
+// GAS 호출 자체가 실패하면(차단 등) 게시용 CSV로 폴백해서 확인
 function fetchLatestCards(){
   return gas({action:'getCards'})
     .then(res=>(res && res.cards) ? res.cards : [])
@@ -772,7 +772,7 @@ function submitEdit(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function confirmHide(id){
   showConfirm('🗑️','카드 숨기기',
-    '이 카드를 보드에서 숨길까요?\n구글 시트 데이터는 보존되며, 보관함에서 확인할 수 있어요.',
+    '이 카드를 보드에서 숨길까요?\n숨긴 카드는 보관함에서 확인할 수 있어요.',
     '숨기기','btn-danger',()=>doHide(id));
 }
 function doHide(id){
@@ -1043,7 +1043,7 @@ function reloadAfterAction(toastMsg, checkFn, opts={}){
   // 기존 카드 즉시 비우기 (이전 상태가 남아 보이는 것 방지)
   allCards=[];
   document.getElementById('cards-container').innerHTML='';
-  showProgress('시트에 반영 중...');
+  showProgress('Post-it Board에 반영 중...');
 
   const finish = ()=>{
     hideProgress();
@@ -1059,7 +1059,7 @@ function reloadAfterAction(toastMsg, checkFn, opts={}){
   pollUntilConfirmed(checkFn, {
     maxTries: opts.maxTries || 6,
     interval: opts.interval || 700,
-    onTick: (tries, maxTries)=> updateProgress('시트에 반영 중...', tries, maxTries)
+    onTick: (tries, maxTries)=> updateProgress('Post-it Board에 반영 중...', tries, maxTries)
   }).then(()=> finish());
 }
 
