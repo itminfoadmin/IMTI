@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMTI - Notice Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ad_common.css">
+    <style>
+        .main {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start;
+            margin: 24px; border: 1px dashed #fff; border-radius: 2px;
+            padding: 48px 36px 120px;
+        }
+
+        /* 좌(미리보기) · 우(입력) 2단 */
+        .nt-split {
+            display: flex; gap: 96px; align-items: flex-start;
+            width: 100%; max-width: 1400px;
+        }
+        /* 왼쪽: index.html 모달 박스(600px)를 그대로 담도록 고정폭 */
+        .nt-col-left {
+            flex: 0 0 auto; width: 700px; max-width: 100%;
+            position: sticky; top: 24px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .nt-col-right-input { flex: 1 1 0; min-width: 0; }
+        @media (max-width: 1180px) {
+            .nt-split { flex-direction: column; gap: 36px; }
+            .nt-col-left { position: static; width: 100%; }
+        }
+
+        .nt-card { width: 100%; display: flex; flex-direction: column; }
+        .nt-card-head {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .nt-card-title {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+            color: var(--gray-mid); text-transform: uppercase;
+        }
+        .nt-field {
+            border-top: 1px dashed #e9ecef;
+            padding: 18px 0 22px;
+        }
+        .nt-field:last-of-type { border-bottom: 1px dashed #e9ecef; }
+        .nt-label {
+            display: flex; align-items: center; gap: 8px;
+            font-family: 'Gowun Batang', serif; font-size: 0.78rem;
+            font-weight: 700; letter-spacing: 0.05em;
+            color: var(--gray-dark); margin-bottom: 10px;
+        }
+        .nt-label .cell {
+            font-family: 'DM Mono', monospace; font-size: 0.66rem; font-weight: 500;
+            color: var(--gray-mid); border: 1px solid #e9ecef;
+            border-radius: 4px; padding: 1px 6px; letter-spacing: 0.04em;
+        }
+        .nt-area {
+            width: 100%; resize: none; overflow: hidden;
+            background: none; border: none; outline: none;
+            border-bottom: 1px solid #e9ecef;
+            font-family: 'Gowun Batang', serif; font-size: 0.90rem; line-height: 1.8;
+            color: var(--gray-text); padding: 6px 0; transition: border-color 0.2s;
+            min-height: 0;
+        }
+        .nt-area:focus { border-bottom-color: var(--accent); }
+
+        .nt-actions {
+            display: flex; align-items: center; justify-content: flex-end; gap: 14px;
+        }
+        .nt-status {
+            font-family: 'Gowun Batang', serif; font-size: 0.80rem;
+            color: var(--gray-mid); min-height: 1.2em;
+        }
+        .nt-status.ok  { color: #2f9e44; }
+        .nt-status.err { color: #e03131; }
+        .nt-btn {
+            background: #fff; border: 1.5px solid #adb5bd; border-radius: 20px;
+            padding: 7px 22px;
+            font-family: 'Gowun Batang', serif; font-size: 0.76rem;
+            font-weight: 700; letter-spacing: 0.06em;
+            color: var(--gray-mid); cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .nt-btn:hover { background: #f1f3f5; border-color: #868e96; color: var(--gray-dark); }
+        .nt-btn.primary { color: var(--gray-text); border-color: var(--gray-text); }
+        .nt-btn.primary:hover { background: var(--gray-text); color: #fff; }
+        .nt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* 미리보기 라벨 */
+        .nt-preview-label {
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+            color: var(--gray-mid); text-transform: uppercase;
+            margin-bottom: 18px; text-align: center;
+        }
+
+        /* ── index.html modal-why 와 동일한 모습 (정적 미리보기) ── */
+        .preview-stage {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            padding: 40px 20px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        /* index.html .modal-box 와 동일 사양 */
+        .preview-modal-box {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.18);
+            padding: 36px 40px;
+            width: 588px;
+            max-width: 100%;
+        }
+        /* index.html #why-counter-list 와 동일 사양 (실측: 0.75rem = 13.65px) */
+        .preview-why-list {
+            font-size: 14.2px; line-height: 1.9; color: #333;
+            font-family: 'Noto Sans KR', sans-serif; word-break: keep-all;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .preview-why-list p { margin: 0 0 16px; }
+        .preview-why-list .empty { color: #adb5bd; }
+        .preview-close-row { margin-top: 28px; text-align: center; }
+        .preview-close-btn {
+            background: #fff; color: #343a40; border: 1.5px solid #adb5bd;
+            border-radius: 6px; padding: 8px 36px;
+            font-family: 'DM Mono', monospace; font-size: 17px; font-weight: 700;
+            cursor: default;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            width: 14px; height: 14px; border: 2px solid #dee2e6;
+            border-top-color: var(--gray-dark); border-radius: 50%;
+            animation: spin 0.8s linear infinite; display: inline-block;
+            vertical-align: middle; margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="page-body">
+    <div class="main">
+        <div class="nt-split">
+            <!-- 왼쪽: index.html notice 모달 미리보기 (SAVE 시 갱신) -->
+            <div class="nt-col-left">
+                <div class="nt-preview-label">Preview (index.html)</div>
+                <div class="preview-stage">
+                    <div class="preview-modal-box">
+                        <div class="preview-why-list" id="preview-why-list"></div>
+                        <div class="preview-close-row">
+                            <button class="preview-close-btn" type="button" tabindex="-1">닫기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 오른쪽: 입력 -->
+            <div class="nt-col-right-input">
+                <div class="nt-card">
+                    <div class="nt-card-head">
+                        <div class="nt-card-title">Notice Management</div>
+                        <div class="nt-actions">
+                            <span class="nt-status" id="nt-status"></span>
+                            <button class="nt-btn" id="reload-btn" onclick="loadNotices()">RELOAD</button>
+                            <button class="nt-btn primary" id="save-btn" onclick="openPopup('popup-confirm')">SAVE</button>
+                        </div>
+                    </div>
+
+                    <div class="nt-field">
+                        <textarea class="nt-area" id="notice-0" oninput="autoGrow(this)"></textarea>
+                    </div>
+                    <div class="nt-field">
+                        <textarea class="nt-area" id="notice-1" oninput="autoGrow(this)"></textarea>
+                    </div>
+                    <div class="nt-field">
+                        <textarea class="nt-area" id="notice-2" oninput="autoGrow(this)"></textarea>
+                    </div>
+                    <div class="nt-field">
+                        <textarea class="nt-area" id="notice-3" oninput="autoGrow(this)"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: Confirm save -->
+<div class="popup-overlay" id="popup-confirm">
+    <div class="popup-box">
+        <p class="popup-message">Are you sure you want to save<br>the notice changes?</p>
+        <div id="confirm-result" class="popup-result"></div>
+        <div class="popup-btn-row">
+            <button class="popup-cancel-btn" onclick="closePopup('popup-confirm')">Cancel</button>
+            <button class="popup-confirm-btn" id="confirm-btn" onclick="saveNotices()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup: Success -->
+<div class="popup-overlay" id="popup-success">
+    <div class="popup-box">
+        <p class="popup-message">The notices have been saved successfully.</p>
+        <div class="popup-btn-row">
+            <button class="popup-confirm-btn" onclick="closePopup('popup-success')">O.K.</button>
+        </div>
+    </div>
+</div>
+
+<script src="ad_common.js"></script>
+<script>
+    // notice 전용 GAS 엔드포인트 (공통 GAS_URL 과 별개)
+    const NOTICE_URL = 'https://script.google.com/macros/s/AKfycbyRak1P3N21cDQATEn8TZ0VcMzwunop6zVyQoLA6nY2ePCiIRWZOK3VhunNr68neSBv/exec';
+
+    const CELLS = ['A2', 'A3', 'A4', 'A5'];
+    const statusEl = document.getElementById('nt-status');
+
+    function openPopup(id)  { document.getElementById(id).classList.add('active'); }
+    function closePopup(id) { document.getElementById(id).classList.remove('active'); }
+
+    function setStatus(msg, type) {
+        statusEl.className = 'nt-status' + (type ? ' ' + type : '');
+        statusEl.innerHTML = msg;
+    }
+
+    function autoGrow(el) {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
+    function autoGrowAll() {
+        CELLS.forEach((_, i) => autoGrow(document.getElementById('notice-' + i)));
+    }
+
+    function setInputs(values) {
+        CELLS.forEach((_, i) => {
+            document.getElementById('notice-' + i).value =
+                (values && values[i] != null) ? values[i] : '';
+        });
+        autoGrowAll();
+    }
+
+    // index.html 의 modal-why 와 동일한 표시 로직:
+    // 전달받은 시트값(A2~A5) 중 비어있지 않은 값만 세로로, A5(4번째)만 우측정렬
+    function renderPreview(values) {
+        const box = document.getElementById('preview-why-list');
+        const rows = [2, 3, 4, 5].map((row, i) => ({
+            row,
+            v: (values && values[i] != null) ? String(values[i]) : ''
+        }));
+        const list = rows
+            .map(o => ({ row: o.row, v: o.v.trim() }))
+            .filter(o => o.v.length > 0);
+        if (list.length === 0) {
+            box.innerHTML = '<span class="empty">표시할 내용이 없습니다.</span>';
+            return;
+        }
+        box.innerHTML = list
+            .map(o => {
+                const esc = o.v
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const align = o.row === 5 ? ' style="text-align:right;"' : '';
+                return `<div${align}>${esc}</div>`;
+            })
+            .join('');
+    }
+
+    async function loadNotices() {
+        setStatus('<span class="spinner"></span>Loading...', '');
+        try {
+            const res = await gasJsonp(NOTICE_URL, { action: 'getNotices' }, 'ntcb');
+            if (res && res.status === 'OK' && Array.isArray(res.values)) {
+                setInputs(res.values);
+                renderPreview(res.values);   // 로드 시점에는 시트값으로 미리보기 표시
+                setStatus('Loaded.', 'ok');
+            } else {
+                throw new Error(res && res.status || 'ERROR');
+            }
+        } catch (e) {
+            console.error('[notice] load error:', e);
+            setStatus('Failed to load: ' + e.message, 'err');
+        }
+    }
+
+    async function saveNotices() {
+        const btn = document.getElementById('confirm-btn');
+        const resultEl = document.getElementById('confirm-result');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        resultEl.textContent = '';
+        resultEl.className = 'popup-result';
+
+        const values = CELLS.map((_, i) => document.getElementById('notice-' + i).value);
+        try {
+            // 저장 후 시트를 다시 읽어와(setNotices 응답의 values) 미리보기 갱신
+            const res = await gasJsonp(NOTICE_URL, {
+                action : 'setNotices',
+                values : JSON.stringify(values)
+            }, 'ntcb');
+            if (res && res.status === 'OK') {
+                const fresh = Array.isArray(res.values) ? res.values : values;
+                setInputs(fresh);
+                renderPreview(fresh);        // SAVE 후 시트 내용으로 미리보기 갱신
+                closePopup('popup-confirm');
+                openPopup('popup-success');
+                setStatus('Saved.', 'ok');
+            } else {
+                throw new Error(res && res.status || 'ERROR');
+            }
+        } catch (e) {
+            console.error('[notice] save error:', e);
+            resultEl.textContent = 'Failed to save: ' + e.message;
+            resultEl.className = 'popup-result err';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Confirm';
+        }
+    }
+
+    // ad_common.js calls this after navbar/session init
+    window.__pageInit = function () {
+        autoGrowAll();
+        renderPreview([]);   // 초기 빈 미리보기 틀
+        loadNotices();
+    };
+</script>
+</body>
+</html>
