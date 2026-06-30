@@ -312,7 +312,7 @@ body { height: 100vh; overflow: hidden; }
 <div class="overlay" id="archive-overlay">
   <div class="modal" style="max-width:480px">
     <h2>📦 내 보관함</h2>
-    <p style="font-size:12px;color:#9ca3af;margin-bottom:1rem">내가 작성했지만 보드에서 숨긴 Post-it이에요.</p>
+    <p style="font-size:12px;color:#9ca3af;margin-bottom:1rem">내가 작성했지만 Board에서 숨긴 Post-it이에요.</p>
     <div class="archive-cards" id="archive-list">
       <div style="text-align:center;padding:1.5rem;font-size:12px;color:#9ca3af">보관된 Post-it을 불러오는 중...</div>
     </div>
@@ -426,7 +426,6 @@ function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').r
 function dynLoadingHTML(text){
   return `<div class="dyn-loading" style="padding:1.5rem"><div class="dyn-stack"><span></span><span></span><span></span></div><div class="dyn-text">${text}<span class="dyn-dots"><span>.</span><span>.</span><span>.</span></span></div></div>`;
 }
-// 댓글/보관함처럼 가벼운 영역은 애니메이션 없이 1줄 문자열로만 로딩 표시
 function textLoadingHTML(text){
   return `<div style="text-align:center;padding:1.5rem;font-size:12px;color:#9ca3af">${text}...</div>`;
 }
@@ -466,7 +465,7 @@ function showProgress(msg){
   document.getElementById('pm-sub').textContent = '잠시만 기다려 주세요...';
   document.getElementById('progress-overlay').classList.add('open');
 }
-// 폴링 중 진행 상태 갱신 (시도 횟수를 보여줘서 막연한 대기가 아니라 실제로 확인 중임을 표시)
+
 function updateProgress(msg, tries, maxTries){
   document.getElementById('pm-msg').textContent = msg;
   document.getElementById('pm-sub').textContent = '잠시만 기다려 주세요...';
@@ -683,7 +682,7 @@ function renderCards(){
   filtered=sortCards(filtered.map(c=>({...c,color:typeToColor(c.type)})));
   const container=document.getElementById('cards-container');
   if(!filtered.length){
-    container.innerHTML='<div class="empty"><p>아직 Post-it이 없어요 ✨<br>첫 번째 Post-it을 올려보세요!</p></div>';
+    container.innerHTML='<div class="empty"><p>아직 Post-it이 없어요 ✨<br>첫 번째 Post-it을 Post해 보세요!</p></div>';
     return;
   }
   container.innerHTML=`<div class="cards-grid">${filtered.map(cardHTML).join('')}</div>`;
@@ -770,14 +769,14 @@ function submitCard(){
   const color=typeToColor(selCardType);
   const type=selCardType;
 
-  showConfirm('📝','Post-it 저장','이 내용으로 Post-it을 저장할까요?','저장','btn-primary',()=>{
+  showConfirm('📝','Post-it 저장','이 내용으로 Post-it을 게시할까요?','저장','btn-primary',()=>{
     closeAdd();
     showProgress('Post-it Board에 반영 중...');
 
     // GAS 저장
     gas({action:'addCard',text,type,color,deadline,taggedMembers:tagged.join(',')})
     .then(()=>{
-      reloadAfterAction('Post-it을 올렸어요 ✨', cards=>
+      reloadAfterAction('Post-it을 게시했어요 ✨', cards=>
         cards.some(c=>c.author===currentUser.email && c.text===text)
       );
     })
@@ -814,7 +813,7 @@ function submitEdit(){
   const type=editCardType;
   const color=typeToColor(editCardType);
 
-  showConfirm('📝','Post-it 수정','이 내용으로 Post-it을 수정할까요?','수정','btn-primary',()=>{
+  showConfirm('📝','Post-it 수정','이 내용으로 Post-it을 수정하여 게시할까요?','수정','btn-primary',()=>{
     closeEdit();
     showProgress('Post-it Board에 반영 중...');
 
@@ -1153,7 +1152,7 @@ function showToast(msg){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const CSV_MAILTO  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRlaICJucqoPp-IUQzEU5Z0xKfY8CYLym7dVYlMSSndi3kUD2sBczVi84zE0dglr9TOJEyYnEuJ-SL5/pub?gid=1557750800&single=true&output=csv";
 const CSV_RECIPIENTS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTl_lyF4ykH7Kbs_Y8wOUPNeru3HSReqZUwzBNLAGHJDoXA3g8TuQsa-efBkwtBiXudxTknoz4CX1NE/pub?gid=0&single=true&output=csv";
-const DEFAULT_NOTIFY_MSG = 'IMTI에 새로운 Post-it이 게시되었습니다. IMTI에 운영자 모드로 접속하여 게시된 Post-it을 확인해 주세요.';
+const DEFAULT_NOTIFY_MSG = '새로운 Post-it이 게시되었습니다. IMTI에 운영자 모드로 접속하여 Post-it Board를 확인해 주세요.';
 
 function openNotifyModal(){
   const list     = document.getElementById('notify-email-list');
