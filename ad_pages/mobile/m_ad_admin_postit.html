@@ -554,9 +554,11 @@ function initWithEmail(email){
   const col = emailToColor(email);
   currentUser = { email, name:emailToName(email), initials:emailToInitials(email), bg:col.bg, tx:col.tx };
   const av = document.getElementById('user-av');
-  av.style.background=col.bg; av.style.color=col.tx; av.textContent=currentUser.initials;
-  document.getElementById('user-name').textContent = currentUser.name;
-  document.getElementById('user-email').textContent = emailLocal(email);
+  if(av){ av.style.background=col.bg; av.style.color=col.tx; av.textContent=currentUser.initials; }
+  const nameEl = document.getElementById('user-name');
+  if(nameEl) nameEl.textContent = currentUser.name;
+  const emailEl = document.getElementById('user-email');
+  if(emailEl) emailEl.textContent = emailLocal(email);
   document.getElementById('auth-loading').style.display='none';
   const bw = document.getElementById('board-wrap');
   bw.style.display='flex'; bw.style.flexDirection='column';
