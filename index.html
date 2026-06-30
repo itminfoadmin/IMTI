@@ -67,11 +67,11 @@
 
         /* Notice card dots (smaller variant of slide-dot) */
         .notice-dot {
-            width        : 9px;
-            height       : 9px;
+            width        : 0.42rem;
+            height       : 0.42rem;
             border-radius: 50%;
             background   : #fff;
-            border       : 2px solid #adb5bd;
+            border       : 0.1rem solid #adb5bd;
             transition   : background 0.3s, border-color 0.3s;
             cursor       : pointer;
             flex-shrink  : 0;
@@ -80,6 +80,21 @@
             background  : #495057;
             border-color: #495057;
         }
+
+        /* 카드 오른쪽 아래에 고정으로 떠 있는 클릭 뱃지 (rem 단위라 사이트 전체
+           글자 크기 스케일(adjustScale)에 맞춰 같이 커지고 줄어든다) */
+        .notice-click-badge {
+            position: absolute; right: 5px; bottom: 4px; z-index: 2;
+            display: flex; align-items: center; justify-content: center;
+            width: 1.15rem; height: 1.15rem; flex-shrink: 0;
+        }
+        .notice-click-badge .nc-circle {
+            position: relative; width: 100%; height: 100%; border-radius: 50%;
+            background: #fff; border: 0.1rem solid #adb5bd;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        }
+        .notice-click-badge svg { width: 65%; height: 65%; }
 
         /* Pulsing ring behind the notice "click me" badge */
         .notice-click-pulse {
@@ -538,26 +553,24 @@
                             </div>
 
                             <div class="info-card" id="notice-card" style="padding:8px; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-start; gap:1px;">
-                                <div style="font-family:'Playfair Display',serif; font-weight:900; font-style:italic; font-size:20px; color:#495057; letter-spacing:0.03em; line-height:1.2; text-align:center; margin-top:10px; -webkit-text-stroke:0.5px #495057;">- Notice -</div>
+                                <div style="font-family:'Playfair Display',serif; font-weight:900; font-style:italic; font-size:1rem; color:#495057; letter-spacing:0.03em; line-height:1.2; text-align:center; margin-top:10px; -webkit-text-stroke:0.5px #495057;">- Notice -</div>
 
                                 <div id="notice-stage" style="flex:0 0 auto; height:70%; width:100%; position:relative; overflow:hidden; border-radius:3px; background:#cacaca; cursor:pointer; display:flex; align-items:flex-start; justify-content:center; padding:17px 8px 21px;"
                                      onclick="openNoticeDetail()">
-                                    <div style="display:flex; align-items:center; justify-content:center; gap:6px; max-width:100%;">
-                                        <span id="notice-marquee" style="font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:clamp(10px,1.4vw,15px); color:#343a40; text-align:center; line-height:1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; transition:opacity 0.4s; min-width:0;">공지사항을 불러오는 중...</span>
+                                    <span id="notice-marquee" style="font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:0.75rem; color:#343a40; text-align:center; line-height:1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; transition:opacity 0.4s; max-width:100%;">공지사항을 불러오는 중...</span>
 
-                                        <span style="position:relative; width:18px; height:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-                                            <span class="notice-click-pulse"></span>
-                                            <span style="position:relative; width:18px; height:18px; border-radius:50%; background:#fff; border:1.5px solid #adb5bd; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.12);">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#495057" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M9 9l5 12 1.8-5.2L21 14Z"/>
-                                                    <path d="M7.2 2.2 8 5.1"/>
-                                                    <path d="m5.1 8-2.9-.8"/>
-                                                    <path d="M14 4.1 12 6"/>
-                                                    <path d="m6 12-1.9 2"/>
-                                                </svg>
-                                            </span>
+                                    <span class="notice-click-badge" id="notice-click-badge">
+                                        <span class="notice-click-pulse"></span>
+                                        <span class="nc-circle">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#495057" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M9 9l5 12 1.8-5.2L21 14Z"/>
+                                                <path d="M7.2 2.2 8 5.1"/>
+                                                <path d="m5.1 8-2.9-.8"/>
+                                                <path d="M14 4.1 12 6"/>
+                                                <path d="m6 12-1.9 2"/>
+                                            </svg>
                                         </span>
-                                    </div>
+                                    </span>
 
                                     <div id="notice-dots" style="position:absolute; bottom:4px; left:0; right:0; display:flex; gap:5px; align-items:center; justify-content:center;"></div>
                                 </div>
@@ -1857,7 +1870,11 @@ function renderNoticeStage(animate) {
     if (!el) return;
     const item = _noticeList[_noticeIndex];
     const text = item ? item.title : '- Notice -';
-    const go = () => { el.textContent = text; el.style.opacity = '1'; updateNoticeDots(); };
+    const go = () => {
+        el.textContent = text;
+        el.style.opacity = '1';
+        updateNoticeDots();
+    };
     if (animate) { el.style.opacity = '0'; setTimeout(go, 300); } else go();
 }
 
