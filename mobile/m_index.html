@@ -19,10 +19,10 @@
         }
         * { box-sizing: border-box; }
         html { font-size: 16px; }
-        /* 모바일/태블릿: 화면 폭에 비례해 기준 글자 크기 확대 → rem 기반 텍스트 일괄 확대 */
+        /* Mobile/tablet: scale root font size with viewport width (scales all rem-based text) */
         @media (max-width: 820px) {
             html { font-size: 22px; }                       /* fallback */
-            html { font-size: clamp(20px, 5.4vw, 26px); }   /* 지원 시 우선 */
+            html { font-size: clamp(20px, 5.4vw, 26px); }   /* used when supported */
         }
         body {
             font-family     : 'DM Mono', 'Noto Sans KR', monospace;
@@ -115,6 +115,57 @@
         @keyframes modalIn {
             from { opacity: 0; transform: scale(0.92) translateY(12px); }
             to   { opacity: 1; transform: scale(1)    translateY(0);    }
+        }
+
+        /* Notice ticker — single line of text that slides down to the next item */
+        .notice-ticker-line {
+            font-family  : 'Noto Sans KR', sans-serif;
+            font-weight  : 700;
+            font-size    : 1.37rem;
+            color        : #343a40;
+            white-space  : nowrap;
+            overflow     : hidden;
+            text-overflow: ellipsis;
+            text-align   : center;
+            transition   : transform 0.45s cubic-bezier(.4,0,.2,1), opacity 0.45s ease;
+        }
+
+        /* Notice ticker touch/tap badge (right corner) — small pulsing circle, same
+           "click me" motif as the desktop notice card's badge */
+        .notice-touch-badge {
+            position : relative;
+            display  : flex;
+            align-items: center;
+            justify-content: center;
+            width : 1.5rem;
+            height: 1.5rem;
+            flex  : 0 0 auto;
+        }
+        .notice-touch-badge .nc-circle {
+            position     : relative;
+            width        : 100%;
+            height       : 100%;
+            border-radius: 50%;
+            background   : #fff;
+            border       : 0.1rem solid #adb5bd;
+            display      : flex;
+            align-items  : center;
+            justify-content: center;
+            box-shadow   : 0 1px 3px rgba(0, 0, 0, 0.12);
+        }
+        .notice-touch-badge .nc-circle svg { width: 58%; height: 58%; }
+        .notice-touch-pulse {
+            position     : absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background   : #495057;
+            opacity      : 0.55;
+            animation    : noticeTouchPulse 1.6s ease-out infinite;
+        }
+        @keyframes noticeTouchPulse {
+            0%   { transform: scale(1);   opacity: 0.55; }
+            70%  { transform: scale(2.1); opacity: 0;    }
+            100% { transform: scale(2.1); opacity: 0;    }
         }
 
         /* Join form */
@@ -360,9 +411,24 @@
                 order       : 1 !important;
             }
             #logo-panel .logo-wrap { margin-bottom: 0 !important; text-align: center; width: 100%; }
-            #logo-panel .logo-wrap img { max-width: 260px !important; margin: 0 auto; }
+            #logo-panel .logo-wrap img { max-width: calc(86% / 1.14) !important; margin: 0 auto; }
 
-            /* Login panel below the logo (order 2) */
+            /* Notice ticker (order 2, between logo and login) — mobile only.
+               Width matches #left-panel's actual 86% (set further below),
+               not a fixed px value. */
+            #notice-panel {
+                display     : flex !important;
+                width       : 86% !important;
+                max-width   : 86% !important;
+                /* Pull closer to the logo; login gap (84px) stays unchanged */
+                margin-top  : -25px !important;
+                margin-right: 0 !important;
+                margin-left : 0 !important;
+                align-self  : center !important;
+                order       : 2 !important;
+            }
+
+            /* Login panel below the notice ticker (order 3) */
             #left-panel {
                 width       : 100% !important;
                 max-width   : 288px !important;
@@ -371,7 +437,7 @@
                 margin-left : 0 !important;
                 align-self  : center !important;
                 align-items : center !important;
-                order       : 2 !important;
+                order       : 3 !important;
             }
             #left-panel > div { width: 100%; }
 
@@ -427,25 +493,25 @@
             /* Admin modal rows stack */
             #modal-admin .modal-box > div[style*="display:flex"][style*="gap:12px"] span { width: 90px !important; }
 
-            /* ===== 모바일 가독성 보정 ===== */
-            /* 로그인 패널 폭 확보 */
+            /* ===== Mobile readability tweaks ===== */
+            /* Login panel width */
             #left-panel { max-width: 86% !important; width: 86% !important; }
-            /* 라벨/입력창 */
-            #left-panel label { font-size: 1rem !important; margin-bottom: 6px !important; }
+            /* Labels */
+            #left-panel label { font-size: 1.2rem !important; margin-bottom: 6px !important; }
             #login-email, #login-pw { font-size: 1rem !important; }
-            /* LOG-IN / JOIN-US 버튼 */
-            #left-panel > div > button { font-size: 0.95rem !important; padding: 15px 0 !important; }
-            /* 문의 안내문 + [Contact-Us] */
-            #left-panel p { font-size: 0.95rem !important; margin-top: 30px !important; }
-            #left-panel p button { font-size: 1.05rem !important; }
+            /* LOG-IN / JOIN-US buttons */
+            #left-panel > div > button { font-size: 1.14rem !important; padding: 15px 0 !important; }
+            /* Contact notice + [Contact-Us] button */
+            #left-panel p { font-size: 1.14rem !important; margin-top: 30px !important; }
+            #left-panel p button { font-size: 1.26rem !important; }
 
-            /* ----- 모달 본문 텍스트 일괄 (인라인 스타일을 이기도록 !important) ----- */
+            /* ----- Modal body text, bulk size (uses !important to beat inline styles) ----- */
             .modal-box p, .modal-box span, .modal-box label,
             .modal-box input, .modal-box textarea, .modal-box button,
             .modal-box a, .modal-box div { font-size: 1.02rem !important; }
             .modal-box input::placeholder, .modal-box textarea::placeholder { font-size: 1rem !important; }
 
-            /* Contact 모달 */
+            /* Contact modal */
             #modal-contact > .modal-box > div:first-child { font-size: 1.35rem !important; }
             #modal-contact > .modal-box > p:nth-of-type(1) { font-size: 1.02rem !important; line-height: 1.7 !important; }
             #modal-contact > .modal-box > p:nth-of-type(1) span { font-size: 0.96rem !important; }
@@ -456,19 +522,20 @@
             #modal-contact .contact-notice { font-size: 0.95rem !important; }
             #modal-contact .modal-box > div:last-child button { font-size: 0.95rem !important; }
 
-            /* Join(회원가입) 모달 */
+            /* Join (sign-up) modal */
             #modal-join .modal-box > div:first-of-type { font-size: 1.35rem !important; }
             #modal-join .join-lbl { font-size: 0.98rem !important; }
             #modal-join input, #modal-join input::placeholder { font-size: 1.02rem !important; }
 
-            /* 인증 실패 등 안내 모달 본문 (인라인 0.7~0.77rem을 확실히 덮어씀) */
+            /* Auth-failure notice modal body (overrides inline 0.7-0.77rem) */
             #modal-login-fail .modal-box p { font-size: 1.05rem !important; line-height: 1.8 !important; }
             #modal-login-fail .modal-box button { font-size: 1.02rem !important; }
         }
 
         @media (max-width: 480px) {
             #left-panel { max-width: 92% !important; width: 92% !important; }
-            #logo-panel .logo-wrap img { max-width: 220px !important; }
+            #notice-panel { max-width: 92% !important; width: 92% !important; }
+            #logo-panel .logo-wrap img { max-width: calc(92% / 1.14) !important; }
         }
     </style>
 </head>
@@ -497,6 +564,35 @@
                      onmouseover="this.style.transform='scale(1.14)'"
                      onmouseout="this.style.transform='scale(1)'"
                      onclick="location.reload()">
+            </div>
+        </div>
+
+        <!-- Notice panel (mobile only — sits between logo and login form) -->
+        <div id="notice-panel" style="display:none; order:2;">
+            <div id="notice-ticker" onclick="openMNoticeDetail()"
+                 style="display:flex; align-items:center; gap:10px; width:100%; box-sizing:border-box; background:#ffffff; border:1.5px solid #dee2e6; border-radius:12px; padding:13px 16px; cursor:pointer; box-shadow:0 1px 5px rgba(0,0,0,0.06); transition:background 0.2s, border-color 0.2s;"
+                 onmouseover="this.style.background='#f8f9fa'; this.style.borderColor='#adb5bd';"
+                 onmouseout="this.style.background='#ffffff'; this.style.borderColor='#dee2e6';">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#495057" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.05rem; height:1.05rem; flex:0 0 auto;">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                </svg>
+                <div id="notice-ticker-viewport" style="flex:1 1 auto; min-width:0; height:1.9em; position:relative; overflow:hidden;">
+                    <span id="notice-ticker-line-a" class="notice-ticker-line" style="position:absolute; left:0; right:0; top:0; transform:translateY(0); opacity:1;">Notice</span>
+                    <span id="notice-ticker-line-b" class="notice-ticker-line" style="position:absolute; left:0; right:0; top:0; transform:translateY(-115%); opacity:0;"></span>
+                </div>
+                <span class="notice-touch-badge">
+                    <span class="notice-touch-pulse"></span>
+                    <span class="nc-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#495057" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 9l5 12 1.8-5.2L21 14Z"/>
+                            <path d="M7.2 2.2 8 5.1"/>
+                            <path d="m5.1 8-2.9-.8"/>
+                            <path d="M14 4.1 12 6"/>
+                            <path d="m6 12-1.9 2"/>
+                        </svg>
+                    </span>
+                </span>
             </div>
         </div>
 
@@ -930,6 +1026,19 @@
     </div>
 </div>
 
+<div id="modal-notice-detail" class="modal-overlay" onclick="outsideClose(event,'modal-notice-detail')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:480px; padding:32px 28px;">
+        <div id="notice-detail-title" style="font-family:'DM Mono',monospace; font-size:1.02rem; font-weight:700; color:#212529; margin-bottom:16px; letter-spacing:0.02em; word-break:keep-all;"></div>
+        <div id="notice-detail-body" style="font-size:0.85rem; line-height:1.85; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all; white-space:pre-line;"></div>
+        <div style="margin-top:26px; text-align:center;">
+            <button onclick="closeModal('modal-notice-detail')"
+                    style="background:#fff; color:#343a40; border:1.5px solid #adb5bd; border-radius:6px; padding:8px 36px; font-family:'DM Mono',monospace; font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                    onmouseover="this.style.background='#343a40'; this.style.color='#fff'; this.style.borderColor='#343a40'"
+                    onmouseout="this.style.background='#fff';    this.style.color='#343a40'; this.style.borderColor='#adb5bd'">닫기</button>
+        </div>
+    </div>
+</div>
+
 <div id="modal-why" class="modal-overlay" onclick="outsideClose(event,'modal-why')">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:600px; padding:36px 40px;">
         <div style="font-size:0.75rem; line-height:1.9; color:#333; font-family:'Noto Sans KR',sans-serif; word-break:keep-all; display:none;">
@@ -986,6 +1095,7 @@ const ADMIN_SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbwhgPJyoLR-Z
 const CONTACT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBInDqEoLUfRUKmAGEdvgJhFy6FHsp0uqv0HnhgVfh4Lb5F-NeeSACdMAJdT9DYaBZlA/exec';
 const COUNTER_URL        = 'https://script.google.com/macros/s/AKfycbydwUaYyMQsd-JmpvItpuj39s0vt6Ks0AquuX0-8Dk_Rp0ghPPLcFCyOirkqLsrYf_i/exec';
 const SHEET_CSV          = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRclbL-Jh5Bh7VxCbl55mj6iRMTwSUbofSLWurmkQF2opAmxQJqZqsXxl9-CgkbawoiV2eAxYmMr9YA/pub?gid=0&single=true&output=csv';
+const NOTICE_CSV         = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTUyFxl1bdprk3Oq_A_z5paVCW35ZtMl-6XVLm5K2e9WmkfVUaU-0O-AMmlUX65-4EB_3JHV-TZQPQL/pub?gid=0&single=true&output=csv';
 
 var _imtiReady     = false;
 var _adminReady    = false;
@@ -1049,6 +1159,7 @@ window.addEventListener('load', () => {
     warmUpScripts();
     runCounter();
     fetchSheet();
+    loadMNoticeFeed();
     applySlide(0, false);
     document.querySelectorAll('.slide-dot').forEach((dot, i) => {
         dot.addEventListener('click', () => {
@@ -1218,9 +1329,9 @@ function openModal(id)               { document.getElementById(id)?.classList.ad
 function closeModal(id)              { document.getElementById(id)?.classList.remove('open'); }
 function outsideClose(e, id)         { if (e.target === document.getElementById(id)) closeModal(id); }
 
-// 모바일에서 PC 버전 강제 보기로 이동
+// Navigate to the forced-PC-version page from mobile
 function gotoPCVersion() {
-    // 상위 폴더의 index.html이 ?pc=1을 읽어 자동 리다이렉트를 건너뛰고 세션 동안 PC 버전을 유지함
+    // Parent index.html reads ?pc=1 to skip the auto-redirect and stay on the PC version for the session
     window.location.href = '../index.html?pc=1';
 }
 
@@ -1664,8 +1775,6 @@ async function handleAdminLogin() {
             .then(r => { clearTimeout(_t); return r.json(); });
         if (progressEl) progressEl.style.display = 'none';
 
-        console.log('[IMTI] adminLogin response:', JSON.stringify(res));
-
         if (res && res.status === 'OK') {
             closeModal('modal-admin');
             sessionStorage.setItem('admin_email',      email);
@@ -1698,7 +1807,7 @@ async function fetchSheet() {
         const text = await fetch(SHEET_CSV + '&t=' + Date.now()).then(r => r.text());
         const rows = _parseCSV(text);
         if (rows.length > 1) {
-            // A4 셀의 "Latest Update: 2026/05/31 00:39" 에서 날짜 부분만 추출
+            // Extract just the date from cell A4's "Latest Update: 2026/05/31 00:39" text
             const raw     = (rows[3] && rows[3][0] ? rows[3][0] : '').trim();
             const m       = raw.match(/(\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}(?:\s+\d{1,2}:\d{2})?)/);
             const dateVal = (m ? m[1] : raw) || '2026/03/25';
@@ -1710,7 +1819,7 @@ async function fetchSheet() {
     } catch { console.error('[IMTI] Sheet fetch error'); }
 }
 
-// CSV 한 줄을 셀 배열로 파싱 (따옴표 안의 쉼표/줄바꿈 처리)
+// Parse one CSV row into a cell array (handles quoted commas/newlines)
 function _parseCSV(text) {
     const rows = [];
     let row = [], field = '', inQuotes = false;
@@ -1733,7 +1842,96 @@ function _parseCSV(text) {
     return rows;
 }
 
-// modal-why 가 열릴 때 시트(gid=0) B2,B3,B4,B5 를 세로로 표시
+/* Notice ticker — single-line announcement between the logo and login form.
+   Data fetching (sheet structure, filtering, sorting) mirrors index.html's
+   loadNoticeFeed(). Display is mobile-specific: starts on "Notice", then
+   slides through notice titles one at a time. */
+let _mNoticeList   = [];         // [{ title, content }]
+let _mNoticeFrames = ['Notice']; // frame 0 = "Notice" label, then notice titles
+let _mFrameIndex   = 0;
+let _mNoticeTimer  = null;
+let _mActiveLine   = 'a';        // which line span is currently visible (a/b toggle)
+const M_NOTICE_ROTATE_MS = 3000;
+
+async function loadMNoticeFeed() {
+    try {
+        const text = await fetch(NOTICE_CSV + '&t=' + Date.now()).then(r => r.text());
+        const rows = _parseCSV(text);
+
+        const items = rows.slice(1) // skip header row
+            .map((r, i) => ({
+                title:   (r[0] || '').trim(),
+                content: (r[1] || '').trim(),
+                visible: (r[2] || '').trim().toUpperCase(),
+                order:   parseFloat(r[3]),
+                _row:    i
+            }))
+            .filter(o => o.title && (o.visible === 'Y' || o.visible === 'TRUE'))
+            .sort((a, b) => {
+                const ao = isNaN(a.order) ? a._row : a.order;
+                const bo = isNaN(b.order) ? b._row : b.order;
+                return ao - bo;
+            });
+
+        _mNoticeList = items.map(o => ({ title: o.title, content: o.content }));
+    } catch (e) {
+        console.error('[IMTI] Notice feed fetch error (mobile):', e);
+        _mNoticeList = [];
+    }
+    _mNoticeFrames = ['Notice', ..._mNoticeList.map(o => o.title)];
+    startMNoticeRotation();
+}
+
+function startMNoticeRotation() {
+    clearInterval(_mNoticeTimer);
+    if (_mNoticeFrames.length <= 1) return; // no notices — keep showing "Notice"
+    _mNoticeTimer = setInterval(advanceMNotice, M_NOTICE_ROTATE_MS);
+}
+
+function advanceMNotice() {
+    // "Notice" only shows once at the start; after that, cycle through notices only.
+    const noticeCount = _mNoticeFrames.length - 1;
+    if (_mFrameIndex === 0) _mFrameIndex = 1;
+    else _mFrameIndex = (_mFrameIndex % noticeCount) + 1;
+    renderMNoticeFrame();
+}
+
+// Current line slides down and out; next line slides down from above into place.
+function renderMNoticeFrame() {
+    const text   = _mNoticeFrames[_mFrameIndex] || 'Notice';
+    const curEl  = document.getElementById(_mActiveLine === 'a' ? 'notice-ticker-line-a' : 'notice-ticker-line-b');
+    const nextEl = document.getElementById(_mActiveLine === 'a' ? 'notice-ticker-line-b' : 'notice-ticker-line-a');
+    if (!curEl || !nextEl) return;
+
+    nextEl.textContent      = text;
+    nextEl.style.transition = 'none';
+    nextEl.style.transform  = 'translateY(-115%)';
+    nextEl.style.opacity    = '0';
+    void nextEl.offsetWidth; // force reflow so the transition re-applies
+    nextEl.style.transition = '';
+
+    requestAnimationFrame(() => {
+        curEl.style.transform  = 'translateY(115%)';
+        curEl.style.opacity    = '0';
+        nextEl.style.transform = 'translateY(0)';
+        nextEl.style.opacity   = '1';
+    });
+
+    _mActiveLine = (_mActiveLine === 'a') ? 'b' : 'a';
+}
+
+function openMNoticeDetail() {
+    if (_mFrameIndex === 0) return; // don't open the modal on the "Notice" label frame
+    const item = _mNoticeList[_mFrameIndex - 1];
+    if (!item) return;
+    const titleEl = document.getElementById('notice-detail-title');
+    const bodyEl  = document.getElementById('notice-detail-body');
+    if (titleEl) titleEl.textContent = item.title;
+    if (bodyEl)  bodyEl.textContent  = item.content;
+    openModal('modal-notice-detail');
+}
+
+// When modal-why opens, show sheet (gid=0) cells B2-B5 stacked vertically
 async function loadWhyCounterList() {
     const box = document.getElementById('why-counter-list');
     if (!box) return;
@@ -1741,7 +1939,7 @@ async function loadWhyCounterList() {
     try {
         const text = await fetch(SHEET_CSV + '&t=' + Date.now()).then(r => r.text());
         const rows = _parseCSV(text);
-        // A열 = index 0, 2~5행 = index 1~4 (A5 = index 4)
+        // Column A = index 0; rows 2-5 = index 1-4 (row 5 = index 4)
         const values = [1, 2, 3, 4]
             .map(r => ({ row: r + 1, v: (rows[r] && rows[r][0] != null ? rows[r][0].trim() : '') }))
             .filter(o => o.v.length > 0);
