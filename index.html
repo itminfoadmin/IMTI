@@ -586,8 +586,8 @@
                                          onmouseover="this.style.transform='scale(0.72)'"
                                          onmouseleave="this.style.transform='scale(1)'">
                                     <div id="visitor-overlay">
-                                        <span id="visitor-count" style="font-size:28px; font-weight:900; color:#fff; font-family:'DM Mono',monospace; line-height:1; white-space:nowrap;">--</span>
-                                        <span style="font-size:11px; color:#dee2e6; font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;">visiting</span>
+                                        <span id="visitor-count" style="font-size:18px; font-weight:500; color:#fff; font-family:'DM Mono',monospace; line-height:1; white-space:nowrap;">--</span>
+                                        <span style="font-size:8px; color:#dee2e6; font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;">visiting</span>
                                     </div>
                                 </div>
                             </div>
@@ -1154,7 +1154,7 @@ function fitVisitorCount() {
     const card = document.getElementById('visitor-card');
     const span = document.getElementById('visitor-count');
     if (!card || !span) return;
-    let size = 28;
+    let size = 20;
     span.style.fontSize = size + 'px';
     while (span.scrollWidth > card.clientWidth - 16 && size > 12) span.style.fontSize = --size + 'px';
 }
