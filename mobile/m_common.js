@@ -518,8 +518,11 @@ async function imtiDoChangePassword() {
     );
 }
 
-/* Fetch navbar.html, inject it, and mark the current page as active */
-function imtiLoadNavbar(currentPage) {
+/* Fetch navbar.html, inject it, and mark the current page as active.
+   `afterLoad` is an optional callback run after the navbar is in the DOM
+   and activated — useful for pages that need to add page-specific menu
+   content (e.g. a submenu) on top of the shared navbar. */
+function imtiLoadNavbar(currentPage, afterLoad) {
     function _activate() {
         document.querySelectorAll('.nav-menu-item[data-page]').forEach(function(el) {
             if (el.getAttribute('data-page') === currentPage) {
@@ -529,6 +532,7 @@ function imtiLoadNavbar(currentPage) {
         });
         var emailEl = document.getElementById('user-email-display');
         if (emailEl) emailEl.textContent = sessionStorage.getItem('imti_user_email') || 'Guest User';
+        if (typeof afterLoad === 'function') afterLoad();
     }
     function _run() {
         imtiInjectModals();
@@ -540,14 +544,27 @@ function imtiLoadNavbar(currentPage) {
             _activate();
             return;
         }
-        fetch('m_navbar.html', { credentials: 'same-origin' })
+        fetch('m_navbar.html', { credentials: 'same-origin', cache: 'no-store' })
             .then(function(r) {
                 if (!r.ok) throw new Error('navbar fetch failed: ' + r.status);
                 return r.text();
             })
             .then(function(html) {
                 if (!placeholder) return;
-                placeholder.innerHTML = html;
+                // Strip <style>/<script> tags from the fetched markup.
+                // Every page that uses this navbar already carries its own
+                // local copy of the navbar CSS (fonts, sizes, colors) and
+                // its own copies of the toggle/close menu functions, tuned
+                // to that page. Re-injecting m_navbar.html's own <style>
+                // block here would sit later in the DOM and could silently
+                // override a page's local overrides (e.g. a smaller
+                // .logo-img or a narrower .nav-drawer), changing how the
+                // menu looks. Keeping only the markup guarantees the menu
+                // renders exactly as each page already defines it.
+                var tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                tmp.querySelectorAll('style, script').forEach(function(el) { el.remove(); });
+                placeholder.innerHTML = tmp.innerHTML;
                 _activate();
             })
             .catch(function(err) {

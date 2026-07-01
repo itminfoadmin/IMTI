@@ -189,6 +189,9 @@ body{
 @keyframes spin{to{transform:rotate(360deg)}}
 .center-state h3{font-family:'Noto Sans KR';font-weight:900;font-size:1.1rem;margin-bottom:8px;color:var(--ink)}
 .center-state p{color:var(--text-soft);font-size:.82rem;margin:0 auto 6px;line-height:1.6}
+.center-state .err-detail{font-family:'DM Mono';font-size:.68rem;color:var(--terra);background:var(--terra-soft);border-radius:7px;padding:10px 13px;margin:14px auto 0;text-align:left;word-break:break-all}
+.center-state .urls{font-size:.72rem;color:var(--text-soft);margin-top:14px;text-align:left}
+.center-state .urls code{display:block;background:var(--bg-soft);padding:6px 9px;border-radius:5px;margin:5px 0;font-size:.62rem;word-break:break-all;font-family:'DM Mono'}
 
 /* results */
 .result-panel.show{display:flex;flex-direction:column;padding:1.4rem 1.3rem 1.2rem}
@@ -377,46 +380,7 @@ body{
     <div class="preload-count" id="preload-count">0 / 2</div>
 </div>
 
-<div id="navbar-placeholder">
-<nav class="topnav">
-    <div class="logo-area">
-        <img src="../img/logo-main_mobile.png" alt="IMTI" class="logo-img">
-    </div>
-    <button class="nav-hamburger" id="nav-hamburger" onclick="imtiToggleMenu()" aria-label="메뉴 열기">
-        <span></span><span></span><span></span>
-    </button>
-</nav>
-
-<div class="nav-drawer-backdrop" id="nav-drawer-backdrop" onclick="imtiCloseMenu()"></div>
-
-<aside class="nav-drawer" id="nav-drawer">
-    <div class="nav-drawer-header">
-        <div class="nav-drawer-logo" style="display:none;">
-            <img src="../img/logo-main_con.png" alt="IMTI" class="nav-drawer-logo-img" style="display:none;">
-        </div>
-        <button class="nav-drawer-close" onclick="imtiCloseMenu()" aria-label="메뉴 닫기">&times;</button>
-    </div>
-
-    <div class="nav-drawer-account">
-        <span class="nav-drawer-account-label">접속 계정</span>
-        <span class="nav-drawer-email" id="user-email-display">Guest User</span>
-    </div>
-
-    <nav class="nav-drawer-menu">
-        <a class="nav-menu-item" href="m_main_what_about.html" data-page="m_main_what_about.html">What's_IMTI?</a>
-        <a class="nav-menu-item" href="m_main_research_trends.html" data-page="m_main_research_trends.html">Reserach_Trends</a>
-        <a class="nav-menu-item" href="m_main_mti_seraching.html" data-page="m_main_mti_seraching.html">MTI_Searching</a>
-        <a class="nav-menu-item active" href="m_main_recommand_mti.html" data-page="m_main_recommand_mti.html">MTI_Recommaning</a>
-    </nav>
-
-    <div class="nav-drawer-account-actions">
-        <button class="nav-btn" onclick="imtiOpenModal('modal-contact'); imtiCloseMenu();">Contact_Us</button>
-        <button class="nav-btn" onclick="imtiOpenModal('modal-pw')">P/W변경</button>
-        <button class="nav-btn" onclick="imtiOpenModal('modal-withdraw')">회원탈퇴</button>
-        <button class="nav-btn nav-btn-logout" onclick="imtiOpenModal('modal-logout')">로그아웃</button>
-    </div>
-</aside>
-</div>
+<div id="navbar-placeholder"></div>
 
 <div class="fixed-head">
   <div class="page-head">
@@ -448,7 +412,12 @@ body{
     <div class="panel" data-step="error">
       <div class="center-state">
         <h3 style="color:var(--terra)">데이터를 불러오지 못했어요</h3>
-        <p>MTI-DB에 직접 접근하지 못했습니다. 브라우저 보안 정책(CORS)을 확인해주세요.</p>
+        <p>MTI_DB 시트 주소에 직접 접근하지 못했습니다. 보통 시트가 <b>'웹에 게시'</b>되어 있지 않거나, 브라우저 보안 정책(CORS)에 막힌 경우입니다.</p>
+        <div class="err-detail" id="errDetail"></div>
+        <div class="urls">
+          <b>확인 방법</b> — 구글 시트에서 <b>파일 › 공유 › 웹에 게시</b>가 되어 있는지 확인하세요.
+          <code id="urlList"></code>
+        </div>
         <button class="btn btn-primary" style="margin-top:18px" onclick="loadAll()">다시 시도</button>
       </div>
     </div>
@@ -691,7 +660,7 @@ const DEFAULT_RULES = {
   priority: { domain:1, participants:2, orientation:3, competencies:4 },
   defaults: { participants:0.5, orientation:0.5, competencies:0.5 },
   thresholds: { minMatchPercent:60, maxResults:20 },
-  affinityChains: { domain:[], participants:[], orientation:[], competencies:[] },
+  affinityChains: { participants:[], orientation:[], competencies:[] },
   layout: {
     domain:       { col1:[], col2:[] },
     participants: { col1:[], col2:[] },
@@ -944,6 +913,8 @@ async function loadAll(){
     dismissPreload();
   }catch(err){
     console.error(err);
+    document.getElementById('errDetail').textContent = (err && (err.message||err.toString())) || '알 수 없는 오류';
+    document.getElementById('urlList').innerHTML = Object.values(CSV).join('<br><br>');
     setLive('err','데이터 로드 실패');
     document.getElementById('reloadBtn').style.display='inline-block';
     showStep('error');
