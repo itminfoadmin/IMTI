@@ -87,6 +87,10 @@ body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
 .badge-공지{background:rgba(255,200,0,.25);color:#7A5000}
 .badge-아이디어{background:rgba(59,91,219,.12);color:#2040AA}
 .badge-할일{background:rgba(20,83,45,.12);color:#14532D}
+.prio-badge{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;flex-shrink:0;display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.prio-3{background:rgba(220,38,38,.16);color:#B91C1C}
+.prio-2{background:rgba(107,114,128,.16);color:#4B5563}
+.prio-1{background:rgba(107,114,128,.08);color:#9CA3AF}
 .card-body{font-size:12px;line-height:1.6;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
 .card.y .card-body{color:var(--y-tx)}.card.b .card-body{color:var(--b-tx)}.card.g .card-body{color:var(--g-tx)}.card.p .card-body{color:var(--p-tx)}
 .tagged{display:flex;flex-wrap:wrap;gap:3px}
@@ -274,10 +278,18 @@ body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
     <h2>새 Post-It 작성</h2>
     <div class="form-group">
       <label class="form-label">유형</label>
-      <div class="type-row">
+      <div class="type-row" id="card-type-row">
         <button class="type-btn sel" onclick="selType(this,'공지')">📢 공지</button>
         <button class="type-btn" onclick="selType(this,'아이디어')">💡 아이디어</button>
         <button class="type-btn" onclick="selType(this,'할일')">✅ 할일</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">중요도</label>
+      <div class="type-row" id="card-weight-row">
+        <button class="type-btn" onclick="selWeight(this,3)">🔴 높음</button>
+        <button class="type-btn sel" onclick="selWeight(this,2)">⚪ 보통</button>
+        <button class="type-btn" onclick="selWeight(this,1)">⚫ 낮음</button>
       </div>
     </div>
     <div class="form-group">
@@ -309,6 +321,14 @@ body { overflow-y: auto; -webkit-text-size-adjust: 100%; }
         <button class="type-btn" id="edit-type-공지" onclick="selEditType(this,'공지')">📢 공지</button>
         <button class="type-btn" id="edit-type-아이디어" onclick="selEditType(this,'아이디어')">💡 아이디어</button>
         <button class="type-btn" id="edit-type-할일" onclick="selEditType(this,'할일')">✅ 할일</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">중요도</label>
+      <div class="type-row" id="edit-weight-row">
+        <button class="type-btn" id="edit-weight-3" onclick="selEditWeight(this,3)">🔴 높음</button>
+        <button class="type-btn" id="edit-weight-2" onclick="selEditWeight(this,2)">⚪ 보통</button>
+        <button class="type-btn" id="edit-weight-1" onclick="selEditWeight(this,1)">⚫ 낮음</button>
       </div>
     </div>
     <div class="form-group">
@@ -430,8 +450,8 @@ const AV_COLORS = [
 let currentUser = null;
 let allCards = [], allEmails = [];
 let currentFilter = 'all', currentCardId = null;
-let selCardColor = 'y', selCardType = '공지', taggedEmails = [];
-let editCardId = null, editCardColor = 'y', editCardType = '공지';
+let selCardColor = 'y', selCardType = '공지', taggedEmails = [], selCardWeight = 2;
+let editCardId = null, editCardColor = 'y', editCardType = '공지', editCardWeight = 2;
 let _archiveCache = []; // 보관함 카드 캐시 (재게시 즉시 반영용)
 
 // 유형 → 색상 자동 매핑 (공지=p, 아이디어=g, 할일=b)
@@ -449,13 +469,13 @@ function dateToSort(d){
 function sortCards(cards){
   const typeOrder={'공지':0,'아이디어':1,'할일':2};
   return [...cards].sort((a,b)=>{
+    // 1차: 중요도 높은 순
+    const wa=Number(a.weight)||2, wb=Number(b.weight)||2;
+    if(wa!==wb) return wb-wa;
+    // 2차: 같은 중요도면 공지 → 아이디어 → 할일 순
     const ta=typeOrder[a.type]??9, tb=typeOrder[b.type]??9;
     if(ta!==tb) return ta-tb;
-    // 같은 유형: 마감일 있으면 빠른 순, 없으면 입력일 빠른 순
-    const hasDlA=!!a.deadline, hasDlB=!!b.deadline;
-    if(hasDlA&&hasDlB) return a.deadline<b.deadline?-1:a.deadline>b.deadline?1:0;
-    if(hasDlA) return -1;
-    if(hasDlB) return 1;
+    // 3차: 같은 유형이면 먼저 등록된(입력일 빠른) 순
     return dateToSort(a.date)-dateToSort(b.date);
   });
 }
@@ -463,6 +483,12 @@ function emailLocal(e){ return (e||'').split('@')[0]; }
 function emailToColor(e){ if(!e) return {bg:'#E9ECEF',tx:'#495057'}; let h=0; for(let i=0;i<e.length;i++) h=(h*31+e.charCodeAt(i))>>>0; return AV_COLORS[h%AV_COLORS.length]; }
 function emailToInitials(e){ return emailLocal(e).slice(0,1).toUpperCase(); }
 function emailToName(e){ const l=emailLocal(e); return l.charAt(0).toUpperCase()+l.slice(1); }
+function prioMeta(w){
+  w=Number(w)||2;
+  if(w>=3) return {cls:'prio-3',icon:'🔴',text:'높음'};
+  if(w<=1) return {cls:'prio-1',icon:'⚫',text:'낮음'};
+  return {cls:'prio-2',icon:'⚪',text:'보통'};
+}
 function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function dynLoadingHTML(text, minH){
   const style = minH ? `padding:1.5rem;min-height:${minH}` : 'padding:1.5rem';
@@ -600,6 +626,7 @@ function csvRowsToCards(rows){
       likedBy:r[7]?r[7].split(',').filter(Boolean):[],
       hiddenBy,deadline:r[9]||'',
       taggedMembers:r[10]?r[10].split(',').filter(Boolean):[],
+      weight:parseInt(r[11])||2,
     });
   }
   return cards.reverse();
@@ -665,7 +692,7 @@ function setFilter(btn,type){
 function renderCards(){
   let filtered=currentFilter==='all'?allCards:allCards.filter(c=>c.type===currentFilter);
   // 유형별 색상 자동 보정 + 정렬
-  filtered=sortCards(filtered.map(c=>({...c,color:typeToColor(c.type)})));
+  filtered=sortCards(filtered.map(c=>({...c,color:typeToColor(c.type),weight:Number(c.weight)||2})));
   const container=document.getElementById('cards-container');
   if(!filtered.length){
     container.innerHTML='<div class="empty"><p>아직 카드가 없어요 ✨<br>첫 번째 카드를 올려보세요!</p></div>';
@@ -680,6 +707,7 @@ function cardHTML(c){
   const nm=emailToName(c.author);
   const isMe=c.author===currentUser.email;
   const liked=c.likedBy&&c.likedBy.includes(currentUser.email);
+  const pm=prioMeta(c.weight);
   const today=new Date(); today.setHours(0,0,0,0);
   let dlHTML='';
   if(c.deadline){
@@ -699,6 +727,7 @@ function cardHTML(c){
     <div class="card-top">
       <div class="cav" style="background:${col.bg};color:${col.tx}">${ini}</div>
       <span class="cname">${nm}</span>
+      <span class="prio-badge ${pm.cls}">${pm.icon} ${pm.text}</span>
       <span class="type-badge badge-${c.type}">${c.type==='공지'?'📢':c.type==='아이디어'?'💡':'✅'} ${c.type}</span>
     </div>
     <div class="card-body">${escHtml(c.text)}</div>
@@ -732,17 +761,20 @@ function buildTagChecks(){
 // 카드 추가
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openAddModal(){
-  selCardType='공지'; taggedEmails=[];
+  selCardType='공지'; taggedEmails=[]; selCardWeight=2;
   document.getElementById('card-text').value='';
   document.getElementById('card-deadline').value='';
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('sel'));
-  document.querySelector('.type-btn').classList.add('sel');
+  document.querySelectorAll('#card-type-row .type-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelector('#card-type-row .type-btn').classList.add('sel');
+  document.querySelectorAll('#card-weight-row .type-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelector('#card-weight-row .type-btn[onclick*="selWeight(this,2)"]').classList.add('sel');
   document.querySelectorAll('#tag-checks .member-check').forEach(m=>m.classList.remove('sel'));
   const btn=document.getElementById('post-btn'); btn.disabled=false; btn.textContent='올리기';
   document.getElementById('add-overlay').classList.add('open');
 }
 function closeAdd(){ closeOverlay('add-overlay'); }
-function selType(btn,type){ selCardType=type; document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); }
+function selType(btn,type){ selCardType=type; document.querySelectorAll('#card-type-row .type-btn').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); }
+function selWeight(btn,w){ selCardWeight=w; document.querySelectorAll('#card-weight-row .type-btn').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); }
 function selColor(dot,c){ selCardColor=c; document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('sel')); dot.classList.add('sel'); }
 function toggleTag(label,email){ label.classList.toggle('sel'); if(taggedEmails.includes(email)) taggedEmails=taggedEmails.filter(e=>e!==email); else taggedEmails.push(email); }
 
@@ -758,7 +790,7 @@ function submitCard(){
   const type=selCardType;
 
   // GAS 저장
-  gas({action:'addCard',text,type,color,deadline,taggedMembers:tagged.join(',')})
+  gas({action:'addCard',text,type,color,deadline,taggedMembers:tagged.join(','),weight:selCardWeight})
   .then(()=>{
     closeAdd();
     btn.disabled=false; btn.textContent='올리기';
@@ -777,16 +809,19 @@ function submitCard(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openEdit(id){
   const c=allCards.find(x=>x.id===id); if(!c) return;
-  editCardId=id; editCardType=c.type;
+  editCardId=id; editCardType=c.type; editCardWeight=Number(c.weight)||2;
   document.getElementById('edit-text').value=c.text;
   document.getElementById('edit-deadline').value=c.deadline||'';
   document.querySelectorAll('[id^="edit-type-"]').forEach(b=>b.classList.remove('sel'));
   const tb=document.getElementById('edit-type-'+c.type); if(tb) tb.classList.add('sel');
+  document.querySelectorAll('[id^="edit-weight-"]').forEach(b=>b.classList.remove('sel'));
+  const wb=document.getElementById('edit-weight-'+editCardWeight); if(wb) wb.classList.add('sel');
   const btn=document.getElementById('edit-btn'); btn.disabled=false; btn.textContent='저장';
   document.getElementById('edit-overlay').classList.add('open');
 }
 function closeEdit(){ closeOverlay('edit-overlay'); }
 function selEditType(btn,type){ editCardType=type; document.querySelectorAll('[id^="edit-type-"]').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); }
+function selEditWeight(btn,w){ editCardWeight=w; document.querySelectorAll('[id^="edit-weight-"]').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); }
 function selEditColor(dot,c){ editCardColor=c; document.querySelectorAll('[id^="edit-color-"]').forEach(d=>d.classList.remove('sel')); dot.classList.add('sel'); }
 
 function submitEdit(){
@@ -800,7 +835,7 @@ function submitEdit(){
   const type=editCardType;
   const color=typeToColor(editCardType);
 
-  gas({action:'updateCard',id,text,type,color,deadline})
+  gas({action:'updateCard',id,text,type,color,deadline,weight:editCardWeight})
   .then(()=>{
     closeEdit();
     btn.disabled=false; btn.textContent='저장';
@@ -865,10 +900,12 @@ function openDetail(id){
   const tagsHTML=(c.taggedMembers&&c.taggedMembers.length)
     ?`<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">${c.taggedMembers.map(e=>`<span style="font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(0,0,0,.08);font-weight:700">@${emailToName(e)}</span>`).join('')}</div>`:'';
   document.getElementById('detail-card-preview').className=`detail-card-preview ${c.color}`;
+  const pm=prioMeta(c.weight);
   document.getElementById('detail-card-preview').innerHTML=`
     <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
       <div style="width:20px;height:20px;border-radius:50%;background:${col.bg};color:${col.tx};font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;">${emailToInitials(c.author)}</div>
       <span style="font-size:12px;font-weight:700">${emailToName(c.author)}</span>
+      <span class="prio-badge ${pm.cls}">${pm.icon} ${pm.text}</span>
       <span style="font-size:10px;color:#9ca3af;margin-left:auto">${c.date}</span>
     </div>
     <div class="detail-card-text">${escHtml(c.text)}</div>${tagsHTML}${dlHTML}`;
