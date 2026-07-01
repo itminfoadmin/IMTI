@@ -594,7 +594,7 @@ function csvRowsToCards(rows){
   for(let i=1;i<rows.length;i++){
     const r=rows[i]; if(!r[0]) continue;
     const hiddenBy=r[8]?r[8].split(',').filter(Boolean):[];
-    if(hiddenBy.includes(currentUser.email)) continue;
+    if(hiddenBy.length) continue; // 누구든(작성자가) 숨겼으면 전체 사용자에게 안 보이게
     cards.push({id:r[0],text:r[1],type:r[2],color:r[3],author:r[4],date:r[5],
       likes:parseInt(r[6])||0,
       likedBy:r[7]?r[7].split(',').filter(Boolean):[],
