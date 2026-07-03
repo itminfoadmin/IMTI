@@ -453,6 +453,7 @@ let currentFilter = 'all', currentCardId = null;
 let selCardColor = 'y', selCardType = '공지', taggedEmails = [], selCardWeight = 2;
 let editCardId = null, editCardColor = 'y', editCardType = '공지', editCardWeight = 2;
 let _archiveCache = []; // 보관함 카드 캐시 (재게시 즉시 반영용)
+let commentCounts = {}; // cardId → 댓글 수 매핑
 
 // 유형 → 색상 자동 매핑 (공지=p, 아이디어=g, 할일=b)
 function typeToColor(type){ return type==='공지'?'p':type==='아이디어'?'g':'b'; }
@@ -675,11 +676,31 @@ function loadMembersAndCards(){
     // 카드 (GAS/CSV 둘 다 이미 본인이 숨긴 카드는 제외, 최신순)
     allCards = cards || [];
     renderCards();
+    loadCommentCounts(); // 댓글 수 로드 후 카드에 표시
   }).catch(e=>{
     console.error('[loadMembersAndCards]',e);
     document.getElementById('cards-container').innerHTML=
       '<div class="empty"><p>⚠️ 데이터를 불러올 수 없어요.</p></div>';
   });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 댓글 수 로드 (CSV에서 cardId별 댓글 개수를 세어 commentCounts에 저장)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function loadCommentCounts(){
+  fetch(CSV_COMMENTS+'&t='+Date.now(), {cache:'no-store'})
+    .then(r=>r.text())
+    .then(text=>{
+      const rows=parseCSV(text);
+      const counts={};
+      for(let i=1;i<rows.length;i++){
+        const cardId=rows[i][1];
+        if(cardId) counts[cardId]=(counts[cardId]||0)+1;
+      }
+      commentCounts=counts;
+      renderCards(); // 댓글 수가 반영된 상태로 다시 그리기
+    })
+    .catch(e=>console.error('[loadCommentCounts]',e));
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -738,7 +759,7 @@ function cardHTML(c){
       <span class="card-date">${c.date}</span>
       <div class="card-actions">
         <button class="action-btn" onclick="event.stopPropagation();likeCard('${c.id}')">${liked?'❤️':'🤍'}<span class="action-count">${c.likes||0}</span></button>
-        <button class="action-btn" onclick="event.stopPropagation();openDetail('${c.id}')">💬</button>
+        <button class="action-btn" onclick="event.stopPropagation();openDetail('${c.id}')">💬${commentCounts[c.id]?`<span class="action-count">${commentCounts[c.id]}</span>`:''}</button>
         ${myBtns}
       </div>
     </div>
