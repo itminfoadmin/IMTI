@@ -195,6 +195,14 @@ body { height: 100vh; overflow: hidden; }
 /* 스피너 */
 .loading{text-align:center;padding:2rem;color:#9ca3af;font-size:14px}
 .loading .sp{display:inline-block;width:18px;height:18px;border:2px solid #e5e7eb;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
+/* 드래그 가능한 모달 */
+.modal.draggable,.alert-modal.draggable,.progress-modal.draggable{position:relative;cursor:default}
+.modal .drag-handle,.alert-modal .drag-handle,.progress-modal .drag-handle{cursor:grab;user-select:none;-webkit-user-select:none;display:flex;align-items:center;justify-content:center;padding:6px 0 2px;margin:-2rem -2rem 0 -2rem;padding:8px 2rem 4px;border-radius:16px 16px 0 0;position:relative}
+.modal .drag-handle:active,.alert-modal .drag-handle:active,.progress-modal .drag-handle:active{cursor:grabbing}
+.drag-handle .drag-indicator{width:36px;height:4px;border-radius:99px;background:#d1d5db;position:absolute;top:8px;left:50%;transform:translateX(-50%);transition:background .15s}
+.drag-handle:hover .drag-indicator{background:#9ca3af}
+.modal.dragging,.alert-modal.dragging,.progress-modal.dragging{box-shadow:0 20px 60px rgba(0,0,0,.35);transition:box-shadow .15s}
+.overlay.open{align-items:center;justify-content:center}
 @media(max-width:600px){#board-wrap{padding:16px 16px 32px}.cards-grid{grid-template-columns:1fr 1fr;gap:10px}}
 @media(max-width:380px){.cards-grid{grid-template-columns:1fr}}
 </style>
@@ -1306,6 +1314,108 @@ function sendNotify(){
     if(e.target.id===id) closeOverlay(id);
   });
 });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 모달 드래그 이동
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+(function(){
+  // 모든 모달 요소에 드래그 핸들 삽입
+  document.querySelectorAll('.modal, .alert-modal, .progress-modal').forEach(modal=>{
+    modal.classList.add('draggable');
+    const handle=document.createElement('div');
+    handle.className='drag-handle';
+    handle.innerHTML='<span class="drag-indicator"></span>';
+    modal.insertBefore(handle, modal.firstChild);
+    initDrag(modal, handle);
+  });
+
+  function initDrag(modal, handle){
+    let isDragging=false, startX=0, startY=0, origLeft=0, origTop=0;
+
+    function resetPosition(){
+      modal.style.transform=''; modal.style.left=''; modal.style.top='';
+      modal.style.margin='';
+    }
+
+    // 모달이 열릴 때마다 위치 초기화
+    const overlay=modal.closest('.overlay');
+    if(overlay){
+      const obs=new MutationObserver(muts=>{
+        muts.forEach(m=>{
+          if(m.attributeName==='class'){
+            if(!overlay.classList.contains('open')) resetPosition();
+          }
+        });
+      });
+      obs.observe(overlay,{attributes:true});
+    }
+
+    function onStart(e){
+      // 입력 요소 위에서는 드래그 하지 않음
+      const tag=e.target.tagName.toLowerCase();
+      if(tag==='input'||tag==='textarea'||tag==='button'||tag==='select') return;
+
+      isDragging=true;
+      modal.classList.add('dragging');
+
+      const rect=modal.getBoundingClientRect();
+      // 첫 드래그 시 fixed position으로 전환
+      if(!modal.style.left){
+        modal.style.position='fixed';
+        modal.style.left=rect.left+'px';
+        modal.style.top=rect.top+'px';
+        modal.style.margin='0';
+        modal.style.transform='none';
+      }
+
+      const clientX=e.touches?e.touches[0].clientX:e.clientX;
+      const clientY=e.touches?e.touches[0].clientY:e.clientY;
+      startX=clientX;
+      startY=clientY;
+      origLeft=parseFloat(modal.style.left);
+      origTop=parseFloat(modal.style.top);
+
+      e.preventDefault();
+    }
+
+    function onMove(e){
+      if(!isDragging) return;
+      const clientX=e.touches?e.touches[0].clientX:e.clientX;
+      const clientY=e.touches?e.touches[0].clientY:e.clientY;
+
+      let newLeft=origLeft+(clientX-startX);
+      let newTop=origTop+(clientY-startY);
+
+      // 화면 경계 제한
+      const w=modal.offsetWidth, h=modal.offsetHeight;
+      const vw=window.innerWidth, vh=window.innerHeight;
+      const margin=40; // 최소 margin 영역이 화면 안에 남도록
+      newLeft=Math.max(-w+margin, Math.min(vw-margin, newLeft));
+      newTop=Math.max(0, Math.min(vh-margin, newTop));
+
+      modal.style.left=newLeft+'px';
+      modal.style.top=newTop+'px';
+
+      e.preventDefault();
+    }
+
+    function onEnd(){
+      if(!isDragging) return;
+      isDragging=false;
+      modal.classList.remove('dragging');
+    }
+
+    // 마우스
+    handle.addEventListener('mousedown', onStart);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+
+    // 터치
+    handle.addEventListener('touchstart', onStart, {passive:false});
+    document.addEventListener('touchmove', onMove, {passive:false});
+    document.addEventListener('touchend', onEnd);
+  }
+})();
 </script>
 </body>
 </html>
