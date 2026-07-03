@@ -772,8 +772,8 @@ function cardHTML(c){
     <div class="card-footer">
       <span class="card-date">${c.date}</span>
       <div class="card-actions">
-        <button class="action-btn" onclick="event.stopPropagation();likeCard('${c.id}')">${liked?'❤️':'🤍'}<span class="action-count">${c.likes||0}</span></button>
-        <button class="action-btn" onclick="event.stopPropagation();openDetail('${c.id}')">💬${commentCounts[c.id]?`<span class="action-count">${commentCounts[c.id]}</span>`:''}</button>
+        <button class="action-btn" onclick="event.stopPropagation();likeCard('${c.id}')">${liked?'❤️':'🤍'}<span class="action-count">${c.likes?c.likes:'-'}</span></button>
+        <button class="action-btn" onclick="event.stopPropagation();openDetail('${c.id}')">💬<span class="action-count">${commentCounts[c.id]?commentCounts[c.id]:'-'}</span></button>
         ${myBtns}
       </div>
     </div>
