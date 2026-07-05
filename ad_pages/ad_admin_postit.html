@@ -458,6 +458,9 @@ function prioMeta(w){
   return {cls:'prio-2',icon:'⚪',text:'보통'};
 }
 function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function linkify(html){
+  return html.replace(/(https?:\/\/[^\s<>&"']+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;word-break:break-all" onclick="event.stopPropagation()">$1</a>');
+}
 function dynLoadingHTML(text){
   return `<div class="dyn-loading" style="padding:1.5rem"><div class="dyn-stack"><span></span><span></span><span></span></div><div class="dyn-text">${text}<span class="dyn-dots"><span>.</span><span>.</span><span>.</span></span></div></div>`;
 }
@@ -775,7 +778,7 @@ function cardHTML(c){
       <span class="prio-badge ${pm.cls}">${pm.icon} ${pm.text}</span>
       <span class="type-badge badge-${c.type}">${c.type==='공지'?'📢':c.type==='아이디어'?'💡':'✅'} ${c.type}</span>
     </div>
-    <div class="card-body">${escHtml(c.text)}</div>
+    <div class="card-body">${linkify(escHtml(c.text))}</div>
     ${tagsHTML}${dlHTML}
     <div class="card-footer">
       <span class="card-date">${c.date}</span>
@@ -956,7 +959,7 @@ function openDetail(id){
       <span class="prio-badge ${pm.cls}">${pm.icon} ${pm.text}</span>
       <span style="font-size:10px;color:#9ca3af;margin-left:auto">${c.date}</span>
     </div>
-    <div class="detail-card-text">${escHtml(c.text)}</div>${tagsHTML}${dlHTML}`;
+    <div class="detail-card-text">${linkify(escHtml(c.text))}</div>${tagsHTML}${dlHTML}`;
   document.getElementById('comments-list').innerHTML=textLoadingHTML('댓글을 불러오는 중');
   document.getElementById('comment-input').value='';
   const cBtn=document.getElementById('comment-submit-btn'); cBtn.disabled=false; cBtn.textContent='등록';
@@ -999,7 +1002,7 @@ function commentItemHTML(cm){
     <div class="comment-av" style="background:${mc.bg};color:${mc.tx}">${emailToInitials(cm.author)}</div>
     <div class="comment-bubble">
       <div class="comment-meta"><strong>${emailToName(cm.author)}</strong> · ${cm.date}${delBtn}</div>
-      <div class="comment-text">${escHtml(cm.text)}</div>
+      <div class="comment-text">${linkify(escHtml(cm.text))}</div>
     </div>
   </div>`;
 }
@@ -1110,7 +1113,7 @@ function openArchive(){
       }
       document.getElementById('archive-list').innerHTML=cards.map(c=>`
         <div class="archive-item ${c.color}" id="arc-${c.id}">
-          <div class="archive-item-text">${escHtml(c.text)}</div>
+          <div class="archive-item-text">${linkify(escHtml(c.text))}</div>
           <div class="archive-item-meta">${c.type} · ${c.date}${c.deadline?' · 마감 '+c.deadline:''}</div>
           <div class="archive-item-actions">
             <button class="btn-repost" onclick="confirmRepost('${c.id}')">📌 재게시</button>
