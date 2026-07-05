@@ -144,7 +144,7 @@ body { height: 100vh; overflow: hidden; }
 .detail-card-text{font-size:14px;line-height:1.7;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
 .detail-card-preview.y .detail-card-text{color:var(--y-tx)}.detail-card-preview.b .detail-card-text{color:var(--b-tx)}
 .detail-card-preview.g .detail-card-text{color:var(--g-tx)}.detail-card-preview.p .detail-card-text{color:var(--p-tx)}
-.comments-list{display:flex;flex-direction:column;gap:12px;margin-bottom:1rem;min-height:120px;max-height:260px;overflow-y:auto;justify-content:center}
+.comments-list{display:flex;flex-direction:column;gap:12px;margin-bottom:1rem}
 .comment-item{display:flex;gap:10px}
 .comment-av{width:28px;height:28px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .comment-bubble{flex:1}
@@ -156,11 +156,34 @@ body { height: 100vh; overflow: hidden; }
 .btn-comment{padding:10px 16px;border-radius:10px;background:var(--accent);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fn);flex-shrink:0}
 .comment-input:focus{outline:none;border-color:var(--accent);background:#fff}
 .btn-comment:hover{opacity:.88}
-.comment-item{transition:opacity .5s cubic-bezier(.4,0,.2,1),max-height .5s cubic-bezier(.4,0,.2,1),margin .5s cubic-bezier(.4,0,.2,1);max-height:200px;overflow:hidden}
+/* 상세 모달 레이아웃 */
+.detail-modal{padding-bottom:0 !important;overflow-y:hidden !important;position:relative}
+.detail-scroll-area{flex:1;overflow-y:auto;min-height:0;padding-bottom:4px;-ms-overflow-style:none;scrollbar-width:none}
+.detail-scroll-area::-webkit-scrollbar{display:none}
+.detail-sticky-bottom{flex-shrink:0;padding:12px 0 1.5rem;background:#fff;border-top:1px solid #f0f0f0}
+/* 닫기 버튼 (우측 상단) */
+.detail-close-btn{position:absolute;top:18px;right:18px;background:none;border:none;cursor:pointer;font-size:22px;color:#adb5bd;line-height:1;padding:4px;border-radius:6px;z-index:10;transition:color .15s,background .15s}
+.detail-close-btn:hover{color:#495057;background:rgba(0,0,0,.05)}
+/* 스크롤 인디케이터 */
+.scroll-indicator{display:flex;justify-content:center;padding:4px 0 2px;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.scroll-indicator.visible{opacity:1;pointer-events:auto;cursor:pointer}
+.scroll-indicator-icon{font-size:18px;animation:scrollBounce 1.8s ease-in-out infinite;filter:drop-shadow(0 1px 3px rgba(0,0,0,.12))}
+@keyframes scrollBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+.comment-item{transition:opacity .5s cubic-bezier(.4,0,.2,1),max-height .5s cubic-bezier(.4,0,.2,1),margin .5s cubic-bezier(.4,0,.2,1);max-height:2000px;overflow:hidden}
 .comment-item.removing{opacity:0;max-height:0;margin:0}
 .comment-meta{position:relative}
-.comment-del-btn{background:none;border:none;cursor:pointer;font-size:11px;color:#cbd5e1;padding:0 0 0 6px;font-family:var(--fn);font-weight:700;vertical-align:middle}
+.comment-del-btn,.comment-edit-btn{background:none;border:none;cursor:pointer;font-size:11px;color:#cbd5e1;padding:0 0 0 6px;font-family:var(--fn);font-weight:700;vertical-align:middle}
 .comment-del-btn:hover{color:#dc2626}
+.comment-edit-btn:hover{color:var(--accent)}
+.comment-edit-area{width:100%;padding:8px 11px;border:1.5px solid var(--accent);border-radius:8px;font-size:14px;font-family:var(--fn);resize:vertical;min-height:44px;max-height:200px;line-height:1.6;color:#1a1a1a;background:#fff;box-sizing:border-box}
+.comment-edit-area:focus{outline:none;border-color:var(--accent)}
+.comment-edit-actions{display:flex;gap:6px;margin-top:6px;justify-content:flex-end}
+.comment-edit-actions button{padding:5px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fn);border:none}
+.btn-edit-save{background:var(--accent);color:#fff}
+.btn-edit-save:hover{opacity:.85}
+.btn-edit-save:disabled{opacity:.45;cursor:not-allowed}
+.btn-edit-cancel{background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb !important}
+.btn-edit-cancel:hover{background:#e5e7eb}
 /* 보관함 */
 .archive-cards{display:flex;flex-direction:column;gap:10px;min-height:140px;max-height:55vh;overflow-y:auto;justify-content:center}
 .archive-item{border-radius:10px;padding:14px 16px;border:1px solid;display:flex;flex-direction:column;gap:8px}
@@ -315,23 +338,28 @@ body { height: 100vh; overflow: hidden; }
 
 <!-- ── Post-it 상세 모달 ── -->
 <div class="overlay" id="detail-overlay">
-  <div class="modal" style="max-width:460px">
-    <h2 id="detail-title">Post-it 상세</h2>
-    <div id="detail-card-preview"></div>
-    <div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:8px">
-      💬 댓글 <span id="comment-count" style="font-weight:400;color:#9ca3af"></span>
+  <div class="modal detail-modal" style="max-width:460px;display:flex;flex-direction:column;padding-bottom:0">
+    <button class="detail-close-btn" onclick="closeDetail()" title="닫기">✕</button>
+    <div class="detail-scroll-area" id="detail-scroll-area">
+      <h2 id="detail-title">Post-it 상세</h2>
+      <div id="detail-card-preview"></div>
+      <div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:8px">
+        💬 댓글 <span id="comment-count" style="font-weight:400;color:#9ca3af"></span>
+      </div>
+      <div class="comments-list" id="comments-list">
+        <div style="text-align:center;padding:1.5rem;font-size:12px;color:#9ca3af">댓글을 불러오는 중...</div>
+      </div>
     </div>
-    <div class="comments-list" id="comments-list">
-      <div style="text-align:center;padding:1.5rem;font-size:12px;color:#9ca3af">댓글을 불러오는 중...</div>
+    <div class="scroll-indicator" id="scroll-indicator" onclick="smoothScrollDown()">
+      <span class="scroll-indicator-icon">👇</span>
     </div>
-    <div class="comment-input-row">
-      <textarea class="comment-input" id="comment-input" placeholder="댓글을 입력하세요..." rows="1"
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment()}"
-        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-      <button class="btn-comment" id="comment-submit-btn" onclick="submitComment()">등록</button>
-    </div>
-    <div class="modal-actions" style="margin-top:.75rem">
-      <button class="btn-cancel" onclick="closeDetail()">닫기</button>
+    <div class="detail-sticky-bottom">
+      <div class="comment-input-row">
+        <textarea class="comment-input" id="comment-input" placeholder="댓글을 입력하세요..." rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment()}"
+          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+        <button class="btn-comment" id="comment-submit-btn" onclick="submitComment()">등록</button>
+      </div>
     </div>
   </div>
 </div>
@@ -991,21 +1019,66 @@ function loadComments(cardId){
     });
 }
 
-// 댓글 1개 렌더링 (본인 댓글이면 삭제 버튼 포함)
+// 댓글 1개 렌더링 (본인 댓글이면 수정·삭제 버튼 포함)
 function commentItemHTML(cm){
   const mc=emailToColor(cm.author);
   const isMine = cm.author===currentUser.email;
+  const editBtn = (isMine && cm.id)
+    ? `<button class="comment-edit-btn" onclick="startEditComment('${cm.id}')" title="댓글 수정">✎ 수정</button>`
+    : '';
   const delBtn = (isMine && cm.id)
     ? `<button class="comment-del-btn" onclick="confirmDeleteComment('${cm.id}', this)" title="댓글 삭제">✕ 삭제</button>`
     : '';
-  return `<div class="comment-item" id="${cm.id?('cm-'+cm.id):''}">
+  const safeText = cm.text.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');
+  return `<div class="comment-item" id="${cm.id?('cm-'+cm.id):''}" data-raw-text="${escHtml(cm.text)}">
     <div class="comment-av" style="background:${mc.bg};color:${mc.tx}">${emailToInitials(cm.author)}</div>
     <div class="comment-bubble">
-      <div class="comment-meta"><strong>${emailToName(cm.author)}</strong> · ${cm.date}${delBtn}</div>
+      <div class="comment-meta"><strong>${emailToName(cm.author)}</strong> · ${cm.date}${editBtn}${delBtn}</div>
       <div class="comment-text">${linkify(escHtml(cm.text))}</div>
     </div>
   </div>`;
 }
+
+// ── 스크롤 인디케이터
+function updateScrollIndicator(){
+  const area = document.getElementById('detail-scroll-area');
+  const indicator = document.getElementById('scroll-indicator');
+  if(!area || !indicator) return;
+  const hasOverflow = area.scrollHeight > area.clientHeight + 8;
+  const nearBottom = area.scrollTop + area.clientHeight >= area.scrollHeight - 20;
+  if(hasOverflow && !nearBottom){
+    indicator.classList.add('visible');
+  } else {
+    indicator.classList.remove('visible');
+  }
+}
+function smoothScrollDown(){
+  const area = document.getElementById('detail-scroll-area');
+  if(area) area.scrollBy({top: 200, behavior:'smooth'});
+}
+(function(){
+  let scrollArea;
+  const obs = new MutationObserver(()=>{
+    scrollArea = document.getElementById('detail-scroll-area');
+    if(scrollArea){
+      scrollArea.removeEventListener('scroll', updateScrollIndicator);
+      scrollArea.addEventListener('scroll', updateScrollIndicator);
+    }
+    setTimeout(updateScrollIndicator, 100);
+  });
+  const detailList = document.getElementById('comments-list');
+  if(detailList) obs.observe(detailList, {childList:true, subtree:true});
+  // 모달 열릴 때도 체크
+  const overlay = document.getElementById('detail-overlay');
+  if(overlay){
+    new MutationObserver(()=>{
+      if(overlay.classList.contains('open')){
+        setTimeout(updateScrollIndicator, 300);
+        setTimeout(updateScrollIndicator, 800);
+      }
+    }).observe(overlay, {attributes:true});
+  }
+})();
 
 function closeDetail(){ closeOverlay('detail-overlay'); currentCardId=null; }
 
@@ -1044,6 +1117,73 @@ function submitComment(){
     btn.disabled=false; btn.textContent='등록';
     showAlert('❌','오류','댓글 저장 중 오류가 발생했어요.');
   });
+}
+
+// ── 댓글 수정 (작성자 본인만)
+function startEditComment(id){
+  const item = document.getElementById('cm-'+id);
+  if(!item) return;
+  const bubble = item.querySelector('.comment-bubble');
+  const textEl = item.querySelector('.comment-text');
+  const metaEl = item.querySelector('.comment-meta');
+  const rawText = item.getAttribute('data-raw-text') || textEl.textContent;
+  // 이미 수정 모드면 무시
+  if(item.querySelector('.comment-edit-area')) return;
+  // 수정/삭제 버튼 숨기기
+  metaEl.querySelectorAll('.comment-edit-btn,.comment-del-btn').forEach(b=>b.style.display='none');
+  // 텍스트를 편집 영역으로 교체
+  textEl.style.display='none';
+  const editWrap = document.createElement('div');
+  editWrap.className='comment-edit-wrap';
+  editWrap.innerHTML=`<textarea class="comment-edit-area" id="edit-cm-${id}">${escHtml(rawText)}</textarea>
+    <div class="comment-edit-actions">
+      <button class="btn-edit-cancel" onclick="cancelEditComment('${id}')">취소</button>
+      <button class="btn-edit-save" id="save-cm-${id}" onclick="submitEditComment('${id}')">저장</button>
+    </div>`;
+  bubble.appendChild(editWrap);
+  const ta = document.getElementById('edit-cm-'+id);
+  ta.focus();
+  ta.style.height = ta.scrollHeight + 'px';
+  ta.addEventListener('input',function(){ this.style.height='auto'; this.style.height=this.scrollHeight+'px'; });
+}
+
+function cancelEditComment(id){
+  const item = document.getElementById('cm-'+id);
+  if(!item) return;
+  const wrap = item.querySelector('.comment-edit-wrap');
+  if(wrap) wrap.remove();
+  const textEl = item.querySelector('.comment-text');
+  if(textEl) textEl.style.display='';
+  // 수정/삭제 버튼 복원
+  item.querySelectorAll('.comment-edit-btn,.comment-del-btn').forEach(b=>b.style.display='');
+}
+
+function submitEditComment(id){
+  const ta = document.getElementById('edit-cm-'+id);
+  if(!ta) return;
+  const newText = ta.value.trim();
+  if(!newText){ showAlert('⚠️','내용 없음','댓글 내용을 입력해 주세요.'); return; }
+  const saveBtn = document.getElementById('save-cm-'+id);
+  if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='저장 중...'; }
+
+  gas({action:'editComment', id, cardId: currentCardId, text: newText})
+    .then(()=>{
+      const item = document.getElementById('cm-'+id);
+      if(item){
+        item.setAttribute('data-raw-text', newText);
+        const textEl = item.querySelector('.comment-text');
+        if(textEl){ textEl.innerHTML = linkify(escHtml(newText)); textEl.style.display=''; }
+        const wrap = item.querySelector('.comment-edit-wrap');
+        if(wrap) wrap.remove();
+        // 수정/삭제 버튼 복원
+        item.querySelectorAll('.comment-edit-btn,.comment-del-btn').forEach(b=>b.style.display='');
+      }
+      showToast('댓글을 수정했어요 ✏️');
+    })
+    .catch(()=>{
+      if(saveBtn){ saveBtn.disabled=false; saveBtn.textContent='저장'; }
+      showAlert('❌','오류','댓글 수정 중 오류가 발생했어요.');
+    });
 }
 
 // ── 댓글 삭제 (작성자 본인만)
