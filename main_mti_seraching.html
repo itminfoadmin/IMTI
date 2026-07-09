@@ -57,6 +57,27 @@
         .nav-menu-item:hover, .nav-menu-item.active { color: #212529; font-weight: 700; border-bottom: 2px solid #212529; }
 
         .main-content { flex: 1; min-height: 0; padding: 10px 15%; display: flex; flex-direction: column; gap: 0; }
+        .filter-desc {
+            color: #495057; font-size: .99rem; font-weight: 700;
+            text-align: center; margin-bottom: 18px; margin-top: 0.4rem;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .dropdown-count {
+            margin-left: auto;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: #868e96;
+            white-space: nowrap;
+            flex-shrink: 0;
+            padding-left: 10px;
+        }
+        .dropdown-item.selected .dropdown-count { color: #d47878; }
+        .dropdown-item.disabled-item {
+            opacity: 0.38;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
 
         .search-bar {
             display: flex;
@@ -78,7 +99,7 @@
         .filter-label {
             font-family: 'Noto Sans KR', monospace;
             font-size: 0.8rem;
-            font-weight: 500;
+            font-weight: 600;
             color: #343a40;
             background: #f5f4f1;
             padding: 0 10px;
@@ -90,7 +111,7 @@
             transition: background 0.15s, color 0.15s;
             user-select: none;
             gap: 1px;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.00em;
             min-width: 0;
         }
         .filter-label:hover { background: #e9e8e3; }
@@ -357,6 +378,7 @@
 <div id="navbar-placeholder"></div>
 
 <div class="main-content">
+    <div class="filter-desc">🔍 영역(D), 대상(P), 지향(O), 역량(C) 차원의 조건을 조합하여 MIT를 검색해보세요. 📚</div>
     <div class="search-bar" id="search-bar">
         <div class="filter-item" id="filter-domain">
             <div class="filter-label" id="label-domain" onclick="toggleDropdown('dd-domain','label-domain')">영역(D) 선택 <span class="filter-caret">▾</span></div>
@@ -384,7 +406,7 @@
             <div class="filter-dropdown" id="dd-result" style="width:100%;left:0;"><div style="padding:12px 18px;font-size:0.78rem;color:#adb5bd;font-family:'DM Mono',monospace;">로딩 중...</div></div>
         </div>
         <div class="filter-item" style="border-right:none;background:#fff;padding:0;display:flex;align-items:right;">
-            <button class="reset-all-btn" onclick="resetAllFilters(event)">Reset ↺</button>
+            <button class="reset-all-btn" onclick="resetAllFilters(event)">초기화 ↺</button>
         </div>
     </div>
 
@@ -611,6 +633,34 @@
 
     var ALL_LABEL_MAP = { domain: '선택 해제', participants: '선택 해제', orientation: '선택 해제', competency: '선택 해제' };
 
+    /* Count how many models match when a hypothetical filter value is applied
+       on top of the current filterState, for a given filterKey. */
+    function countModelsForOption(filterKey, optionValue) {
+        var s = filterState;
+        var testState = {
+            domain:       filterKey === 'domain'       ? optionValue : s.domain,
+            orientation:  filterKey === 'orientation'  ? optionValue : s.orientation,
+            competency:   filterKey === 'competency'   ? optionValue : s.competency,
+            participants: filterKey === 'participants' ? optionValue : s.participants
+        };
+        var df = (testState.domain       && testState.domain       !== '__ALL__') ? testState.domain       : null;
+        var of2= (testState.orientation  && testState.orientation  !== '__ALL__') ? testState.orientation  : null;
+        var cf = (testState.competency   && testState.competency   !== '__ALL__') ? testState.competency   : null;
+        var pf = (testState.participants && testState.participants !== '__ALL__') ? testState.participants : null;
+        var cIds = cf ? (COMPETENCY_MAP[cf]   || []) : null;
+        var pIds = pf ? (PARTICIPANTS_MAP[pf] || []) : null;
+        var models = {};
+        sheetRows.forEach(function(r) {
+            if (!r.model) return;
+            if (df && r.domain      !== df) return;
+            if (of2 && r.orientation !== of2) return;
+            if (cIds && !cIds.includes(r.mtiId)) return;
+            if (pIds && !pIds.includes(r.mtiId)) return;
+            models[r.model] = true;
+        });
+        return Object.keys(models).length;
+    }
+
     function rebuildFilterDropdowns() {
         var lists = { domain: DOMAIN_LIST, orientation: ORIENTATION_LIST, competency: COMPETENCY_LIST, participants: PARTICIPANTS_LIST };
         var ddIds = { domain: 'dd-domain', orientation: 'dd-orientation', competency: 'dd-competency', participants: 'dd-participants' };
@@ -623,10 +673,20 @@
                 return;
             }
             lists[key].forEach(function(val) {
+                var cnt  = countModelsForOption(key, val);
                 var item = document.createElement('div');
                 item.className = 'dropdown-item';
-                item.textContent = val;
-                item.onclick = function() { selectFilter(key, val); };
+                item.dataset.filterKey   = key;
+                item.dataset.filterValue = val;
+                if (cnt === 0) item.classList.add('disabled-item');
+                var textSpan = document.createElement('span');
+                textSpan.textContent = val;
+                item.appendChild(textSpan);
+                var cntSpan = document.createElement('span');
+                cntSpan.className = 'dropdown-count';
+                cntSpan.textContent = cnt + '건';
+                item.appendChild(cntSpan);
+                item.onclick = function() { if (cnt === 0) return; selectFilter(key, val); };
                 dd.appendChild(item);
             });
             var sep = document.createElement('div');
@@ -638,6 +698,22 @@
             allItem.textContent = ALL_LABEL_MAP[key];
             allItem.onclick = function() { clearFilter(key); closeAllDropdowns(); buildResultDropdown(); };
             dd.appendChild(allItem);
+        });
+    }
+
+    /* Update counts in all filter dropdowns based on current filterState */
+    function updateFilterCounts() {
+        document.querySelectorAll('.dropdown-item[data-filter-key]').forEach(function(item) {
+            var key = item.dataset.filterKey;
+            var val = item.dataset.filterValue;
+            var cnt = countModelsForOption(key, val);
+            var cntSpan = item.querySelector('.dropdown-count');
+            if (cntSpan) cntSpan.textContent = cnt + '건';
+            if (cnt === 0) {
+                item.classList.add('disabled-item');
+            } else {
+                item.classList.remove('disabled-item');
+            }
         });
     }
 
@@ -794,9 +870,10 @@
         lbl.innerHTML = ' <strong>' + value + '</strong>&nbsp;<span class="filter-caret">▾</span>';
         lbl.classList.add('active');
         document.querySelectorAll('#' + DD_MAP[key] + ' .dropdown-item').forEach(function(i) {
-            i.classList.toggle('selected', !i.dataset.isAll && i.textContent === value);
+            i.classList.toggle('selected', !i.dataset.isAll && i.dataset.filterValue === value);
         });
         closeAllDropdowns();
+        updateFilterCounts();
         buildResultDropdown();
     }
 
@@ -806,6 +883,7 @@
         lbl.innerHTML = NAME_MAP[key] + '(' + SHORT_MAP[key] + ') 선택 <span class="filter-caret">▾</span>';
         lbl.classList.remove('active');
         document.querySelectorAll('#' + DD_MAP[key] + ' .dropdown-item').forEach(function(i) { i.classList.remove('selected'); });
+        updateFilterCounts();
     }
 
     function resetAllFilters(event) {
@@ -813,6 +891,7 @@
         filterState    = { domain: null, participants: null, orientation: null, competency: null };
         selectedResult = null;
         ['domain','participants','orientation','competency'].forEach(clearFilter);
+        updateFilterCounts();
 
         var nameEl = document.getElementById('result-model-name');
         if (nameEl) { nameEl.textContent = '수업 모형(MTI)의 검색을 위한 조건을 선택하세요.'; nameEl.classList.remove('has-count'); }
