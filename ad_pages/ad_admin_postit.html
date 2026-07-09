@@ -186,19 +186,22 @@ body { height: 100vh; overflow: hidden; }
 .btn-edit-cancel{background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb !important}
 .btn-edit-cancel:hover{background:#e5e7eb}
 /* 보관함 */
-.archive-cards{display:flex;flex-direction:column;gap:10px;min-height:140px;max-height:55vh;overflow-y:auto;justify-content:center}
+.archive-modal{-ms-overflow-style:none;scrollbar-width:none}
+.archive-modal::-webkit-scrollbar{display:none}
+.archive-cards{display:flex;flex-direction:column;gap:10px;min-height:140px;max-height:70vh;overflow-y:auto;-ms-overflow-style:none;scrollbar-width:none}
+.archive-cards::-webkit-scrollbar{display:none}
 .archive-item{border-radius:10px;padding:14px 16px;border:1px solid;display:flex;flex-direction:column;gap:8px}
 .archive-item.y{background:var(--y-bg);border-color:var(--y-bd)}.archive-item.b{background:var(--b-bg);border-color:var(--b-bd)}
 .archive-item.g{background:var(--g-bg);border-color:var(--g-bd)}.archive-item.p{background:var(--p-bg);border-color:var(--p-bd)}
-.archive-item-text{font-size:14px;line-height:1.6;word-break:break-word;overflow-wrap:anywhere;white-space:pre-wrap;max-height:140px;overflow-y:auto}
+.archive-item-text{font-size:14px;line-height:1.6;word-break:break-word;overflow-wrap:anywhere;white-space:pre-wrap}
 .archive-item.y .archive-item-text{color:var(--y-tx)}.archive-item.b .archive-item-text{color:var(--b-tx)}
 .archive-item.g .archive-item-text{color:var(--g-tx)}.archive-item.p .archive-item-text{color:var(--p-tx)}
 .archive-item-meta{font-size:12px;opacity:.6}
 .archive-item.y .archive-item-meta{color:var(--y-tx)}.archive-item.b .archive-item-meta{color:var(--b-tx)}
 .archive-item.g .archive-item-meta{color:var(--g-tx)}.archive-item.p .archive-item-meta{color:var(--p-tx)}
-.archive-item-actions{display:flex;gap:8px;margin-top:2px}
-.archive-item{transition:opacity .55s cubic-bezier(.4,0,.2,1),max-height .55s cubic-bezier(.4,0,.2,1),padding .55s cubic-bezier(.4,0,.2,1),margin .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1);max-height:400px;overflow:hidden;transform-origin:top center}
-.archive-item.removing{opacity:0;transform:scale(.9) translateY(-6px);max-height:0;padding-top:0;padding-bottom:0;margin-top:0;margin-bottom:0;border-width:0}
+.archive-item-actions{display:flex;gap:8px;margin-top:2px;justify-content:flex-end}
+.archive-item{transition:opacity .55s cubic-bezier(.4,0,.2,1),max-height .55s cubic-bezier(.4,0,.2,1),padding .55s cubic-bezier(.4,0,.2,1),margin .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1);max-height:5000px;overflow:visible;transform-origin:top center}
+.archive-item.removing{opacity:0;transform:scale(.9) translateY(-6px);max-height:0;padding-top:0;padding-bottom:0;margin-top:0;margin-bottom:0;border-width:0;overflow:hidden}
 .archive-item-del-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:5px;vertical-align:middle}
 .btn-repost{padding:7px 14px;border-radius:99px;background:#fff;border:1px solid #adb5bd;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fn);color:#495057;transition:all .12s}
 .btn-repost:hover{background:#f8f9fa;border-color:#495057}
@@ -367,14 +370,12 @@ body { height: 100vh; overflow: hidden; }
 
 <!-- ── 보관함 모달 ── -->
 <div class="overlay" id="archive-overlay">
-  <div class="modal" style="max-width:480px">
+  <div class="modal archive-modal" style="max-width:480px;position:relative">
+    <button class="detail-close-btn" onclick="closeOverlay('archive-overlay')" title="닫기">✕</button>
     <h2>📦 내 보관함</h2>
     <p style="font-size:12px;color:#9ca3af;margin-bottom:1rem">내가 작성했지만 Board에서 숨긴 Post-it이에요.</p>
     <div class="archive-cards" id="archive-list">
       <div style="text-align:center;padding:1.5rem;font-size:12px;color:#9ca3af">보관된 Post-it을 불러오는 중...</div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeOverlay('archive-overlay')">닫기</button>
     </div>
   </div>
 </div>
@@ -1267,6 +1268,7 @@ function openArchive(){
         '<div style="text-align:center;padding:1rem;font-size:12px;color:#9ca3af">불러오기 실패</div>';
     });
 }
+
 
 // 재게시
 function confirmRepost(id){
