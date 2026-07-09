@@ -1149,12 +1149,7 @@
             var z = _docZoom || 1;                       // 사용자 확대/축소 배율
             // 확대(z>1) 시: 가로로 넘치는 부분은 잘라내고(가로 클리핑) 드래그로 이동,
             // 세로는 일반 페이지 스크롤이 되도록 흐름에 맡긴다.
-            var hasPdfActive = !!c.querySelector('iframe.active[data-pdf="true"]');
-            if (hasPdfActive) {
-                c.style.overflowX = 'hidden';
-                c.style.overflowY = 'hidden';
-                c.style.touchAction = 'auto';
-            } else if (z > 1) {
+            if (z > 1) {
                 c.style.overflowX = 'hidden';
                 c.style.overflowY = 'visible';
                 c.style.touchAction = 'pan-y';   // 세로 스크롤은 브라우저, 가로 드래그는 직접 처리
@@ -1183,16 +1178,6 @@
                     f.style.transform = 'translate(' + _docOffX + 'px,' + _docOffY + 'px) scale(' + z + ')';
                     // 차지하는 실제 높이 = 콘텐츠높이*z 만큼만 (나머지 음수마진 제거)
                     f.style.marginBottom = Math.round(-(gBaseH * (1 - z))) + 'px';
-                } else if (f.dataset.pdf === 'true') {
-                    // PDF: iframe을 컨테이너보다 크게 만들어 스크롤바 + 검은 테두리 숨김
-                    var pdfH = Math.max(window.innerHeight - 180, 500);
-                    var pad = 6, scrollW = 18;
-                    f.style.setProperty('width', (availW + pad + scrollW) + 'px', 'important');
-                    f.style.setProperty('height', (pdfH + pad * 2) + 'px', 'important');
-                    f.style.transform = 'translate(-' + pad + 'px, -' + pad + 'px)';
-                    f.style.marginBottom = (-pad * 2) + 'px';
-                    f.style.marginRight = (-(pad + scrollW)) + 'px';
-                    f.style.pointerEvents = 'auto';
                 } else {
                     // Google Docs: 데스크톱 기준 폭(BASE_W)을 가용폭에 맞춘 비율 × 사용자 zoom
                     var BASE_W = 810, BASE_H = 2600;
@@ -1208,13 +1193,11 @@
         }
         var w = c.clientWidth, h = c.clientHeight;
         c.querySelectorAll('iframe').forEach(function(f) {
-            var isPdf = f.dataset.pdf === 'true';
-            var pad = 6, scrollW = 18;
             f.style.position   = 'absolute';
-            f.style.top        = isPdf ? (-pad + 'px') : '0';
-            f.style.left       = isPdf ? (-pad + 'px') : '0';
-            f.style.width      = (isPdf ? w + pad + scrollW : w) + 'px';
-            f.style.height     = (isPdf ? h + pad * 2 : h) + 'px';
+            f.style.top        = '0';
+            f.style.left       = '0';
+            f.style.width      = w + 'px';
+            f.style.height     = h + 'px';
             f.style.transform  = 'none';
             f.style.display    = 'block';
             f.style.visibility = f.classList.contains('active') ? 'visible' : 'hidden';
@@ -1230,14 +1213,6 @@
         return base + '/preview?rm=minimal';
     }
 
-    // Google Docs URL → PDF export URL
-    function toPdfExportUrl(src) {
-        if (!src || !src.includes('docs.google.com/document')) return null;
-        var idMatch = src.match(/\/document\/d\/([^\/?#]+)/);
-        if (!idMatch) return null;
-        return 'https://docs.google.com/document/d/' + idMatch[1] + '/export?format=pdf';
-    }
-
     function findIframeByUrl(fs) {
         var found = null;
         document.getElementById('iframe-container').querySelectorAll('iframe[data-src]').forEach(function(f) {
@@ -1246,32 +1221,20 @@
         return found;
     }
 
-    // Preload iframe silently in background (PDF or preview)
-    var _pdfBlobCache = {}; // originalSrc → blobUrl
+    // Preload iframe silently in background
     function prefetchIframe(src) {
-        var pdfUrl = toPdfExportUrl(src);
-        if (pdfUrl) {
-            // PDF 사전 로드: blob을 캐시에 저장
-            if (_pdfBlobCache[src]) return;
-            if (findIframeByUrl(pdfUrl)) return;
-            fetch(pdfUrl)
-                .then(function(res) { if (!res.ok) throw new Error(); return res.blob(); })
-                .then(function(blob) { _pdfBlobCache[src] = URL.createObjectURL(blob); })
-                .catch(function() { /* 사전로드 실패 무시 */ });
-        } else {
-            var fs = toPreviewUrl(src);
-            if (findIframeByUrl(fs)) return;
-            var f = document.createElement('iframe');
-            f.dataset.src     = fs;
-            f.dataset.loaded  = 'false';
-            f.allowFullscreen = true;
-            f.style.background = '#fff';
-            f.style.display    = 'none';
-            f.style.visibility = 'hidden';
-            f.onload = function() { f.dataset.loaded = 'true'; };
-            f.src = fs;
-            document.getElementById('iframe-container').appendChild(f);
-        }
+        var fs = toPreviewUrl(src);
+        if (findIframeByUrl(fs)) return;
+        var f = document.createElement('iframe');
+        f.dataset.src     = fs;
+        f.dataset.loaded  = 'false';
+        f.allowFullscreen = true;
+        f.style.background = '#fff';
+        f.style.display    = 'none';      // 활성화 전까지 숨김 (모바일에서 공간 차지 방지)
+        f.style.visibility = 'hidden';
+        f.onload = function() { f.dataset.loaded = 'true'; };
+        f.src = fs;
+        document.getElementById('iframe-container').appendChild(f);
     }
 
     var _docProgressTimer = null;
@@ -1338,6 +1301,7 @@
 
     function loadIframe(src) {
         resetDocZoom();
+        var fs    = toPreviewUrl(src);
         var c     = document.getElementById('iframe-container');
         var sp    = document.getElementById('loading-spinner');
         var token = ++_loadToken;
@@ -1350,121 +1314,9 @@
         });
         scaleIframes();
 
-        var pdfUrl = toPdfExportUrl(src);
-        if (pdfUrl) {
-            _loadPdf(src, pdfUrl, token);
-        } else {
-            _loadPreview(src, token);
-        }
-    }
-
-    // ── PDF 로드 ──
-    function _loadPdf(originalSrc, pdfExportUrl, token) {
-        var c = document.getElementById('iframe-container');
-
-        showDocOverlay('MTI 문서를 불러오는 중...');
-
-        // 이미 생성된 PDF iframe이 있으면 바로 표시
-        var ex = findIframeByUrl(pdfExportUrl);
-        if (ex && ex.dataset.loaded === 'true') {
-            ex.classList.add('active');
-            scaleIframes();
-            hideDocOverlay();
-            return;
-        }
-        if (ex) {
-            // 로드 중인 iframe이 있으면 onload 대기
-            ex.onload = function() {
-                ex.dataset.loaded = 'true';
-                if (_loadToken !== token) return;
-                ex.classList.add('active');
-                scaleIframes();
-                waitForImagesAndHide(token);
-            };
-            return;
-        }
-
-        // blob 캐시 확인
-        if (_pdfBlobCache[originalSrc]) {
-            _createPdfIframe(_pdfBlobCache[originalSrc], pdfExportUrl, token);
-            return;
-        }
-
-        // PDF fetch
-        var timedOut = false;
-        var fallbackTimer = setTimeout(function() {
-            timedOut = true;
-            if (_loadToken !== token) return;
-            console.warn('[IMTI] PDF fetch timeout → preview 폴백');
-            _loadPreview(originalSrc, token);
-        }, 15000);
-
-        fetch(pdfExportUrl)
-            .then(function(res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.blob();
-            })
-            .then(function(blob) {
-                clearTimeout(fallbackTimer);
-                if (timedOut || _loadToken !== token) return;
-                var blobUrl = URL.createObjectURL(blob);
-                _pdfBlobCache[originalSrc] = blobUrl;
-                _createPdfIframe(blobUrl, pdfExportUrl, token);
-            })
-            .catch(function(err) {
-                clearTimeout(fallbackTimer);
-                if (timedOut || _loadToken !== token) return;
-                console.error('[IMTI] PDF fetch 실패 → preview 폴백:', err);
-                _loadPreview(originalSrc, token);
-            });
-    }
-
-    function _createPdfIframe(blobUrl, cacheKey, token) {
-        if (_loadToken !== token) return;
-        var c = document.getElementById('iframe-container');
-
-        var ex = findIframeByUrl(cacheKey);
-        if (ex) {
-            ex.classList.add('active');
-            scaleIframes();
-            hideDocOverlay();
-            return;
-        }
-
-        var f = document.createElement('iframe');
-        f.dataset.src    = cacheKey;
-        f.dataset.pdf    = 'true';
-        f.dataset.loaded = 'false';
-        f.allowFullscreen = true;
-        f.style.background = '#fff';
-        f.onload = function() {
-            f.dataset.loaded = 'true';
-            if (_loadToken !== token) return;
-            f.classList.add('active');
-            scaleIframes();
-            waitForImagesAndHide(token);
-        };
-        f.src = blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
-        c.appendChild(f);
-        scaleIframes();
-
-        // onload 미발생 시 폴백
-        setTimeout(function() {
-            if (_loadToken !== token || f.dataset.loaded === 'true') return;
-            f.dataset.loaded = 'true';
-            f.classList.add('active');
-            scaleIframes();
-            hideDocOverlay();
-        }, 8000);
-    }
-
-    // ── Preview 폴백 (기존 방식) ──
-    function _loadPreview(src, token) {
-        var fs = toPreviewUrl(src);
-        var c  = document.getElementById('iframe-container');
-
         showDocOverlay('선택한 MTI를 불러오는 중...');
 
+        // Fallback: force-show after 8s if onload never fires
         var fallbackTimer = setTimeout(function() {
             if (_loadToken !== token) return;
             var target = findIframeByUrl(fs);
@@ -1483,16 +1335,19 @@
         var ex = findIframeByUrl(fs);
         if (ex) {
             if (ex.dataset.loaded === 'true') {
+                // Already cached — show immediately
                 clearTimeout(fallbackTimer);
                 hideDocOverlay();
                 ex.classList.add('active');
                 scaleIframes();
             } else {
+                // Prefetch in progress — wait for onload
                 ex.onload = function() { ex.dataset.loaded = 'true'; revealFrame(ex); };
             }
             return;
         }
 
+        // Create new iframe
         var f = document.createElement('iframe');
         f.dataset.src      = fs;
         f.dataset.loaded   = 'false';
