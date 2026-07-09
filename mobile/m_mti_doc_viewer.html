@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MTI 문서 뷰어</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #f1f3f5; display: flex; flex-direction: column; }
+
+        /* === Header === */
+        .vh { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: #fff; border-bottom: 1px solid #dee2e6; z-index: 10; }
+        .vh-title { font-size: 0.78rem; font-weight: 700; color: #212529; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+        .vh-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .vb { font-family: 'Noto Sans KR'; font-size: 0.68rem; font-weight: 700; border-radius: 6px; padding: 8px 14px; cursor: pointer; white-space: nowrap; transition: background 0.15s; line-height: 1; border: 1px solid; }
+        .vb-exp-view { color: #1a56db; background: #f0f4ff; border-color: #1a56db; }
+        .vb-exp-view:hover { background: #dbe4ff; }
+        .vb-exp-write { color: #2f9e44; background: #f0fdf4; border-color: #2f9e44; }
+        .vb-exp-write:hover { background: #d3f9d8; }
+        .vb-close { font-family: 'Noto Sans KR'; font-size: 0.72rem; font-weight: 700; color: #fff; background: #495057; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; margin-left: 2px; }
+        .vb-close:hover { background: #343a40; }
+
+        /* === Viewer body === */
+        .vbody { flex: 1; min-height: 0; position: relative; background: #e9ecef; overflow: hidden; }
+        .vbody iframe { width: 100%; height: 100%; border: none; background: #fff; opacity: 0; transition: opacity .3s; }
+        .vbody iframe.loaded { opacity: 1; }
+        .vloading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #868e96; font-family: 'DM Mono'; font-size: .78rem; z-index: 2; }
+        .vloading.hidden { display: none; }
+        .spinner { width: 30px; height: 30px; border: 3px solid #e9ecef; border-top: 3px solid #1a56db; border-radius: 50%; animation: spin .8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .verror { display: none; position: absolute; inset: 0; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #868e96; font-size: .85rem; text-align: center; padding: 20px; z-index: 2; }
+        .verror.show { display: flex; }
+
+        /* === Modal base === */
+        .m-overlay { position: fixed; inset: 0; z-index: 5000; display: none; align-items: flex-end; justify-content: center; background: rgba(20,22,28,0.5); }
+        .m-overlay.show { display: flex; }
+        .m-box { background: #fff; width: 100%; max-height: 92vh; border-radius: 16px 16px 0 0; display: flex; flex-direction: column; box-shadow: 0 -4px 24px rgba(0,0,0,0.15); animation: slideUp .25s ease; overflow: hidden; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .m-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 12px; border-bottom: 1px solid #f1f3f5; flex-shrink: 0; }
+        .m-head-title { font-size: .88rem; font-weight: 700; color: #212529; }
+        .m-head-close { background: none; border: none; font-size: 1.4rem; color: #adb5bd; cursor: pointer; line-height: 1; padding: 4px; }
+        .m-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .m-footer { flex-shrink: 0; padding: 10px 18px 14px; border-top: 1px solid #f1f3f5; display: flex; gap: 8px; }
+        .m-footer-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-family: 'Noto Sans KR'; font-size: .85rem; font-weight: 700; cursor: pointer; transition: background .15s; }
+        .m-footer-submit { background: #1a56db; color: #fff; }
+        .m-footer-submit:hover { background: #1647b5; }
+        .m-footer-submit:disabled { background: #adb5bd; cursor: not-allowed; }
+        .m-footer-cancel { background: #f1f3f5; color: #495057; }
+        .m-footer-cancel:hover { background: #dee2e6; }
+
+        /* === Experience view === */
+        .ev-loading { padding: 48px; text-align: center; color: #868e96; font-size: .82rem; }
+        .ev-empty { padding: 48px 20px; text-align: center; color: #868e96; font-size: .88rem; line-height: 1.6; }
+        .ev-entry { padding: 14px 18px; }
+        .ev-meta { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .ev-author { font-size: .76rem; font-weight: 700; color: #d47878; }
+        .ev-date { font-size: .72rem; color: #868e96; }
+        .ev-field { margin-bottom: 8px; }
+        .ev-label { font-size: .68rem; font-weight: 700; color: #868e96; margin-bottom: 2px; letter-spacing: .03em; }
+        .ev-value { font-size: .82rem; color: #343a40; line-height: 1.65; background: #f8f9fa; border-radius: 8px; padding: 8px 12px; }
+        .ev-pg { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 10px 18px 14px; border-top: 1px solid #f1f3f5; flex-shrink: 0; }
+        .pg-b { font-family: 'Noto Sans KR'; font-size: .7rem; font-weight: 600; color: #495057; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 5px 8px; cursor: pointer; min-width: 28px; }
+        .pg-b:hover { background: #e9ecef; }
+        .pg-b.on { background: #1a56db; color: #fff; border-color: #1a56db; }
+        .pg-b:disabled { opacity: .35; cursor: default; }
+
+        /* === Experience write form === */
+        .ew-form { padding: 14px 18px; }
+        .ew-row { margin-bottom: 12px; }
+        .ew-lbl { font-size: .72rem; font-weight: 700; color: #495057; margin-bottom: 4px; display: block; }
+        .ew-input { width: 100%; font-family: 'Noto Sans KR'; font-size: .82rem; color: #343a40; border: 1px solid #dee2e6; border-radius: 8px; padding: 10px 12px; outline: none; transition: border-color .15s; background: #f8f9fa; }
+        .ew-input:focus { border-color: #1a56db; background: #fff; }
+        textarea.ew-input { min-height: 72px; resize: vertical; line-height: 1.6; }
+        .ew-readonly { background: #e9ecef; color: #868e96; }
+        .ew-info { font-size: .68rem; color: #868e96; margin-top: 4px; line-height: 1.5; }
+
+        /* === Success / Alert modal === */
+        .m-alert-overlay { position: fixed; inset: 0; z-index: 6000; display: none; align-items: center; justify-content: center; background: rgba(20,22,28,0.5); }
+        .m-alert-overlay.show { display: flex; }
+        .m-alert-box { background: #fff; width: 88%; max-width: 340px; border-radius: 16px; padding: 32px 24px 24px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.18); animation: alertPop .3s ease; }
+        @keyframes alertPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .m-alert-icon { font-size: 2.4rem; margin-bottom: 12px; }
+        .m-alert-msg { font-family: 'Noto Sans KR'; font-size: .92rem; font-weight: 700; color: #212529; line-height: 1.6; margin-bottom: 20px; }
+        .m-alert-close { font-family: 'Noto Sans KR'; font-size: .85rem; font-weight: 700; color: #fff; background: #1a56db; border: none; border-radius: 10px; padding: 11px 36px; cursor: pointer; transition: background .15s; }
+        .m-alert-close:hover { background: #1647b5; }
+    </style>
+</head>
+<body>
+
+<div class="vh">
+    <span class="vh-title" id="viewerTitle">수업 모형 문서</span>
+    <div class="vh-actions">
+        <button class="vb vb-exp-view" onclick="openExpView()">📋 경험 확인</button>
+        <button class="vb vb-exp-write" onclick="openExpWrite()">✏️ 경험 등록</button>
+        <button class="vb-close" onclick="goBack()">닫기</button>
+    </div>
+</div>
+
+<div class="vbody">
+    <div class="vloading" id="vLoading"><div class="spinner"></div><span>문서를 불러오는 중…</span></div>
+    <div class="verror" id="vError"><div style="font-size:2rem;">📄</div><div style="line-height:1.6;">PDF를 불러올 수 없습니다.<br>아래 버튼을 눌러 다시 시도해주세요.</div><button class="pg-b" onclick="retryCount=0;loadDoc();" style="margin-top:8px;padding:8px 20px;">다시 시도</button></div>
+    <iframe id="vFrame" title="수업 모형 문서"></iframe>
+</div>
+
+<!-- 경험 확인 모달 -->
+<div class="m-overlay" id="ovView" onclick="if(event.target===this)closeExpView()">
+    <div class="m-box">
+        <div class="m-head">
+            <span class="m-head-title">📋 수업 모형 적용 사례</span>
+            <button class="m-head-close" onclick="closeExpView()">✕</button>
+        </div>
+        <div class="m-body" id="evBody"><div class="ev-loading" id="evLoading"><div class="spinner" style="margin:0 auto 12px;"></div>적용 사례를 불러오는 중...</div></div>
+        <div class="ev-pg" id="evPg" style="display:none;"></div>
+    </div>
+</div>
+
+<!-- 경험 등록 모달 -->
+<div class="m-overlay" id="ovWrite" onclick="if(event.target===this)closeExpWrite()">
+    <div class="m-box">
+        <div class="m-head">
+            <span class="m-head-title">✏️ 나의 경험 공유하기</span>
+            <button class="m-head-close" onclick="closeExpWrite()">✕</button>
+        </div>
+        <div class="m-body">
+            <div class="ew-form">
+                <div class="ew-row">
+                    <label class="ew-lbl">수업 모형</label>
+                    <input class="ew-input ew-readonly" id="ewModel" readonly>
+                </div>
+                <div class="ew-row">
+                    <label class="ew-lbl">작성자</label>
+                    <input class="ew-input ew-readonly" id="ewUser" readonly>
+                </div>
+                <div class="ew-row">
+                    <label class="ew-lbl">수업 대상</label>
+                    <input class="ew-input" id="ewPartic" placeholder="누구(대상)와 함께 수업을 하였는지 입력해주세요.">
+                </div>
+                <div class="ew-row">
+                    <label class="ew-lbl">수업 내용</label>
+                    <input class="ew-input" id="ewSub" placeholder="수업 내용을 구체적으로 입력해주세요.">
+                </div>
+                <div class="ew-row">
+                    <label class="ew-lbl">좋았던 점</label>
+                    <textarea class="ew-input" id="ewMerit" placeholder="수업 모형을 적용하였을 때의 좋았던 점을 기술해주세요."></textarea>
+                </div>
+                <div class="ew-row">
+                    <label class="ew-lbl">문제점</label>
+                    <textarea class="ew-input" id="ewDemerit" placeholder="수업 모형을 적용하였을 때의 문제점을 기술해주세요."></textarea>
+                </div>
+                <div class="ew-row">
+                    <label class="ew-lbl">기타 / 조언</label>
+                    <textarea class="ew-input" id="ewEtc" placeholder="적용하고자 하는 분들을 위한 조언을 기록해주세요."></textarea>
+                </div>
+                <div class="ew-info">※ 비난, 욕설, 수업과 무관한 내용 포함 시 운영진에 의해 삭제될 수 있습니다.</div>
+            </div>
+        </div>
+        <div class="m-footer">
+            <button class="m-footer-btn m-footer-cancel" onclick="closeExpWrite()">취소</button>
+            <button class="m-footer-btn m-footer-submit" id="ewSubmitBtn" onclick="submitExp()">등록하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 등록 성공 모달 -->
+<div class="m-alert-overlay" id="ovSuccess" onclick="if(event.target===this)closeSuccessModal()">
+    <div class="m-alert-box">
+        <div class="m-alert-icon">🎉</div>
+        <div class="m-alert-msg">소중한 경험이 등록되었습니다.</div>
+        <button class="m-alert-close" onclick="closeSuccessModal()">닫기</button>
+    </div>
+</div>
+
+<script>
+    function openSuccessModal() { document.getElementById('ovSuccess').classList.add('show'); }
+    function closeSuccessModal() { document.getElementById('ovSuccess').classList.remove('show'); }
+
+    var P = new URLSearchParams(location.search);
+    var docUrl  = P.get('url')   || '';
+    var docName = P.get('name')  || '수업 모형 문서';
+    var mtiId   = P.get('mtiid') || '';
+    var EXP_URL = 'https://script.google.com/macros/s/AKfycbye_Tya-8ItxfkD3DLYysmXImC4FM-N7nb_clv3AWuM59Mb389oZ1E6bp9YCy_MxYRt/exec';
+
+    document.getElementById('viewerTitle').textContent = docName;
+    document.title = docName + ' — MTI 뷰어';
+
+    function toPreviewUrl(s) {
+        if (!s || !s.includes('docs.google.com')) return s;
+        var b = s.split('?')[0].split('#')[0].replace(/\/(edit|view|pub|preview|copy|export)(\/.*)?$/, '');
+        return b + '/preview?rm=minimal';
+    }
+    function toGviewUrl(s) {
+        if (!s || !s.includes('docs.google.com')) return s;
+        var m = s.match(/(https:\/\/docs\.google\.com\/document\/d\/[^\/]+)/);
+        if (!m) return s;
+        return 'https://docs.google.com/gview?embedded=true&url=' + encodeURIComponent(m[1] + '/export?format=pdf');
+    }
+
+    // === Load doc ===
+    var maxRetry = 3;
+    var retryCount = 0;
+
+    function loadDoc() {
+        if (!docUrl) { document.getElementById('vError').classList.add('show'); return; }
+        var f = document.getElementById('vFrame'), ld = document.getElementById('vLoading'), er = document.getElementById('vError');
+        ld.classList.remove('hidden'); er.classList.remove('show'); f.classList.remove('loaded');
+
+        f.onload = function() {
+            // gview의 "미리보기가 없음" 오류도 onload가 발생하므로
+            // 로드 완료로 처리하되, 사용자가 재시도할 수 있도록 함
+            ld.classList.add('hidden');
+            f.classList.add('loaded');
+            retryCount = 0;
+        };
+
+        // 10초 안에 onload가 안 오면 자동 재시도
+        var timer = setTimeout(function() {
+            if (!f.classList.contains('loaded')) {
+                retryCount++;
+                if (retryCount < maxRetry) {
+                    // gview URL을 캐시 방지 파라미터와 함께 재시도
+                    f.src = toGviewUrl(docUrl) + '&_t=' + Date.now();
+                } else {
+                    ld.classList.add('hidden');
+                    er.classList.add('show');
+                    retryCount = 0;
+                }
+            }
+        }, 10000);
+
+        // Google Docs → PDF로 변환하여 gview embedded viewer로 표시
+        f.src = toGviewUrl(docUrl);
+    }
+    function goBack() { if (history.length > 1) history.back(); else window.close(); }
+
+    // === Experience view ===
+    var evAll = [];
+    function openExpView() {
+        document.getElementById('ovView').classList.add('show');
+        document.getElementById('evBody').innerHTML = '<div class="ev-loading"><div class="spinner" style="margin:0 auto 12px;"></div>적용 사례를 불러오는 중...</div>';
+        document.getElementById('evPg').style.display = 'none';
+        if (!mtiId) { document.getElementById('evBody').innerHTML = '<div class="ev-empty">수업 모형 ID 정보가 없습니다.</div>'; return; }
+        fetch(EXP_URL + '?action=getExpSurvey&mtiId=' + encodeURIComponent(mtiId))
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                evAll = (Array.isArray(d) ? d : (d && d.rows ? d.rows : [])).sort(function(a, b) { return new Date(b.timestamp||b.date||0) - new Date(a.timestamp||a.date||0); });
+                if (!evAll.length) { document.getElementById('evBody').innerHTML = '<div class="ev-empty">📭<br>아직 등록된 적용 사례가 없습니다.<br>첫 번째 경험을 공유해 주세요!</div>'; return; }
+                evRender(1);
+            }).catch(function() { document.getElementById('evBody').innerHTML = '<div class="ev-empty">데이터를 불러올 수 없습니다.</div>'; });
+    }
+    function closeExpView() { document.getElementById('ovView').classList.remove('show'); }
+
+    function esc(s) { return String(s||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+    function evField(l, v) { return '<div class="ev-field"><div class="ev-label">'+l+'</div><div class="ev-value">'+esc(v)+'</div></div>'; }
+
+    function evRender(pg) {
+        var e = evAll[pg-1]; if (!e) return;
+        var uid = e.user_ID||e.userId||e.userID||e.user_id||'—';
+        var dt = String(e.timestamp||e.date||'').substring(0,10);
+        document.getElementById('evBody').innerHTML = '<div class="ev-entry">' +
+            '<div class="ev-meta"><span class="ev-author">작성자: '+esc(uid)+'</span><span class="ev-date">'+esc(dt)+'</span></div>' +
+            evField('수업 대상', e.participants||e.subParticipants) +
+            evField('수업 내용', e.sub_contents||e.sub_content||e.subContents||e.subContent) +
+            evField('좋았던 점', e.advantage) +
+            evField('문제점', e.disadvantage||e.disadvantege) +
+            evField('기타/조언', e.etc) + '</div>';
+        evPg(pg, evAll.length);
+    }
+    function evPg(c, t) {
+        var pg = document.getElementById('evPg'); pg.style.display = 'flex'; pg.innerHTML = '';
+        function mk(l,p,d,a) { var b=document.createElement('button'); b.className='pg-b'+(a?' on':''); b.textContent=l; b.disabled=!!d; if(!d)b.onclick=function(){evRender(p);}; pg.appendChild(b); }
+        mk('«',1,c<=1); for(var i=1;i<=t;i++)mk(String(i),i,false,i===c); mk('»',t,c>=t);
+    }
+
+    // === Experience write ===
+    function openExpWrite() {
+        document.getElementById('ewModel').value = docName;
+        document.getElementById('ewUser').value = sessionStorage.getItem('imti_user_id') || '—';
+        ['ewPartic','ewSub','ewMerit','ewDemerit','ewEtc'].forEach(function(id) { document.getElementById(id).value = ''; });
+        document.getElementById('ovWrite').classList.add('show');
+    }
+    function closeExpWrite() { document.getElementById('ovWrite').classList.remove('show'); }
+
+    function submitExp() {
+        var userId = sessionStorage.getItem('imti_user_id') || '';
+        var merit = document.getElementById('ewMerit').value.trim();
+        var demerit = document.getElementById('ewDemerit').value.trim();
+        var etc = document.getElementById('ewEtc').value.trim();
+        if (!mtiId) { alert('수업 모형 ID 정보가 없습니다.'); return; }
+        if (!userId) { alert('로그인 정보가 없습니다.'); return; }
+        if (!merit && !demerit && !etc) { alert('좋았던 점, 문제점, 기타 중 하나 이상 입력해주세요.'); return; }
+
+        var btn = document.getElementById('ewSubmitBtn'); btn.disabled = true; btn.textContent = '등록 중…';
+
+        var payload = JSON.stringify({
+            action:       'submitExpSurvey',
+            mtiId:        mtiId,
+            userId:       userId,
+            subContents:  document.getElementById('ewSub').value.trim(),
+            participants: document.getElementById('ewPartic').value.trim(),
+            advantage:    merit,
+            disadvantage: demerit,
+            etc:          etc
+        });
+
+        function onSuccess() {
+            btn.disabled = false; btn.textContent = '등록하기';
+            closeExpWrite();
+            openSuccessModal();
+        }
+        function onError(reason) {
+            console.error('[IMTI] submitExpSurvey error:', reason);
+            btn.disabled = false; btn.textContent = '등록하기';
+            alert('저장에 실패했습니다. 다시 시도해주세요. (' + reason + ')');
+        }
+
+        fetch(EXP_URL, {
+            method:  'POST',
+            cache:   'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body:    payload
+        })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                if (res && res.status === 'OK') { onSuccess(); }
+                else { onError((res && res.error) || 'GAS_REJECTED'); }
+            })
+            .catch(function(err) {
+                console.warn('[IMTI] POST blocked, retrying with no-cors:', err);
+                fetch(EXP_URL, {
+                    method:  'POST',
+                    mode:    'no-cors',
+                    cache:   'no-cache',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body:    payload
+                })
+                    .then(function() { onSuccess(); })
+                    .catch(function(err2) { console.error('[IMTI] no-cors fallback error:', err2); onError('NETWORK_ERROR'); });
+            });
+    }
+
+    loadDoc();
+</script>
+</body>
+</html>

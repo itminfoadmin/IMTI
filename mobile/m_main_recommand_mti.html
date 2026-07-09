@@ -1174,14 +1174,9 @@ function loadFrame(src){
 }
 function openDocModal(url, name, mtiId){
   if(!url) return;
-  _currentDocUrl = url;
-  _currentMtiId = mtiId || '';
-  _currentMtiName = name || '';
-  document.getElementById('docModalTitle').textContent = name || '수업 모형';
-  loadFrame(toDocPreview(url));
-  const modal=document.getElementById('docModal');
-  modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
-  document.body.style.overflow='hidden';
+  // 전용 뷰어 페이지에서 PDF로 표시
+  var viewerUrl = 'm_mti_doc_viewer.html?url=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name || '수업 모형') + '&mtiid=' + encodeURIComponent(mtiId || '');
+  window.location.href = viewerUrl;
 }
 function closeDocModal(){
   const modal=document.getElementById('docModal');
