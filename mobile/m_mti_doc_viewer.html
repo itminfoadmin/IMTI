@@ -100,7 +100,7 @@
 
 <div class="vbody">
     <div class="vloading" id="vLoading"><div class="spinner"></div><span>문서를 불러오는 중…</span></div>
-    <div class="verror" id="vError"><div style="font-size:2rem;">📄</div><div style="line-height:1.6;">PDF를 불러올 수 없습니다.<br>아래 버튼을 눌러 다시 시도해주세요.</div><button class="pg-b" onclick="retryCount=0;loadDoc();" style="margin-top:8px;padding:8px 20px;">다시 시도</button></div>
+    <div class="verror" id="vError"><div style="font-size:2rem;">📄</div><div style="line-height:1.6;">PDF를 불러올 수 없습니다.<br>아래 버튼을 눌러 다시 시도해주세요.</div><button class="pg-b" onclick="loadDoc();" style="margin-top:8px;padding:8px 20px;">다시 시도</button></div>
     <iframe id="vFrame" title="수업 모형 문서"></iframe>
 </div>
 
@@ -185,52 +185,107 @@
     document.getElementById('viewerTitle').textContent = docName;
     document.title = docName + ' — MTI 뷰어';
 
-    function toPreviewUrl(s) {
+    // === PDF export URL 추출 ===
+    function toPdfExportUrl(s) {
         if (!s || !s.includes('docs.google.com')) return s;
         var b = s.split('?')[0].split('#')[0].replace(/\/(edit|view|pub|preview|copy|export)(\/.*)?$/, '');
-        return b + '/preview?rm=minimal';
+        return b + '/export?format=pdf';
     }
-    function toGviewUrl(s) {
-        if (!s || !s.includes('docs.google.com')) return s;
-        var m = s.match(/(https:\/\/docs\.google\.com\/document\/d\/[^\/]+)/);
-        if (!m) return s;
-        return 'https://docs.google.com/gview?embedded=true&url=' + encodeURIComponent(m[1] + '/export?format=pdf');
+
+    // === 다단계 PDF 뷰어 전략 ===
+    // 모든 방법이 PDF 형태로 표시됨
+    function getStrategies(url) {
+        var pdfUrl;
+        if (url && url.includes('docs.google.com')) {
+            pdfUrl = toPdfExportUrl(url);
+        } else {
+            pdfUrl = url; // 이미 PDF URL인 경우
+        }
+        var encoded = encodeURIComponent(pdfUrl);
+        return [
+            // 1차: Google Docs Viewer (gview) — 가장 보편적인 PDF 뷰어
+            { name: 'gview',
+              url: 'https://docs.google.com/gview?embedded=true&url=' + encoded,
+              timeout: 12000 },
+            // 2차: gview 캐시 버스팅 재시도
+            { name: 'gview-retry',
+              url: 'https://docs.google.com/gview?embedded=true&url=' + encoded + '&_t=' + Date.now(),
+              timeout: 15000 },
+            // 3차: Google Drive Viewer (다른 엔드포인트)
+            { name: 'drive-viewer',
+              url: 'https://drive.google.com/viewerng/viewer?embedded=true&url=' + encoded,
+              timeout: 15000 },
+            // 4차: Microsoft Office Online Viewer (최후의 폴백)
+            { name: 'office-viewer',
+              url: 'https://view.officeapps.live.com/op/embed.aspx?src=' + encoded,
+              timeout: 15000 }
+        ];
     }
 
     // === Load doc ===
-    var maxRetry = 3;
-    var retryCount = 0;
+    var loadTimer = null;
+    var currentStep = 0;
+    var strategies = [];
 
     function loadDoc() {
         if (!docUrl) { document.getElementById('vError').classList.add('show'); return; }
-        var f = document.getElementById('vFrame'), ld = document.getElementById('vLoading'), er = document.getElementById('vError');
-        ld.classList.remove('hidden'); er.classList.remove('show'); f.classList.remove('loaded');
 
-        f.onload = function() {
-            // gview의 "미리보기가 없음" 오류도 onload가 발생하므로
-            // 로드 완료로 처리하되, 사용자가 재시도할 수 있도록 함
+        var f  = document.getElementById('vFrame');
+        var ld = document.getElementById('vLoading');
+        var er = document.getElementById('vError');
+
+        strategies = getStrategies(docUrl);
+        currentStep = 0;
+
+        ld.classList.remove('hidden');
+        er.classList.remove('show');
+        f.classList.remove('loaded');
+        if (loadTimer) { clearTimeout(loadTimer); loadTimer = null; }
+
+        function onSuccess(name) {
+            if (loadTimer) { clearTimeout(loadTimer); loadTimer = null; }
             ld.classList.add('hidden');
             f.classList.add('loaded');
-            retryCount = 0;
-        };
+            console.log('[MTI Viewer] PDF 로드 성공: ' + name);
+        }
 
-        // 10초 안에 onload가 안 오면 자동 재시도
-        var timer = setTimeout(function() {
-            if (!f.classList.contains('loaded')) {
-                retryCount++;
-                if (retryCount < maxRetry) {
-                    // gview URL을 캐시 방지 파라미터와 함께 재시도
-                    f.src = toGviewUrl(docUrl) + '&_t=' + Date.now();
-                } else {
-                    ld.classList.add('hidden');
-                    er.classList.add('show');
-                    retryCount = 0;
-                }
+        function tryNext() {
+            currentStep++;
+            if (currentStep < strategies.length) {
+                attemptLoad();
+            } else {
+                // 모든 방법 실패
+                if (loadTimer) { clearTimeout(loadTimer); loadTimer = null; }
+                ld.classList.add('hidden');
+                er.classList.add('show');
+                console.warn('[MTI Viewer] 모든 PDF 뷰어 실패');
             }
-        }, 10000);
+        }
 
-        // Google Docs → PDF로 변환하여 gview embedded viewer로 표시
-        f.src = toGviewUrl(docUrl);
+        function attemptLoad() {
+            var s = strategies[currentStep];
+            console.log('[MTI Viewer] 시도 (' + (currentStep + 1) + '/' + strategies.length + '): ' + s.name);
+
+            f.classList.remove('loaded');
+
+            f.onload = function() { onSuccess(s.name); };
+            f.onerror = function() {
+                console.warn('[MTI Viewer] onerror: ' + s.name);
+                tryNext();
+            };
+
+            if (loadTimer) clearTimeout(loadTimer);
+            loadTimer = setTimeout(function() {
+                if (!f.classList.contains('loaded')) {
+                    console.warn('[MTI Viewer] 타임아웃: ' + s.name);
+                    tryNext();
+                }
+            }, s.timeout);
+
+            f.src = s.url;
+        }
+
+        attemptLoad();
     }
     function goBack() { if (history.length > 1) history.back(); else window.close(); }
 
