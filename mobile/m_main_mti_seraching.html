@@ -137,18 +137,6 @@
         .filter-reset-btn:hover { background: #e9e8e3; color: #6a6868; }
         .filter-caret { font-size: 1.2rem; opacity: 0.7; transition: transform 0.2s; display: inline-block; }
         .filter-label.open .filter-caret { transform: rotate(180deg); opacity: 0.8; }
-        .filter-arrow-sep {
-            display: flex;
-            align-items: center;
-            padding: 0 8px;
-            color: #bbb;
-            font-family: 'Noto Sans KR';
-            font-size: 1.5rem;
-            font-weight: 800;
-            border-right: 1px solid #fff;
-            flex-shrink: 0;
-            user-select: none;
-        }
         .filter-item.result-item { flex: 1; min-width: 0; overflow: visible; }
         .filter-item.result-item .filter-label { flex: 1; background: #f5f4f1; padding-left: 14px; justify-content: flex-start; }
         .filter-item.result-item .filter-label:hover { background: #e9e8e3; }
@@ -216,64 +204,28 @@
         .dropdown-item.selected::before { background: #d47878; }
         .dropdown-item-all.selected { font-weight: 700; color: #d47878; background: #fff8f5; }
         .dropdown-item-all.selected::before { background: #d47878; }
+        .dropdown-count {
+            margin-left: auto;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: #868e96;
+            white-space: nowrap;
+            flex-shrink: 0;
+            padding-left: 10px;
+        }
+        .dropdown-item.selected .dropdown-count { color: #d47878; }
+        .dropdown-item.disabled-item {
+            opacity: 0.38;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
         #filter-result { border-right: 1px solid #fff !important; }
         /* 결과(MTI) 드롭다운은 항목이 많을 수 있어 화면을 넘으면 스크롤 허용 */
         #dd-result { max-height: calc(5.7 * 43px); overflow-y: auto; }
 
-        .body-row { flex: 1; min-height: 0; display: flex; gap: 0; position: relative; }
-        .iframe-wrap { flex: 1; min-width: 0; position: relative; background: #fff; border: 1px solid #dee2e6; overflow: hidden; }
-        .iframe-inner { width: 100%; height: 100%; position: relative; overflow: hidden; background: #fff; }
-        iframe { width: 100%; height: 100%; border: none; visibility: hidden; position: absolute; top: 0; left: 0; background: #fff; }
-        iframe.active { visibility: visible; }
-        .iframe-loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; align-items: center; gap: 10px; z-index: 5; }
-        .iframe-loading.show { display: flex; }
         .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .scrollbar-cover { position: absolute; top: 0; right: 0; width: 16px; height: 100%; background: #fff; z-index: 2; pointer-events: none; }
-
-        #doc-loading-overlay {
-            position: absolute; inset: 0; background: #fff;
-            display: none; flex-direction: column;
-            align-items: center; justify-content: center;
-            gap: 18px; z-index: 50;
-            opacity: 0; transition: opacity 0.18s ease;
-        }
-        #doc-loading-overlay.show { display: flex; }
-        #doc-loading-overlay.visible { opacity: 1; }
-        .doc-loading-label {
-            font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem;
-            font-weight: 500; letter-spacing: 0.04em; color: #868e96;
-        }
-        .doc-progress-track { width: 220px; height: 2px; background: #f1f3f5; border-radius: 99px; overflow: hidden; }
-        .doc-progress-bar { height: 100%; width: 0%; background: #d47878; border-radius: 99px; transition: width 0.28s ease; }
-
-        .side-btns { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; z-index: 200; }
-        .side-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            width: 70px;
-            height: 59.5px;
-            padding: 8px 5px;
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: 'Noto Sans KR', sans-serif;
-            font-size: 0.6rem;
-            font-weight: 500;
-            color: #555;
-            text-align: center;
-            line-height: 1.35;
-            transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
-            word-break: keep-all;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.09);
-        }
-        .side-btn:hover { background: #343a40; color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.18); transform: translateX(-3px); }
-        .side-btn-icon { font-size: 1.05rem; }
-        .side-btn:hover .side-btn-icon { filter: brightness(10); }
 
         /* PDF 다운로드 확인 모달 */
         .dl-modal-overlay {
@@ -382,7 +334,6 @@
         #preload-overlay.fade-out { opacity: 0; pointer-events: none; }
         .preload-logo { height: 10rem; width: auto; opacity: 0.85; }
         .preload-title { font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #adb5bd; }
-        .preload-count { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: transparent; letter-spacing: 0.1em; }
         @media (max-width: 768px) { .preload-logo { height: 6rem; } }
         .preload-bar-row { display: flex; align-items: center; gap: 10px; width: 260px; }
         .preload-pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #d47878; flex-shrink: 0; animation: preload-pulse 1.2s ease-in-out infinite; }
@@ -476,69 +427,6 @@
             .filter-item .filter-label { flex: 1; }
             .filter-item .filter-reset-btn { width: 66px; border-left: 1px solid #e6e4e0; font-size: 1.1rem; font-weight: 900; }
             .filter-item .filter-dropdown { flex-basis: 100%; }
-
-            /* Body row vertical: action buttons first, then document */
-            .body-row { flex-direction: column; gap: 12px; height: auto; min-height: 0; }
-            /* 문서 영역: 긴 Google Docs도 한 번에 담기도록 큰 고정 높이를 두고,
-               iframe 자체 스크롤은 없애고 페이지 전체가 스크롤되게 함 (높이는 JS에서 동적 조정) */
-            .iframe-wrap { order: 1; height: auto; min-height: 0; flex: none; overflow: visible; }
-            .iframe-inner { height: auto; min-height: 0; overflow: visible; }
-            #iframe-container { height: auto; min-height: 0; position: relative; overflow: visible; }
-            #iframe-container iframe {
-                position: relative !important;
-                top: auto !important; left: auto !important;
-                width: 100% !important;
-                height: 1600px;          /* 기본값, JS가 화면 폭에 맞춰 재계산 */
-                display: none;
-                overflow: hidden;
-            }
-            #iframe-container iframe.active { display: block; }
-            /* 모바일: 로딩 표시를 버튼 줄 아래(문서 영역)에 고정해 버튼과 겹치지 않게 */
-            #doc-loading-overlay, .iframe-loading {
-                position: fixed;
-                top: auto;
-                bottom: 32%;
-                left: 50%;
-                transform: translateX(-50%);
-                margin: 0;
-                z-index: 5;
-            }
-            .side-btns {
-                position: static;
-                right: auto;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                align-items: center;
-                gap: 6px;
-                width: 100%;
-                margin: 10px 0 4px;
-                justify-content: flex-start;
-            }
-            .side-btn {
-                flex: 0 0 auto;
-                min-width: 0;
-                flex-direction: column;
-                width: 52px;
-                height: 44.2px;
-                min-height: 0;
-                gap: 0;
-                padding: 0;
-                white-space: nowrap;
-            }
-            .side-btn .side-btn-icon { font-size: 1.5rem; }
-            .side-btn br { display: none; }
-            .side-btn:hover { transform: none; }
-            /* 확대/축소 버튼 그룹: 오른쪽 끝으로 */
-            .zoom-group {
-                display: flex;
-                flex-direction: row;
-                gap: 6px;
-                margin-left: auto;
-                flex: 0 0 auto;
-            }
-            .zoom-btn .side-btn-icon { font-size: 1.7rem; line-height: 1; font-weight: 700; }
-
-            .scrollbar-cover { display: none; }
 
             /* Popups: tighten big horizontal paddings on small screens */
             .exp-popup-box { width: 95%; max-height: 90vh; overflow-y: auto; }
@@ -875,7 +763,6 @@
         <div class="preload-bar-wrap"><div class="preload-bar" id="preload-bar"></div></div>
     </div>
     <div class="preload-title">Loading Contents...</div>
-    <div class="preload-count" id="preload-count">0 / 2</div>
 </div>
 
 <div id="navbar-placeholder"></div>
@@ -1120,10 +1007,29 @@
                     buildResultDropdown();
                     // 진단용: 문서 URL이 매핑된 모형 수 확인 (콘솔에서 확인)
                     try {
-                        var total = Object.keys(MODEL_URL).length;
+                        var totalRows = (data.rows || []).length;
+                        var filteredRows = sheetRows.length;
+                        var uniqueModels = Object.keys(MODEL_URL).length;
                         var withUrl = Object.keys(MODEL_URL).filter(function(k){ return MODEL_URL[k]; }).length;
-                        console.log('[IMTI] 모형 ' + total + '건 중 문서 URL 보유 ' + withUrl + '건');
-                        if (total > 0 && withUrl === 0 && sheetRows[0]) {
+                        console.log('[IMTI] 원본 행 ' + totalRows + '건 → model 필터 후 ' + filteredRows + '건 → 고유 모형 ' + uniqueModels + '건 (문서 URL 보유 ' + withUrl + '건)');
+
+                        // model 필드가 비어 있어 제외된 행 찾기
+                        var emptyModelRows = (data.rows || []).filter(function(r) { return !r.model; });
+                        if (emptyModelRows.length > 0) {
+                            console.warn('[IMTI] model 필드가 비어 있어 제외된 행 ' + emptyModelRows.length + '건:', emptyModelRows);
+                        }
+
+                        // 중복 모형명 찾기
+                        var modelCount = {};
+                        sheetRows.forEach(function(r) {
+                            modelCount[r.model] = (modelCount[r.model] || 0) + 1;
+                        });
+                        var duplicates = Object.keys(modelCount).filter(function(k) { return modelCount[k] > 1; });
+                        if (duplicates.length > 0) {
+                            console.warn('[IMTI] 중복 모형명 발견:', duplicates.map(function(k) { return k + ' (' + modelCount[k] + '건)'; }));
+                        }
+
+                        if (uniqueModels > 0 && withUrl === 0 && sheetRows[0]) {
                             console.warn('[IMTI] 문서 URL이 하나도 매핑되지 않았습니다. 시트 행의 실제 필드명을 확인하세요. 예시 행 키:', Object.keys(sheetRows[0]));
                         }
                     } catch(_) {}
@@ -1169,6 +1075,34 @@
 
     var ALL_LABEL_MAP = { domain: '선택 해제', participants: '선택 해제', orientation: '선택 해제', competency: '선택 해제' };
 
+    /* Count how many models match when a hypothetical filter value is applied
+       on top of the current filterState, for a given filterKey. */
+    function countModelsForOption(filterKey, optionValue) {
+        var s = filterState;
+        var testState = {
+            domain:       filterKey === 'domain'       ? optionValue : s.domain,
+            orientation:  filterKey === 'orientation'  ? optionValue : s.orientation,
+            competency:   filterKey === 'competency'   ? optionValue : s.competency,
+            participants: filterKey === 'participants' ? optionValue : s.participants
+        };
+        var df = (testState.domain       && testState.domain       !== '__ALL__') ? testState.domain       : null;
+        var of2= (testState.orientation  && testState.orientation  !== '__ALL__') ? testState.orientation  : null;
+        var cf = (testState.competency   && testState.competency   !== '__ALL__') ? testState.competency   : null;
+        var pf = (testState.participants && testState.participants !== '__ALL__') ? testState.participants : null;
+        var cIds = cf ? (COMPETENCY_MAP[cf]   || []) : null;
+        var pIds = pf ? (PARTICIPANTS_MAP[pf] || []) : null;
+        var models = {};
+        sheetRows.forEach(function(r) {
+            if (!r.model) return;
+            if (df && r.domain      !== df) return;
+            if (of2 && r.orientation !== of2) return;
+            if (cIds && !cIds.includes(r.mtiId)) return;
+            if (pIds && !pIds.includes(r.mtiId)) return;
+            models[r.model] = true;
+        });
+        return Object.keys(models).length;
+    }
+
     function rebuildFilterDropdowns() {
         var lists = { domain: DOMAIN_LIST, orientation: ORIENTATION_LIST, competency: COMPETENCY_LIST, participants: PARTICIPANTS_LIST };
         var ddIds = { domain: 'dd-domain', orientation: 'dd-orientation', competency: 'dd-competency', participants: 'dd-participants' };
@@ -1181,12 +1115,38 @@
                 return;
             }
             lists[key].forEach(function(val) {
+                var cnt  = countModelsForOption(key, val);
                 var item = document.createElement('div');
                 item.className = 'dropdown-item';
-                item.textContent = val;
-                item.onclick = function() { selectFilter(key, val); };
+                item.dataset.filterKey   = key;
+                item.dataset.filterValue = val;
+                if (cnt === 0) item.classList.add('disabled-item');
+                var textSpan = document.createElement('span');
+                textSpan.textContent = val;
+                item.appendChild(textSpan);
+                var cntSpan = document.createElement('span');
+                cntSpan.className = 'dropdown-count';
+                cntSpan.textContent = cnt + '건';
+                item.appendChild(cntSpan);
+                item.onclick = function() { if (cnt === 0) return; selectFilter(key, val); };
                 dd.appendChild(item);
             });
+        });
+    }
+
+    /* Update counts in all filter dropdowns based on current filterState */
+    function updateFilterCounts() {
+        document.querySelectorAll('.dropdown-item[data-filter-key]').forEach(function(item) {
+            var key = item.dataset.filterKey;
+            var val = item.dataset.filterValue;
+            var cnt = countModelsForOption(key, val);
+            var cntSpan = item.querySelector('.dropdown-count');
+            if (cntSpan) cntSpan.textContent = cnt + '건';
+            if (cnt === 0) {
+                item.classList.add('disabled-item');
+            } else {
+                item.classList.remove('disabled-item');
+            }
         });
     }
 
@@ -1264,12 +1224,8 @@
                 : '';
             item.innerHTML  = numTag + '<span>' + displayName + '</span>';
             item.onclick     = function() { selectResult(name); };
-            item.onmouseenter = function() { if (MODEL_URL[name]) prefetchIframe(MODEL_URL[name]); };
             dd.appendChild(item);
         });
-
-        // Auto-prefetch when only one result
-        if (models.length === 1 && MODEL_URL[models[0]]) prefetchIframe(MODEL_URL[models[0]]);
 
         // 필터 선택 시 Step 02 영역 표시
         updatePhaseVisibility();
@@ -1339,9 +1295,10 @@
         lbl.innerHTML = ' <strong>' + value + '</strong>&nbsp;<span class="filter-caret">▾</span>';
         lbl.classList.add('active');
         document.querySelectorAll('#' + DD_MAP[key] + ' .dropdown-item').forEach(function(i) {
-            i.classList.toggle('selected', !i.dataset.isAll && i.textContent === value);
+            i.classList.toggle('selected', !i.dataset.isAll && i.dataset.filterValue === value);
         });
         closeAllDropdowns();
+        updateFilterCounts();
         buildResultDropdown();
     }
 
@@ -1351,6 +1308,7 @@
         lbl.innerHTML = NAME_MAP[key] + '(' + SHORT_MAP[key] + ') 선택 <span class="filter-caret">▾</span>';
         lbl.classList.remove('active');
         document.querySelectorAll('#' + DD_MAP[key] + ' .dropdown-item').forEach(function(i) { i.classList.remove('selected'); });
+        updateFilterCounts();
     }
 
     // 각 드롭메뉴 옆 ✕ 버튼: 해당 필터만 선택 해제 후 결과 갱신
@@ -1363,7 +1321,6 @@
 
     function resetAllFilters(event) {
         if (event) event.stopPropagation();
-        resetDocZoom();
         filterState    = { domain: null, participants: null, orientation: null, competency: null };
         selectedResult = null;
         ['domain','participants','orientation','competency'].forEach(clearFilter);
@@ -1375,344 +1332,12 @@
         if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.classList.remove('ready'); }
         buildResultDropdown();
         updatePhaseVisibility();
-        hideDocOverlay();
-
-        var c  = document.getElementById('iframe-container');
-        var sp = document.getElementById('loading-spinner');
-        sp.classList.remove('show');
-
-        // Hide all iframes
-        c.querySelectorAll('iframe').forEach(function(f) {
-            f.classList.remove('active');
-            f.style.visibility = 'hidden';
-            f.style.display    = 'block';
-        });
-
-        // Show guide iframe, create if missing
-        var guide = c.querySelector('iframe[data-is-guide="true"]');
-        if (guide) {
-            guide.classList.add('active');
-            guide.style.visibility = 'visible';
-            guide.style.display    = 'block';
-            scaleIframes();
-        } else {
-            var gf = document.createElement('iframe');
-            gf.dataset.src     = GUIDE_URL;
-            gf.dataset.isGuide = 'true';
-            gf.allowFullscreen = true;
-            gf.onload = function() { gf.classList.add('active'); scaleIframes(); };
-            c.appendChild(gf);
-            gf.src = GUIDE_URL;
-            scaleIframes();
-        }
 
         var ri = document.getElementById('filter-result');
         if (ri) ri.classList.remove('has-results');
         closeAllDropdowns();
     }
 
-    // ===== 문서/가이드 확대·축소 및 드래그 이동 =====
-    var _docZoom = 1, _docOffX = 0, _docOffY = 0;
-    var ZOOM_MIN = 1, ZOOM_MAX = 3, ZOOM_STEP = 0.25;
-
-    function zoomDoc(dir) {
-        _docZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, +(_docZoom + dir * ZOOM_STEP).toFixed(2)));
-        if (_docZoom === 1) { _docOffX = 0; _docOffY = 0; }     // 원배율이면 위치 초기화
-        else { _clampOffsets(); }
-        scaleIframes();
-    }
-
-    // 확대된 콘텐츠 이동 범위 제한 (빈 영역이 과하게 드러나지 않도록)
-    function _clampOffsets() {
-        var c = document.getElementById('iframe-container');
-        if (!c) return;
-        var f = c.querySelector('iframe.active');
-        if (!f) return;
-        var availW = c.clientWidth;
-        var isGuide = f.dataset.isGuide === 'true';
-        var baseW = isGuide ? availW : 820;
-        var baseH = isGuide ? 3200 : 2600;
-        var fit   = isGuide ? 1 : (availW / baseW);
-        var scale = fit * _docZoom;
-        var contentW = baseW * scale;
-        var minX = Math.min(0, availW - contentW);
-        if (_docOffX > 0) _docOffX = 0;
-        if (_docOffX < minX) _docOffX = minX;
-        _docOffY = 0;   // 가로 방향만 이동하므로 세로는 항상 0
-    }
-
-    // 확대 상태에서 터치/마우스 드래그로 콘텐츠 이동
-    (function setupDocDrag() {
-        var dragging = false, sx = 0, sy = 0, ox = 0, oy = 0, axis = null;
-        function onStart(e) {
-            if (_docZoom <= 1) return;                 // 확대 상태에서만 드래그
-            dragging = true;
-            axis = null;                               // 아직 방향 미정
-            var pt = e.touches ? e.touches[0] : e;
-            sx = pt.clientX; sy = pt.clientY; ox = _docOffX; oy = _docOffY;
-        }
-        function onMove(e) {
-            if (!dragging) return;
-            var pt = e.touches ? e.touches[0] : e;
-            var dx = pt.clientX - sx;
-            var dy = pt.clientY - sy;
-            // 첫 움직임에서 주된 방향 결정: 가로면 드래그, 세로면 페이지 스크롤에 양보
-            if (axis === null) {
-                if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;   // 미세 움직임은 대기
-                axis = (Math.abs(dx) > Math.abs(dy)) ? 'x' : 'y';
-            }
-            if (axis === 'y') { dragging = false; return; }         // 세로 → 브라우저 스크롤에 맡김
-            // 가로 드래그 처리
-            _docOffX = ox + dx;
-            _docOffY = 0;
-            _clampOffsets();
-            var f = document.querySelector('#iframe-container iframe.active');
-            if (f) {
-                var availW = document.getElementById('iframe-container').clientWidth;
-                var isGuide = f.dataset.isGuide === 'true';
-                var fit = isGuide ? 1 : (availW / 820);
-                f.style.transform = 'translate(' + _docOffX + 'px,' + _docOffY + 'px) scale(' + (fit * _docZoom) + ')';
-            }
-            if (e.cancelable) e.preventDefault();   // 가로 드래그일 때만 스크롤 취소
-        }
-        function onEnd() { dragging = false; axis = null; }
-        document.addEventListener('DOMContentLoaded', function() {
-            var c = document.getElementById('iframe-container');
-            if (!c) return;
-            c.addEventListener('touchstart', onStart, { passive: true });
-            c.addEventListener('touchmove',  onMove,  { passive: false });
-            c.addEventListener('touchend',   onEnd);
-            c.addEventListener('mousedown',  onStart);
-            window.addEventListener('mousemove', onMove);
-            window.addEventListener('mouseup',   onEnd);
-        });
-    })();
-
-    // 새 문서/가이드로 전환 시 확대 상태 초기화
-    function resetDocZoom() { _docZoom = 1; _docOffX = 0; _docOffY = 0; }
-
-    // Render iframes at container size (no scaling)
-    function scaleIframes() {
-        var c = document.getElementById('iframe-container');
-        if (!c || c.clientWidth === 0) return;
-        var isMobile = window.innerWidth <= 768;
-        if (isMobile) {
-            // 모바일: iframe을 일반 흐름에 두고 페이지 전체가 스크롤되게 함.
-            var availW = c.clientWidth;
-            var z = _docZoom || 1;                       // 사용자 확대/축소 배율
-            // 확대(z>1) 시: 가로로 넘치는 부분은 잘라내고(가로 클리핑) 드래그로 이동,
-            // 세로는 일반 페이지 스크롤이 되도록 흐름에 맡긴다.
-            if (z > 1) {
-                c.style.overflowX = 'hidden';
-                c.style.overflowY = 'visible';
-                c.style.touchAction = 'pan-y';   // 세로 스크롤은 브라우저, 가로 드래그는 직접 처리
-            } else {
-                c.style.overflowX = 'visible';
-                c.style.overflowY = 'visible';
-                c.style.touchAction = 'auto';
-            }
-            c.style.height = '';   // 높이는 항상 콘텐츠에 맡겨 세로 전체가 스크롤되게 함
-            c.querySelectorAll('iframe').forEach(function(f) {
-                var isGuide = f.dataset.isGuide === 'true';
-                f.style.position   = 'relative';
-                f.style.top        = 'auto';
-                f.style.left       = 'auto';
-                f.style.visibility = 'visible';
-                f.style.display    = f.classList.contains('active') ? 'block' : 'none';
-                f.style.transformOrigin = 'top left';
-                // 확대 상태에서는 iframe이 터치를 가로채지 않도록 통과시켜 드래그 이동을 가능케 함
-                f.style.pointerEvents = (z > 1) ? 'none' : 'auto';
-
-                if (isGuide) {
-                    // 가이드: 자체 반응형 HTML(폭 availW 기준). 확대 시 폭×z, 드래그 오프셋 적용.
-                    var gBaseH = 3200;
-                    f.style.setProperty('width', availW + 'px', 'important');
-                    f.style.setProperty('height', gBaseH + 'px', 'important');
-                    f.style.transform = 'translate(' + _docOffX + 'px,' + _docOffY + 'px) scale(' + z + ')';
-                    // 차지하는 실제 높이 = 콘텐츠높이*z 만큼만 (나머지 음수마진 제거)
-                    f.style.marginBottom = Math.round(-(gBaseH * (1 - z))) + 'px';
-                } else {
-                    // Google Docs: 데스크톱 기준 폭(BASE_W)을 가용폭에 맞춘 비율 × 사용자 zoom
-                    var BASE_W = 810, BASE_H = 2600;
-                    var fit   = availW / BASE_W;          // 화면 폭 맞춤 비율
-                    var scale = fit * z;                  // 최종 배율
-                    f.style.setProperty('width',  BASE_W + 'px', 'important');
-                    f.style.setProperty('height', BASE_H + 'px', 'important');
-                    f.style.transform = 'translate(' + _docOffX + 'px,' + _docOffY + 'px) scale(' + scale + ')';
-                    f.style.marginBottom = Math.round(-(BASE_H * (1 - scale))) + 'px';
-                }
-            });
-            return;
-        }
-        var w = c.clientWidth, h = c.clientHeight;
-        c.querySelectorAll('iframe').forEach(function(f) {
-            f.style.position   = 'absolute';
-            f.style.top        = '0';
-            f.style.left       = '0';
-            f.style.width      = w + 'px';
-            f.style.height     = h + 'px';
-            f.style.transform  = 'none';
-            f.style.display    = 'block';
-            f.style.visibility = f.classList.contains('active') ? 'visible' : 'hidden';
-        });
-    }
-
-    // Normalize Google Docs URL to preview format
-    function toPreviewUrl(src) {
-        if (!src || !src.includes('docs.google.com')) return src;
-        if (src.includes('/preview') && src.includes('rm=minimal')) return src;
-        var base = src.split('?')[0].split('#')[0];
-        base = base.replace(/\/(edit|view|pub|preview|copy|export)(\/.*)?$/, '');
-        return base + '/preview?rm=minimal';
-    }
-
-    function findIframeByUrl(fs) {
-        var found = null;
-        document.getElementById('iframe-container').querySelectorAll('iframe[data-src]').forEach(function(f) {
-            if (f.dataset.src === fs) found = f;
-        });
-        return found;
-    }
-
-    // Preload iframe silently in background
-    function prefetchIframe(src) {
-        var fs = toPreviewUrl(src);
-        if (findIframeByUrl(fs)) return;
-        var f = document.createElement('iframe');
-        f.dataset.src     = fs;
-        f.dataset.loaded  = 'false';
-        f.allowFullscreen = true;
-        f.style.background = '#fff';
-        f.style.display    = 'none';      // 활성화 전까지 숨김 (모바일에서 공간 차지 방지)
-        f.style.visibility = 'hidden';
-        f.onload = function() { f.dataset.loaded = 'true'; };
-        f.src = fs;
-        document.getElementById('iframe-container').appendChild(f);
-    }
-
-    var _docProgressTimer = null;
-    var _docProgressPct   = 0;
-
-    function showDocOverlay(label) {
-        var ov  = document.getElementById('doc-loading-overlay');
-        var bar = document.getElementById('doc-progress-bar');
-        var lbl = document.getElementById('doc-loading-label');
-        if (!ov) return;
-        if (_docProgressTimer) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
-        _docProgressPct = 0;
-        if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
-        if (lbl && label) lbl.textContent = label;
-        ov.classList.add('show');
-        requestAnimationFrame(function() {
-            requestAnimationFrame(function() {
-                ov.classList.add('visible');
-                if (bar) bar.style.transition = 'width 0.28s ease';
-                // Phase 1: animate 0% → 80% while iframe loads
-                _docProgressTimer = setInterval(function() {
-                    var step = _docProgressPct < 40 ? 2.5 : (_docProgressPct < 65 ? 1.0 : 0.3);
-                    _docProgressPct  = Math.min(_docProgressPct + step, 80);
-                    if (bar) bar.style.width = _docProgressPct + '%';
-                    if (_docProgressPct >= 80) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
-                }, 120);
-            });
-        });
-    }
-
-    // Phase 2: animate 80% → 97%, then hide overlay
-    function waitForImagesAndHide(token) {
-        if (_loadToken !== token) return;
-        var bar = document.getElementById('doc-progress-bar');
-        if (_docProgressTimer) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
-        _docProgressPct = 80;
-        if (bar) { bar.style.transition = 'width 0.25s ease'; bar.style.width = '80%'; }
-        _docProgressTimer = setInterval(function() {
-            if (_loadToken !== token) { clearInterval(_docProgressTimer); _docProgressTimer = null; return; }
-            _docProgressPct = Math.min(_docProgressPct + 0.5, 97);
-            if (bar) bar.style.width = _docProgressPct + '%';
-            if (_docProgressPct >= 97) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
-        }, 120);
-        setTimeout(function() {
-            if (_loadToken !== token) return;
-            clearInterval(_docProgressTimer); _docProgressTimer = null;
-            hideDocOverlay();
-        }, 700);
-    }
-
-    function hideDocOverlay() {
-        var ov  = document.getElementById('doc-loading-overlay');
-        var bar = document.getElementById('doc-progress-bar');
-        if (!ov) return;
-        if (_docProgressTimer) { clearInterval(_docProgressTimer); _docProgressTimer = null; }
-        if (bar) { bar.style.transition = 'width 0.2s ease'; bar.style.width = '100%'; }
-        setTimeout(function() {
-            ov.classList.remove('visible');
-            setTimeout(function() { ov.classList.remove('show'); }, 200);
-        }, 350);
-    }
-
-    var _loadToken = 0;
-
-    function loadIframe(src) {
-        resetDocZoom();
-        var fs    = toPreviewUrl(src);
-        var c     = document.getElementById('iframe-container');
-        var sp    = document.getElementById('loading-spinner');
-        var token = ++_loadToken;
-        sp.classList.remove('show');
-
-        c.querySelectorAll('iframe').forEach(function(f) {
-            f.classList.remove('active');
-            f.style.visibility = 'hidden';
-            f.style.display    = 'none';
-        });
-        scaleIframes();
-
-        showDocOverlay('선택한 MTI를 불러오는 중...');
-
-        // Fallback: force-show after 8s if onload never fires
-        var fallbackTimer = setTimeout(function() {
-            if (_loadToken !== token) return;
-            var target = findIframeByUrl(fs);
-            if (target) { target.classList.add('active'); scaleIframes(); }
-            hideDocOverlay();
-        }, 8000);
-
-        function revealFrame(frm) {
-            if (_loadToken !== token) return;
-            clearTimeout(fallbackTimer);
-            frm.classList.add('active');
-            scaleIframes();
-            waitForImagesAndHide(token);
-        }
-
-        var ex = findIframeByUrl(fs);
-        if (ex) {
-            if (ex.dataset.loaded === 'true') {
-                // Already cached — show immediately
-                clearTimeout(fallbackTimer);
-                hideDocOverlay();
-                ex.classList.add('active');
-                scaleIframes();
-            } else {
-                // Prefetch in progress — wait for onload
-                ex.onload = function() { ex.dataset.loaded = 'true'; revealFrame(ex); };
-            }
-            return;
-        }
-
-        // Create new iframe
-        var f = document.createElement('iframe');
-        f.dataset.src      = fs;
-        f.dataset.loaded   = 'false';
-        f.allowFullscreen  = true;
-        f.style.background = '#fff';
-        f.onload = function() { f.dataset.loaded = 'true'; revealFrame(f); };
-        f.src = fs;
-        c.appendChild(f);
-        scaleIframes();
-    }
-
-    window.addEventListener('resize', scaleIframes);
 </script>
 
 <script>
@@ -1976,9 +1601,6 @@
         var src = '';
         if (selectedResult && MODEL_URL[selectedResult]) {
             src = MODEL_URL[selectedResult];
-        } else {
-            var f = document.querySelector('#iframe-container iframe.active');
-            if (f && f.dataset.src) src = f.dataset.src;
         }
         if (!src) {
             alert('다운로드할 문서가 없습니다.');
@@ -2073,24 +1695,19 @@
             if (bar) bar.style.width = fakePct + '%';
         }, 80);
 
-        var sheetDone = false, iframeDone = false;
+        var sheetDone = false;
         function checkAllDone() {
-            if (!sheetDone || !iframeDone) return;
+            if (!sheetDone) return;
             clearInterval(fakeTimer);
             dismissOverlay();
-            prefetchIframe(DEFAULT_DOC_URL);
         }
 
         loadSheetData().then(function() { sheetDone = true; fakeTarget = 95; checkAllDone(); });
 
-        // iframe-container 제거됨 — 가이드는 모달로 전환, 시트 로드만 기다리면 됨
-        iframeDone = true;
-        checkAllDone();
-
         // Fallback timeout (15s)
         setTimeout(function() {
             clearInterval(fakeTimer);
-            sheetDone = true; iframeDone = true;
+            sheetDone = true;
             dismissOverlay();
         }, 15000);
     });
