@@ -198,16 +198,15 @@
                     const target6Name = target6Raw.split('(')[0].trim(); // extract name before '('
 
                     if (type === "학술지 논문" && text) {
-                        if (target4 && text.includes(target4)) {
-                            text = text.split(target4).join(`<strong>${target4}</strong>`);
-                        }
-                        if (anchor16 && target6Name && text.includes(anchor16)) {
-                            const anchorIdx = text.indexOf(anchor16) + anchor16.length;
-                            const beforePart = text.substring(0, anchorIdx);
-                            const afterPart = text.substring(anchorIdx);
-                            if (afterPart.includes(target6Name)) {
-                                const newAfterPart = afterPart.replace(target6Name, `<strong>${target6Name}</strong>`);
-                                text = beforePart + newAfterPart;
+                        if (anchor16 && text.includes(anchor16)) {
+                            const anchorIdx = text.indexOf(anchor16);
+                            const beforePart = text.substring(0, anchorIdx + anchor16.length);
+                            const afterPart = text.substring(anchorIdx + anchor16.length);
+                            // APA 패턴: ". 학술지명, 권수(호수), 페이지."
+                            const m = afterPart.match(/^(\.\s+)(.+?)(,\s+)(\d+)(\()/);
+                            if (m) {
+                                const reconstructed = m[1] + '<strong>' + m[2] + '</strong>' + m[3] + '<strong>' + m[4] + '</strong>' + m[5];
+                                text = beforePart + reconstructed + afterPart.substring(m[0].length);
                             }
                         }
                     }
