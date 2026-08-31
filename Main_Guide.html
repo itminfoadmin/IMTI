@@ -263,7 +263,7 @@
         }
 
         .mti-table tbody th {
-            background-color: #ffffff;
+            background-color: #f7fafb;
             color: #4a5a66;
             font-weight: 400;
             text-align: center;
@@ -308,7 +308,7 @@
 
         .orient-table {
             border-collapse: collapse;
-            width: 85%;
+            width: 99%;
             font-size: 0.77rem;
             font-family: 'Gowun Batang', serif;
             line-height: 1.55;
@@ -322,6 +322,12 @@
             vertical-align: middle;
             color: #343a40;
         }
+
+        .orient-table tr th:first-child,
+        .orient-table tr td:first-child { border-left-color: transparent; }
+
+        .orient-table tr th:last-child,
+        .orient-table tr td:last-child { border-right-color: transparent; }
 
         .orient-table thead th {
             background-color: #dce8f0;
@@ -375,11 +381,11 @@
         <div class="orient-table-wrap">
         <table class="orient-table">
             <colgroup>
-                <col style="width:115px;">
+                <col style="width:152px;">
                 <col>
             </colgroup>
             <thead>
-                <tr><th>지  향</th><th>설  명</th></tr>
+                <tr><th>지  향</th><th>설&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;명</th></tr>
             </thead>
             <tbody>
                 <tr><th>문제 해결 학습</th><td>학습자가 비구조화된 문제(problem)를 해결하는 과정에서 교과 영역에 대한 학습이 이루어지거나, 이러한 문제 해결 과정 자체를 학습으로 전제하는 MTI의 군집</td></tr>
