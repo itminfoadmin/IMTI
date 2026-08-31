@@ -79,7 +79,8 @@
             transition: background 0.15s, color 0.15s;
         }
         .tab-btn.active[data-idx="0"] { background: #d47878; color: #fff; }
-        .tab-btn.active[data-idx="1"] { background: #d49860; color: #fff; }
+        .tab-btn.active[data-idx="1"] { background: #c27878; color: #fff; }
+        .tab-btn.active[data-idx="2"] { background: #d49860; color: #fff; }
 
         
         .iframe-wrap { flex: 1; min-height: 0; padding: 10px 10%; position: relative; }
@@ -192,7 +193,8 @@
 
 <div class="tab-bar" id="tab-bar">
     <button class="tab-btn active" data-idx="0" onclick="switchTab(0)">IMTI 소개 및 운영 안내</button>
-    <button class="tab-btn" data-idx="1" onclick="switchTab(1)">분석된 연구물 목록</button>
+    <button class="tab-btn" data-idx="1" onclick="switchTab(1)">수업 모형(MTI) 분류 체계 안내</button>
+    <button class="tab-btn" data-idx="2" onclick="switchTab(2)">분석된 연구물 목록</button>
 </div>
 
 <div class="iframe-wrap">
@@ -207,6 +209,7 @@
 
 const TABS = [
     { src: "Main_Greeting.html",               type: "local", baseWidth: 1100 },
+    { src: "Main_Guide.html",                  type: "local", baseWidth: 1100 },
     { src: "Main_Reference.html",               type: "local", baseWidth: 1100 }
 ];
 let currentTabIdx = 0;
