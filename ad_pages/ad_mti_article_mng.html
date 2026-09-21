@@ -404,6 +404,7 @@
             <button class="btn btn-outline" id="btn-reload">↺ RELOAD</button>
             <button class="btn btn-primary" id="btn-save"   disabled>✓ SAVE</button>
             <button class="btn btn-danger"  id="btn-delete" disabled>✕ DELETE</button>
+            <button class="btn btn-outline" id="btn-sheet" style="border-color:#c5cae9;color:#3949ab;">⎗ SEE SHEET</button>
             <button class="btn btn-search"  id="btn-search">⌕ SEARCHING</button>
             <button class="btn btn-print"   id="btn-print"  disabled>⎙ PRINT</button>
         </div>
@@ -1050,6 +1051,11 @@ window.__pageInit = function () {
     document.getElementById('confirm-ok-btn').addEventListener('click', handleDeleteConfirmed);
     document.getElementById('confirm-overlay').addEventListener('click', function (e) {
         if (e.target === this) this.classList.remove('open');
+    });
+
+    // See Sheet — Google Sheets 새 창으로 열기
+    document.getElementById('btn-sheet').addEventListener('click', function () {
+        window.open('https://docs.google.com/spreadsheets/d/1iYFrEuWSwGD6xfCn3h_JiM14_eMUmXEmPqGryDCvXZI/edit?gid=0#gid=0', '_blank');
     });
 
     // PDF viewer — 별도 창으로 열기
