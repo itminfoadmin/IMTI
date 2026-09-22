@@ -992,12 +992,17 @@ window.__pageInit = function () {
         })
         .then(r => {
             clearTimeout(timer);
+            if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
             return r.text();
         })
         .then(txt => {
-            // GAS may return HTML error page instead of JSON
+            if (!txt || !txt.trim()) throw new Error('Empty response from server');
             try { return JSON.parse(txt); }
-            catch (_) { throw new Error('Server returned non-JSON — check GAS deployment'); }
+            catch (_) {
+                // Show first 200 chars of actual response for debugging
+                var preview = txt.length > 200 ? txt.substring(0, 200) + '…' : txt;
+                throw new Error('Non-JSON response: ' + preview);
+            }
         })
         .catch(err => {
             clearTimeout(timer);
