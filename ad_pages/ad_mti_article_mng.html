@@ -404,6 +404,7 @@
             <button class="btn btn-outline" id="btn-reload" title="Reload">↺</button>
             <button class="btn btn-primary" id="btn-save"   disabled title="Save">💾</button>
             <button class="btn btn-danger"  id="btn-delete" disabled title="Delete">✕ DEL.</button>
+            <button class="btn btn-outline" id="btn-curriculum" style="border-color:#c5cae9;color:#3949ab;" title="Curriculum">⎗ CURRICULUM</button>
             <button class="btn btn-outline" id="btn-sheet" style="border-color:#c5cae9;color:#3949ab;" title="Analyzed Article Sheet">⎗ SHEET</button>
             <button class="btn btn-outline" id="btn-arlist" style="border-color:#c5cae9;color:#3949ab;" title="Review Article List">⎗ AR_LIST</button>
             <button class="btn btn-search"  id="btn-search" title="Searching Article">⌕</button>
@@ -1039,6 +1040,11 @@ window.__pageInit = function () {
     document.getElementById('confirm-ok-btn').addEventListener('click', handleDeleteConfirmed);
     document.getElementById('confirm-overlay').addEventListener('click', function (e) {
         if (e.target === this) this.classList.remove('open');
+    });
+
+    // CURRICULUM — Google Drive PDF 새 탭으로 열기
+    document.getElementById('btn-curriculum').addEventListener('click', function () {
+        window.open('https://drive.google.com/file/d/199M6v-_o7YcMxHtMH3zpF2rTl4lV8w9K/view?usp=sharing', '_blank');
     });
 
     // See Sheet — Google Sheets 새 창으로 열기
