@@ -399,14 +399,15 @@
                 <span class="last-saved-label">Previous: </span>
                 <span class="last-saved-id" id="last-saved-id" title="Click to jump to this article"></span>
             </div>
-            <button class="btn btn-nav" id="btn-prev" disabled>‹ Prev.</button>
-            <button class="btn btn-nav" id="btn-next" disabled>Next. ›</button>
-            <button class="btn btn-outline" id="btn-reload">↺ RELOAD</button>
-            <button class="btn btn-primary" id="btn-save"   disabled>✓ SAVE</button>
-            <button class="btn btn-danger"  id="btn-delete" disabled>✕ DEL.</button>
-            <button class="btn btn-outline" id="btn-sheet" style="border-color:#c5cae9;color:#3949ab;">⎗ SHEET</button>
-            <button class="btn btn-search"  id="btn-search">⌕ SEARCH</button>
-            <button class="btn btn-print"   id="btn-print"  disabled>⎙ PRINT</button>
+            <button class="btn btn-nav" id="btn-prev" disabled title="Previous Article">‹‹</button>
+            <button class="btn btn-nav" id="btn-next" disabled title="Next Article">››</button>
+            <button class="btn btn-outline" id="btn-reload" title="Reload">↺</button>
+            <button class="btn btn-primary" id="btn-save"   disabled title="Save">💾</button>
+            <button class="btn btn-danger"  id="btn-delete" disabled title="Delete">✕ DEL.</button>
+            <button class="btn btn-outline" id="btn-sheet" style="border-color:#c5cae9;color:#3949ab;" title="Analyzed Article Sheet">⎗ SHEET</button>
+            <button class="btn btn-outline" id="btn-arlist" style="border-color:#c5cae9;color:#3949ab;" title="Review Article List">⎗ AR_LIST</button>
+            <button class="btn btn-search"  id="btn-search" title="Searching Article">⌕</button>
+            <button class="btn btn-print"   id="btn-print"  disabled title="Print">⎙</button>
         </div>
     </div>
 
@@ -712,9 +713,9 @@ window.__pageInit = function () {
         return rows;
     }
 
-    function loadData() {
-        // Remember current Article ID for restoration after reload
-        const preservedId = document.getElementById('article-id-select').value || null;
+    function loadData(targetId) {
+        // targetId: if provided, select this article after reload; otherwise preserve current selection
+        const preservedId = targetId || document.getElementById('article-id-select').value || null;
 
         setSbMsg('Loading...');
         setButtons(false);
@@ -946,33 +947,13 @@ window.__pageInit = function () {
         .then(res => {
             if (res.status === 'ok') {
                 setBadge('ok', '✓ Saved');
-                setSbMsg('✓ ' + data.articleId + ' saved');
 
                 lastSavedId = data.articleId;
                 document.getElementById('last-saved-id').textContent = lastSavedId;
                 document.getElementById('last-saved-wrap').classList.add('visible');
 
-                if (currentRow) {
-                    currentRow[COL.APA]         = data.apa;
-                    currentRow[COL.SETTING]     = data.setting;
-                    currentRow[COL.TREATMENT]   = data.treatment;
-                    currentRow[COL.OUTCOME]     = data.outcome;
-                    currentRow[COL.UNIT]        = data.unit;
-                    currentRow[COL.DOMAIN]      = data.domain;
-                    currentRow[COL.ORIENTATION] = data.orientation;
-                    currentRow[COL.PARTICIPANT] = data.participant;
-                    currentRow[COL.COMPETENCY]  = data.competency;
-                    currentRow[COL.T_PROCEDURE] = data.tprocedure;
-                    currentRow[COL.SUMMARY]     = data.summary;
-                    currentRow[COL.MAIN_REF]    = data.mainref;
-                    currentRow[COL.PDF_URL]     = data.pdfurl;
-                    if (res.savedAt) {
-                        currentRow[COL.LATEST_UPD] = res.savedAt;
-                        document.getElementById('latest-update-val').textContent = res.savedAt;
-                        document.getElementById('print-update').textContent = 'Updated: ' + res.savedAt;
-                    }
-                    updateAnalyzedCount();
-                }
+                // Reload all data from server, then restore the saved article
+                loadData(data.articleId);
             } else { throw new Error(res.message || 'Unknown error'); }
         })
         .catch(err => { setBadge('err', '✗ Save failed'); setSbMsg('⚠ Error: ' + err.message); });
@@ -983,6 +964,13 @@ window.__pageInit = function () {
         const data = collectFormData();
         document.getElementById('confirm-overlay').classList.remove('open');
         setBadge('deleting', 'Deleting...');
+
+        // Remember the previous article ID so we can navigate to it after deletion
+        let prevId = null;
+        if (currentIdx > 0) {
+            prevId = v(allRows[currentIdx - 1], COL.ARTICLE_ID);
+        }
+
         fetch(GAS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -993,9 +981,9 @@ window.__pageInit = function () {
             if (res.status === 'ok') {
                 setBadge('ok', '✓ Deleted');
                 setSbMsg('✓ ' + data.articleId + ' deleted');
-                // After delete, re-sync fully from server (row numbers shift on the sheet)
+                // Re-sync from server, then show the previous article (or empty state if none)
                 clearForm();
-                loadData();
+                loadData(prevId);
             } else { throw new Error(res.message || 'Unknown error'); }
         })
         .catch(err => { setBadge('err', '✗ Delete failed'); setSbMsg('⚠ Error: ' + err.message); });
@@ -1056,6 +1044,11 @@ window.__pageInit = function () {
     // See Sheet — Google Sheets 새 창으로 열기
     document.getElementById('btn-sheet').addEventListener('click', function () {
         window.open('https://docs.google.com/spreadsheets/d/1iYFrEuWSwGD6xfCn3h_JiM14_eMUmXEmPqGryDCvXZI/edit?gid=0#gid=0', '_blank');
+    });
+
+    // AR_LIST — Article List 시트 새 탭으로 열기
+    document.getElementById('btn-arlist').addEventListener('click', function () {
+        window.open('https://docs.google.com/spreadsheets/d/1IpW198n6HFBTm03S035ZlQ-2RVVN_dVZKgMZEK0ZZKQ/edit?usp=sharing', '_blank');
     });
 
     // PDF viewer — 별도 창으로 열기
