@@ -198,15 +198,27 @@
                     const target6Name = target6Raw.split('(')[0].trim(); // extract name before '('
 
                     if (type === "학술지 논문" && text) {
+                        let bolded = false;
+
+                        // Strategy 1: anchor 기반 매칭 (col 16 앵커 포인트 활용)
                         if (anchor16 && text.includes(anchor16)) {
                             const anchorIdx = text.indexOf(anchor16);
                             const beforePart = text.substring(0, anchorIdx + anchor16.length);
                             const afterPart = text.substring(anchorIdx + anchor16.length);
-                            // APA 패턴: ". 학술지명, 권수(호수), 페이지."
-                            const m = afterPart.match(/^(\.\s+)(.+?)(,\s+)(\d+)(\()/);
+                            // APA 패턴: ". 학술지명, 권수" 뒤에 (, ,, . 허용
+                            const m = afterPart.match(/^(\.\s+)(.+?)(,\s+)(\d+)(?=[\(,.])/);
                             if (m) {
-                                const reconstructed = m[1] + '<strong>' + m[2] + '</strong>' + m[3] + '<strong>' + m[4] + '</strong>' + m[5];
-                                text = beforePart + reconstructed + afterPart.substring(m[0].length);
+                                text = beforePart + m[1] + '<strong>' + m[2] + '</strong>' + m[3] + '<strong>' + m[4] + '</strong>' + afterPart.substring(m[0].length);
+                                bolded = true;
+                            }
+                        }
+
+                        // Strategy 2: 폴백 — anchor가 없거나 매칭 실패 시
+                        // 텍스트에서 마지막 ". 학술지명, 권수" 패턴을 찾아 bold 처리
+                        if (!bolded) {
+                            const m = text.match(/^(.*\.\s+)(.+?)(,\s+)(\d{1,4})(?=[\(,.])/);
+                            if (m) {
+                                text = m[1] + '<strong>' + m[2] + '</strong>' + m[3] + '<strong>' + m[4] + '</strong>' + text.substring(m[0].length);
                             }
                         }
                     }
